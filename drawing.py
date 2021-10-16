@@ -49,8 +49,11 @@ class DrawerBlock(DrawerNode):
         super().__init__(node)
 
     def calc_size(self, size, pos, started=True):
-        margin = 5
-        height = 20
+        margin = 0 #5
+        height = 0 #20
+        if hasattr(self.node, 'style'):
+            margin = self.node.style.get('margin', 0) 
+            height = self.node.style.get('height', 0)
 
         size_my = [size[0] - 2*margin, height]
         size_calced = [size_my[0], size_my[1]]
@@ -83,7 +86,16 @@ class DrawerBlock(DrawerNode):
 
         ps, size_calced = self.pos, self.size_calced
 
-        cr.set_source_rgb(0.2, 0.23 + started, 0.9)
+        background_color = None
+        if hasattr(self.node, 'style'):
+            background_color = self.node.style.get('background-color', None)
+
+        if background_color:
+            background_color = background_color.split('#')[1]
+            background_color = (int(background_color[:2], 16)/255.0, int(background_color[2:4], 16)/255.0, int(background_color[4:6], 16)/255.0)
+            cr.set_source_rgb(*background_color)
+        else:
+            cr.set_source_rgb(0.2, 0.23 + started, 0.9)
         cr.rectangle(ps[0], ps[1], size_calced[0], size_calced[1])
         cr.fill()
 
