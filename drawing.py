@@ -51,6 +51,7 @@ class DrawerBlock(DrawerNode):
     def calc_size(self, size, pos, started=True):
         margin = 0 #5
         height = 0 #20
+        
         if hasattr(self.node, 'style'):
             margin = self.node.style.get('margin', 0) 
             height = self.node.style.get('height', 0)
@@ -86,21 +87,25 @@ class DrawerBlock(DrawerNode):
 
         ps, size_calced = self.pos, self.size_calced
 
-        background_color = None
+        background_color = color = None
+        font_size = 11
         if hasattr(self.node, 'style'):
+            color = self.node.style.get('color', None)
             background_color = self.node.style.get('background-color', None)
+            font_size = self.node.style.get('font-size', 11)
 
         if background_color:
-            background_color = background_color.split('#')[1]
-            background_color = (int(background_color[:2], 16)/255.0, int(background_color[2:4], 16)/255.0, int(background_color[4:6], 16)/255.0)
-            cr.set_source_rgb(*background_color)
+            cr.set_source_rgb(*hex2color(background_color))
         else:
             cr.set_source_rgb(0.2, 0.23 + started, 0.9)
         cr.rectangle(ps[0], ps[1], size_calced[0], size_calced[1])
         cr.fill()
 
-        cr.set_source_rgb(0.1, 0.1, 0.1)
-        cr.set_font_size(11)
+        if color:
+            cr.set_source_rgb(*hex2color(color))
+        else:
+            cr.set_source_rgb(0.1, 0.1, 0.1)
+        cr.set_font_size(font_size)
         cr.move_to(ps[0]+5, ps[1]+14)
         #cr.show_text(str(self.node.tag))# + ' ' + self.text if self.text else '')
         cr.show_text(self.node.text if self.node.text else '')
@@ -112,6 +117,9 @@ class DrawerBlock(DrawerNode):
 
             node.drawer.draw(cr, started)
 
+def hex2color(color_hex):
+    color_hex = color_hex.split('#')[1]
+    return (int(color_hex[:2], 16)/255.0, int(color_hex[2:4], 16)/255.0, int(color_hex[4:6], 16)/255.0)
 
 ROOT = make_drawable_tree(ROOT_NODE)
 print(ROOT)
