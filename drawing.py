@@ -49,18 +49,31 @@ class DrawerBlock(DrawerNode):
         super().__init__(node)
 
     def calc_size(self, size, pos, started=True):
-        margin = 0 #5
-        height = 0 #20
+        margin = 0
+        height = 0
+        min_height = 0
         
         if hasattr(self.node, 'style'):
             margin = self.node.style.get('margin', 0) 
             height = self.node.style.get('height', 0)
+            min_height = int(self.node.style.get('min-height', 0))
 
-        size_my = [size[0] - 2*margin, height]
+        if type(height) == tuple:
+            hproc = height[0]
+            height = hproc * size[1] / 100.0
+
+        if min_height > height:
+            height = min_height
+
+        tag = self.node.tag.text if self.node.tag else None
+        if hasattr(self.node, 'drawer') and tag not in ('body', 'html'):
+            size_my = [size[0] - 2*margin, height]
+        else:
+            size_my = [size[0], size[1]]
+        
         size_calced = [size_my[0], size_my[1]]
         pos_my = [pos[0] + margin, pos[1] + margin]
-        
-        _ps = [pos_my[0], pos_my[1] + height]
+        _ps = [pos_my[0], pos_my[1]]
         
         for node in self.node.children:
             if not hasattr(node, 'drawer'):
@@ -68,7 +81,7 @@ class DrawerBlock(DrawerNode):
             
             drawer = node.drawer
 
-            drawer.calc_size(size_my, _ps, started)
+            drawer.calc_size(size_my, [_ps[0], _ps[1]], started)
             wh = drawer.size_calced
             
             for i in (0, 1):
@@ -97,7 +110,8 @@ class DrawerBlock(DrawerNode):
         if background_color:
             cr.set_source_rgb(*hex2color(background_color))
         else:
-            cr.set_source_rgb(0.2, 0.23 + started, 0.9)
+            cr.set_source_rgb(1.0, 1.0, 1.0)
+            #cr.set_source_rgb(0.2, 0.23 + started, 0.9)
         cr.rectangle(ps[0], ps[1], size_calced[0], size_calced[1])
         cr.fill()
 
@@ -107,7 +121,6 @@ class DrawerBlock(DrawerNode):
             cr.set_source_rgb(0.1, 0.1, 0.1)
         cr.set_font_size(font_size)
         cr.move_to(ps[0]+5, ps[1]+14)
-        #cr.show_text(str(self.node.tag))# + ' ' + self.text if self.text else '')
         cr.show_text(self.node.text if self.node.text else '')
         
         for node in self.node.children:
