@@ -5,10 +5,41 @@ sys.path.append('../noder')
 from noder import noder_parse_file, Node
 
 EX_PATH = "../noder/example/tst.html"
+if len(sys.argv) > 1:
+    EX_PATH = sys.argv[1].replace('\\', '/')
 
 ROOT_NODE = noder_parse_file(EX_PATH)
 
-check_is_drawable = lambda node: node.tag and node.tag.text in ('div', 'h1', 'p', 'a', 'span', 'input/', 'h2')
+
+class ListviewControl:
+
+    def __init__(self, listview) -> None:
+        print('-----!!!!!!!!!! ListviewControl:', listview.tag)
+        self.listview = listview
+        self.template = None
+        listview.attrs['data_model'] = self
+
+    def getItemsCount(self):
+        return 3
+
+def connect_listview(node):
+    if not node:
+        return
+    for n in node.children:
+        if n.tag:
+            if n.tag.text == 'listview':
+                ListviewControl(n)
+            elif n.tag.text == 'template':
+                if node.tag and node.tag.text =='listview':
+                    print('-----!!!!!!!!!! template:', n.tag)
+                    node.attrs['data_model'].template = n
+
+        connect_listview(n)
+
+connect_listview(ROOT_NODE)
+
+
+check_is_drawable = lambda node: node.tag and node.tag.text not in ('style', 'script', 'head') and not node.tag.text.startswith('!') #node.tag.text in ('div', 'h1', 'p', 'a', 'span', 'input/', 'h2')
         
 
 def make_drawable_tree(parent, drawer=None):
@@ -109,11 +140,13 @@ class DrawerBlock(DrawerNode):
 
         if background_color:
             cr.set_source_rgb(*hex2color(background_color))
-        else:
-            cr.set_source_rgb(1.0, 1.0, 1.0)
-            #cr.set_source_rgb(0.2, 0.23 + started, 0.9)
-        cr.rectangle(ps[0], ps[1], size_calced[0], size_calced[1])
-        cr.fill()
+            cr.rectangle(ps[0], ps[1], size_calced[0], size_calced[1])
+            cr.fill()
+        # else:
+        #     cr.set_source_rgb(1.0, 1.0, 1.0)
+        #     #cr.set_source_rgb(0.2, 0.23 + started, 0.9)
+        # cr.rectangle(ps[0], ps[1], size_calced[0], size_calced[1])
+        # cr.fill()
 
         if color:
             cr.set_source_rgb(*hex2color(color))
@@ -122,6 +155,15 @@ class DrawerBlock(DrawerNode):
         cr.set_font_size(font_size)
         cr.move_to(ps[0]+5, ps[1]+14)
         cr.show_text(self.node.text if self.node.text else '')
+
+        tag = self.node.tag.text if self.node.tag else None
+        if tag == 'listview':
+            listview = self.node.attrs['data_model']
+            if listview and listview.template:
+                _items_count = listview.getItemsCount()
+                for i in range(_items_count):
+                    print('PRINT listview', i)
+                return
         
         for node in self.node.children:
             
