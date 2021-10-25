@@ -1,5 +1,7 @@
 import sys
 
+from wx.core import ROLE_SYSTEM_APPLICATION
+
 sys.path.append('../noder')
 
 from noder import noder_parse_file, Node
@@ -20,7 +22,11 @@ class ListviewControl:
         listview.attrs['data_model'] = self
 
     def getItemsCount(self):
-        return 3
+        return 15
+
+    def format_template(self, text, i):
+        return text.replace('{{ counter }}', str(i))
+
 
 def connect_listview(node):
     if not node:
@@ -113,18 +119,35 @@ class DrawerBlock(DrawerNode):
             drawer = node.drawer
 
             drawer.calc_size(size_my, [_ps[0], _ps[1]], started)
-            wh = drawer.size_calced
-            
-            for i in (0, 1):
-                if wh[i] > size_calced[i]:
-                    size_calced[i] = wh[i]
-            _ps[1] += wh[1] + margin
 
-            if _ps[1] + wh[1] - pos_my[1] > size_calced[1]:
-                size_calced[1] = _ps[1] + wh[1] - pos_my[1]
+            _ps = self.add_subnode_pos_size(node, pos_my, size_calced, margin)
+            # wh = drawer.size_calced
+            
+            # for i in (0, 1):
+            #     if wh[i] > size_calced[i]:
+            #         size_calced[i] = wh[i]
+            # _ps[1] += wh[1] + margin
+
+            # if _ps[1] + wh[1] - pos_my[1] > size_calced[1]:
+            #     size_calced[1] = _ps[1] + wh[1] - pos_my[1]
 
         self.size_calced = size_calced
         self.pos = pos_my
+
+    def add_subnode_pos_size(self, node, pos_my, size_calced, margin):
+        pos = [pos_my[0], pos_my[1]]
+        drawer = node.drawer
+        wh = drawer.size_calced
+            
+        for i in (0, 1):
+            if wh[i] > size_calced[i]:
+                size_calced[i] = wh[i]
+        pos[1] += wh[1] + margin
+
+        if pos[1] + wh[1] - pos_my[1] > size_calced[1]:
+            size_calced[1] = pos[1] + wh[1] - pos_my[1]
+
+        return pos
 
     def draw(self, cr, started=-0.2):
         started += 0.2
@@ -161,8 +184,18 @@ class DrawerBlock(DrawerNode):
             listview = self.node.attrs['data_model']
             if listview and listview.template:
                 _items_count = listview.getItemsCount()
+                template = listview.template.children[0]
+                _ps, _sz = getattr(self, 'pos', (0, 0)), getattr(self, 'size_calced', (0, 0))
+                t_drawer = template.drawer
+                if not hasattr(t_drawer, 'text'):
+                    t_drawer.text = template.text
                 for i in range(_items_count):
-                    print('PRINT listview', i)
+                    print('PRINT listview', i, _sz, _ps)
+                    t_drawer.calc_size(_sz, [_ps[0], _ps[1]])
+                    print('  ->', t_drawer.size_calced, t_drawer.pos)
+                    template.text = listview.format_template(t_drawer.text, i)
+                    _ps = t_drawer.add_subnode_pos_size(template, _ps, _sz, margin=0)
+                    t_drawer.draw(cr)
                 return
         
         for node in self.node.children:
