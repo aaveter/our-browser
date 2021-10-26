@@ -209,5 +209,4 @@ def hex2color(color_hex):
     color_hex = color_hex.split('#')[1]
     return (int(color_hex[:2], 16)/255.0, int(color_hex[2:4], 16)/255.0, int(color_hex[4:6], 16)/255.0)
 
-ROOT = make_drawable_tree(ROOT_NODE)
-print(ROOT)
+
