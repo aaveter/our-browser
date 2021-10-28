@@ -3,8 +3,17 @@ import wx
 from wx.core import SB_VERTICAL
 import wx.lib.wxcairo
 import cairo
+from os.path import abspath, join, dirname
+import sys
 
-from drawing import ROOT_NODE, make_drawable_tree
+HERE = dirname(abspath(__file__))
+DATA_PATH = join(HERE, 'data')
+
+sys.path.append('../noder')
+
+from noder import noder_parse_file
+from .drawing import make_drawable_tree
+from .listview import ListviewControl, connect_listview
 
 
 class DrawingArea(wx.Panel):
@@ -13,8 +22,7 @@ class DrawingArea(wx.Panel):
         super(DrawingArea , self).__init__ (*args , **kw)
 
         self.scroll_pos = 0
-        self.ROOT = ROOT = make_drawable_tree(ROOT_NODE)
-        print(ROOT)
+        self.ROOT = None #= make_drawable_tree(ROOT_NODE)
         
         self.SetDoubleBuffered(True)
         self.Bind(wx.EVT_SIZE, self.OnSize)
@@ -54,14 +62,14 @@ class Frame(wx.Frame):
         self.InitUI()
 
     def InitUI(self):
-        self.SetIcon(wx.Icon("our_browser.ico"))
+        self.SetIcon(wx.Icon(join(DATA_PATH, "our_browser.ico")))
 
         panel = wx.Panel(self)        
         vbox = wx.BoxSizer(wx.HORIZONTAL)
         panel.SetSizer(vbox)        
 
-        midPan = DrawingArea(panel)
-        vbox.Add(midPan, 1, wx.EXPAND | wx.ALL, 0)
+        self.mainPanel = mainPanel = DrawingArea(panel)
+        vbox.Add(mainPanel, 1, wx.EXPAND | wx.ALL, 0)
 
         scroll = wx.ScrollBar(panel, style=SB_VERTICAL)
         scroll.SetScrollbar(position=0, thumbSize=16, range=1000, pageSize=100)
@@ -71,12 +79,19 @@ class Frame(wx.Frame):
         self.SetTitle('Our Browser')
         self.Centre()
 
-        scroll.Bind(wx.EVT_SCROLL, midPan.onScrollWin1)
+        scroll.Bind(wx.EVT_SCROLL, mainPanel.onScrollWin1)
 
 
-def main():
+def main(listview_cls=ListviewControl):
+
+    EX_PATH = sys.argv[1].replace('\\', '/')
+
+    ROOT_NODE = noder_parse_file(EX_PATH)
+    connect_listview(ROOT_NODE, listview_cls=listview_cls)
+
     ex = wx.App()
     f = Frame(None)
+    f.mainPanel.ROOT = make_drawable_tree(ROOT_NODE)
     f.Show(True)  
     ex.MainLoop()  
 

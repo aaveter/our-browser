@@ -1,51 +1,8 @@
 import sys
 
-from wx.core import ROLE_SYSTEM_APPLICATION
 
-sys.path.append('../noder')
-
-from noder import noder_parse_file, Node
-
-EX_PATH = "../noder/example/tst.html"
-if len(sys.argv) > 1:
-    EX_PATH = sys.argv[1].replace('\\', '/')
-
-ROOT_NODE = noder_parse_file(EX_PATH)
-
-
-class ListviewControl:
-
-    def __init__(self, listview) -> None:
-        print('-----!!!!!!!!!! ListviewControl:', listview.tag)
-        self.listview = listview
-        self.template = None
-        listview.attrs['data_model'] = self
-
-    def getItemsCount(self):
-        return 15
-
-    def format_template(self, text, i):
-        return text.replace('{{ counter }}', str(i))
-
-
-def connect_listview(node):
-    if not node:
-        return
-    for n in node.children:
-        if n.tag:
-            if n.tag.text == 'listview':
-                ListviewControl(n)
-            elif n.tag.text == 'template':
-                if node.tag and node.tag.text =='listview':
-                    print('-----!!!!!!!!!! template:', n.tag)
-                    node.attrs['data_model'].template = n
-
-        connect_listview(n)
-
-connect_listview(ROOT_NODE)
-
-
-check_is_drawable = lambda node: node.tag and node.tag.text not in ('style', 'script', 'head') and not node.tag.text.startswith('!') #node.tag.text in ('div', 'h1', 'p', 'a', 'span', 'input/', 'h2')
+check_is_drawable = lambda node: node.tag and node.tag.text not in ('style', 'script', 'head') and not node.tag.text.startswith('!')
+#node.tag.text in ('div', 'h1', 'p', 'a', 'span', 'input/', 'h2')
         
 
 def make_drawable_tree(parent, drawer=None):
@@ -181,7 +138,7 @@ class DrawerBlock(DrawerNode):
 
         tag = self.node.tag.text if self.node.tag else None
         if tag == 'listview':
-            listview = self.node.attrs['data_model']
+            listview = self.node.attrs.get('data_model', None)
             if listview and listview.template:
                 _items_count = listview.getItemsCount()
                 template = listview.template.children[0]
