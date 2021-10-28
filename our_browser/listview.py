@@ -28,3 +28,20 @@ def connect_listview(node, listview_cls=ListviewControl):
                     node.attrs['data_model'].template = n
 
         connect_listview(n)
+
+
+def draw_listview(drawer, listview, cr):
+    _items_count = listview.getItemsCount()
+    template = listview.template.children[0]
+    _ps, _sz = getattr(drawer, 'pos', (0, 0)), getattr(drawer, 'size_calced', (0, 0))
+    t_drawer = template.drawer
+    if not hasattr(t_drawer, 'text'):
+        t_drawer.text = template.text
+    for i in range(_items_count):
+        print('PRINT listview', i, _sz, _ps)
+        t_drawer.calc_size(_sz, [_ps[0], _ps[1]])
+        print('  ->', t_drawer.size_calced, t_drawer.pos)
+        template.text = listview.format_template(t_drawer.text, i)
+        _ps = t_drawer.add_subnode_pos_size(template, _ps, _sz, margin=0)
+        t_drawer.draw(cr)
+        

@@ -1,4 +1,5 @@
 import sys
+from .listview import draw_listview
 
 
 check_is_drawable = lambda node: node.tag and node.tag.text not in ('style', 'script', 'head') and not node.tag.text.startswith('!')
@@ -37,36 +38,43 @@ class DrawerNode:
         return self.__str__()
 
 
+class Calced:
+    
+    def calc_params(self, node, size):
+        self.margin = 0
+        self.height = 0
+        self.min_height = 0
+        
+        if hasattr(node, 'style'):
+            self.margin = node.style.get('margin', 0) 
+            self.height = node.style.get('height', 0)
+            self.min_height = int(node.style.get('min-height', 0))
+
+        if type(self.height) == tuple:
+            hproc = self.height[0]
+            self.height = hproc * size[1] / 100.0
+
+        if self.min_height > self.height:
+            self.height = self.min_height
+
+
 class DrawerBlock(DrawerNode):
 
     def __init__(self, node) -> None:
         super().__init__(node)
+        self.calced = Calced()
 
     def calc_size(self, size, pos, started=True):
-        margin = 0
-        height = 0
-        min_height = 0
-        
-        if hasattr(self.node, 'style'):
-            margin = self.node.style.get('margin', 0) 
-            height = self.node.style.get('height', 0)
-            min_height = int(self.node.style.get('min-height', 0))
-
-        if type(height) == tuple:
-            hproc = height[0]
-            height = hproc * size[1] / 100.0
-
-        if min_height > height:
-            height = min_height
+        self.calced.calc_params(self.node, size)
 
         tag = self.node.tag.text if self.node.tag else None
         if hasattr(self.node, 'drawer') and tag not in ('body', 'html'):
-            size_my = [size[0] - 2*margin, height]
+            size_my = [size[0] - 2*self.calced.margin, self.calced.height]
         else:
             size_my = [size[0], size[1]]
         
         size_calced = [size_my[0], size_my[1]]
-        pos_my = [pos[0] + margin, pos[1] + margin]
+        pos_my = [pos[0] + self.calced.margin, pos[1] + self.calced.margin]
         _ps = [pos_my[0], pos_my[1]]
         
         for node in self.node.children:
@@ -77,16 +85,7 @@ class DrawerBlock(DrawerNode):
 
             drawer.calc_size(size_my, [_ps[0], _ps[1]], started)
 
-            _ps = self.add_subnode_pos_size(node, pos_my, size_calced, margin)
-            # wh = drawer.size_calced
-            
-            # for i in (0, 1):
-            #     if wh[i] > size_calced[i]:
-            #         size_calced[i] = wh[i]
-            # _ps[1] += wh[1] + margin
-
-            # if _ps[1] + wh[1] - pos_my[1] > size_calced[1]:
-            #     size_calced[1] = _ps[1] + wh[1] - pos_my[1]
+            _ps = self.add_subnode_pos_size(node, pos_my, size_calced, self.calced.margin)
 
         self.size_calced = size_calced
         self.pos = pos_my
@@ -140,19 +139,7 @@ class DrawerBlock(DrawerNode):
         if tag == 'listview':
             listview = self.node.attrs.get('data_model', None)
             if listview and listview.template:
-                _items_count = listview.getItemsCount()
-                template = listview.template.children[0]
-                _ps, _sz = getattr(self, 'pos', (0, 0)), getattr(self, 'size_calced', (0, 0))
-                t_drawer = template.drawer
-                if not hasattr(t_drawer, 'text'):
-                    t_drawer.text = template.text
-                for i in range(_items_count):
-                    print('PRINT listview', i, _sz, _ps)
-                    t_drawer.calc_size(_sz, [_ps[0], _ps[1]])
-                    print('  ->', t_drawer.size_calced, t_drawer.pos)
-                    template.text = listview.format_template(t_drawer.text, i)
-                    _ps = t_drawer.add_subnode_pos_size(template, _ps, _sz, margin=0)
-                    t_drawer.draw(cr)
+                draw_listview(self, listview, cr)
                 return
         
         for node in self.node.children:
