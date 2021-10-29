@@ -57,6 +57,9 @@ class Calced:
         if self.min_height > self.height:
             self.height = self.min_height
 
+        if size[1] < self.height:
+            size[1] = self.height
+
 
 class DrawerBlock(DrawerNode):
 
@@ -68,7 +71,7 @@ class DrawerBlock(DrawerNode):
         self.calced.calc_params(self.node, size)
 
         tag = self.node.tag.text if self.node.tag else None
-        if hasattr(self.node, 'drawer') and tag not in ('body', 'html'):
+        if hasattr(self.node, 'drawer') and self.node.level > 2: #tag not in ('body', 'html'):
             size_my = [size[0] - 2*self.calced.margin, self.calced.height]
         else:
             size_my = [size[0], size[1]]
@@ -89,6 +92,9 @@ class DrawerBlock(DrawerNode):
 
         self.size_calced = size_calced
         self.pos = pos_my
+
+        if tag == 'button':
+            print('(button)', self.node.level, self.pos, self.size_calced, size_my, self.node.style)
 
     def add_subnode_pos_size(self, node, pos_my, size_calced, margin):
         pos = [pos_my[0], pos_my[1]]
@@ -148,6 +154,32 @@ class DrawerBlock(DrawerNode):
                 continue
 
             node.drawer.draw(cr, started)
+
+    def propagateEvent(self, pos, event_name):
+        if (
+            self.pos[0] <= pos[0] < self.pos[0] + self.size_calced[0] and 
+            self.pos[1] <= pos[1] < self.pos[1] + self.size_calced[1]
+        ):
+            ev = self.node.attrs.get(event_name, None) if self.node.attrs else None
+            if ev and ev():
+                return
+
+            for ch in self.node.children:
+                ret = _propagateEvent(ch, pos, event_name)
+                if ret:
+                    return ret
+
+             
+def _propagateEvent(node, pos, event_name):
+    drawer = getattr(node, 'drawer', None)
+    if drawer:
+        return drawer.propagateEvent(pos, event_name)
+    
+    for ch in node.children:
+        ret = _propagateEvent(ch, pos, event_name)
+        if ret:
+            return ret
+
 
 def hex2color(color_hex):
     color_hex = color_hex.split('#')[1]

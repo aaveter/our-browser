@@ -22,6 +22,7 @@ class DrawingArea(wx.Panel):
         self.SetDoubleBuffered(True)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_LEFT_UP, self.onClick)
     
     def OnSize(self, event):
         self.Refresh() # MUST have this, else the rectangle gets rendered corruptly when resizing the window!
@@ -30,7 +31,7 @@ class DrawingArea(wx.Panel):
     def OnPaint(self, e):
         dc = wx.PaintDC(self)
         cr = wx.lib.wxcairo.ContextFromDC(dc)
-        self.DoDrawing(cr, dc)     
+        self.DoDrawing(cr, dc)
         
     def DoDrawing(self, cr, dc):
         size = self.GetSize()
@@ -46,6 +47,12 @@ class DrawingArea(wx.Panel):
         print('SCROLL', event.Position)
         self.scroll_pos = -event.Position
         #self.Update()
+        self.Refresh()
+
+    def onClick(self, event):
+        print('CLICK', event.Position)
+        self.ROOT.propagateEvent(event.Position, 'onclick')
+        print('~~~', self.ROOT.node)
         self.Refresh()
 
 
@@ -79,7 +86,7 @@ class Frame(wx.Frame):
 
 class BrowserApp:
 
-    def __init__(self, html_path=None, html_text='', listview_cls=ListviewControl, update_drawers=True) -> None:
+    def __init__(self, html_path=None, html_text='', listview_cls=ListviewControl) -> None:
 
         self.ROOT_NODE = ROOT_NODE = noder_parse_file(html_path) if html_path else noder_parse_text(html_text)
         connect_listview(ROOT_NODE, listview_cls=listview_cls)
@@ -87,15 +94,20 @@ class BrowserApp:
         self.app = wx.App()
         self.frame = Frame(None)
 
-        if update_drawers:
-            self.update_drawers()
-
     def update_drawers(self):
         self.frame.mainPanel.ROOT = make_drawable_tree(self.ROOT_NODE)
 
     def run(self):
+        self.update_drawers()
+        self._connect_styles(self.ROOT_NODE)
         self.frame.Show(True)
         self.app.MainLoop()
+
+    def _connect_styles(self, node):
+        styler = self.ROOT_NODE.styler
+        styler.connect_styles_to_node(node)
+        for n in node.children:
+            self._connect_styles(n)
 
 
 def main(listview_cls=ListviewControl):

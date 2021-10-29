@@ -18,6 +18,7 @@ HTML_TEXT = """<html>
     h2 {height: 25; margin: 8;}
     p {height: 15; margin: 5;}
     a {height: 15; margin: 3;}
+    button {height: 30; margin: 10;}
     .red {background-color:#ff5555; color: #ffffff;}
     .blue {background-color: #5555ff;}
     .green {background-color: #55cc55;}
@@ -34,7 +35,7 @@ HTML_TEXT = """<html>
         border: 1px solid #cccccc;
     }
 </style>
-<body><div id='root' class='yellow'></div></body></html>"""
+<body><div id='root' class='red'></div></body></html>"""
 
 
 class App(React.Component):
@@ -47,21 +48,23 @@ class App(React.Component):
         }
 
     def onClick(self):
+        print('>>>>>>>>> COMPONENT click:', id(self))
         self.setState({
-            'count': self.state['count'] + 1
+            'count': int(self.state['count']) + 1
         })
     
     def render(self):
         count = self.state['count']
         print('count ----------', count)
-        return f'<div><p class="red">{count}</p><button onclick={EVENT(self.onClick)} /></div>'
+        return f'<div><p class="yellow">{count}</p><button class="red" onclick={EVENT(self.onClick)} /></div>'
+
 
 
 def main():
-    app = BrowserApp(html_text=HTML_TEXT, update_drawers=False)
+    app = BrowserApp(html_text=HTML_TEXT)
 
     root = app.ROOT_NODE.getElementById("root")
-    print('FOUND root:', root)
+    print('FOUND root:', root, id(root))
 
     ReactDOM.render("""
         <App count=2 />
@@ -69,7 +72,7 @@ def main():
 
     print('RENDERED root:', app.ROOT_NODE)
 
-    app.update_drawers()
+    root.app = app
     
     app.run()
 
