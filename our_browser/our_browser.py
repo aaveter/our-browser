@@ -11,7 +11,7 @@ DATA_PATH = join(HERE, 'data')
 
 sys.path.append('../noder')
 
-from noder import noder_parse_file
+from noder import noder_parse_file, noder_parse_text
 from .drawing import make_drawable_tree
 from .listview import ListviewControl, connect_listview
 
@@ -82,18 +82,26 @@ class Frame(wx.Frame):
         scroll.Bind(wx.EVT_SCROLL, mainPanel.onScrollWin1)
 
 
+class BrowserApp:
+
+    def __init__(self, html_path=None, html_text='', listview_cls=ListviewControl) -> None:
+
+        self.ROOT_NODE = ROOT_NODE = noder_parse_file(html_path) if html_path else noder_parse_text(html_text)
+        connect_listview(ROOT_NODE, listview_cls=listview_cls)
+
+        self.app = wx.App()
+        self.frame = Frame(None)
+        self.frame.mainPanel.ROOT = make_drawable_tree(ROOT_NODE)
+
+    def run(self):
+        self.frame.Show(True)
+        self.app.MainLoop()
+
+
 def main(listview_cls=ListviewControl):
-
-    EX_PATH = sys.argv[1].replace('\\', '/')
-
-    ROOT_NODE = noder_parse_file(EX_PATH)
-    connect_listview(ROOT_NODE, listview_cls=listview_cls)
-
-    ex = wx.App()
-    f = Frame(None)
-    f.mainPanel.ROOT = make_drawable_tree(ROOT_NODE)
-    f.Show(True)  
-    ex.MainLoop()  
+    html_path = sys.argv[1].replace('\\', '/')
+    app = BrowserApp(listview_cls=listview_cls, html_path=html_path)
+    app.run()
 
 
 if __name__ == '__main__':
