@@ -6,12 +6,7 @@ import cairo
 from os.path import abspath, join, dirname
 import sys
 
-HERE = dirname(abspath(__file__))
-DATA_PATH = join(HERE, 'data')
-
-sys.path.append('../noder')
-
-from noder import noder_parse_file, noder_parse_text
+from .ext_depends import noder_parse_file, noder_parse_text, DATA_PATH
 from .drawing import make_drawable_tree
 from .listview import ListviewControl, connect_listview
 
@@ -84,14 +79,19 @@ class Frame(wx.Frame):
 
 class BrowserApp:
 
-    def __init__(self, html_path=None, html_text='', listview_cls=ListviewControl) -> None:
+    def __init__(self, html_path=None, html_text='', listview_cls=ListviewControl, update_drawers=True) -> None:
 
         self.ROOT_NODE = ROOT_NODE = noder_parse_file(html_path) if html_path else noder_parse_text(html_text)
         connect_listview(ROOT_NODE, listview_cls=listview_cls)
 
         self.app = wx.App()
         self.frame = Frame(None)
-        self.frame.mainPanel.ROOT = make_drawable_tree(ROOT_NODE)
+
+        if update_drawers:
+            self.update_drawers()
+
+    def update_drawers(self):
+        self.frame.mainPanel.ROOT = make_drawable_tree(self.ROOT_NODE)
 
     def run(self):
         self.frame.Show(True)

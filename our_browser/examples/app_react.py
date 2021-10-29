@@ -7,7 +7,34 @@ PROJ_PATH = dirname(dirname(HERE))
 sys.path.append(PROJ_PATH)
 
 from our_browser.our_browser import BrowserApp
-from our_browser.react import ReactDOM, React
+from our_browser.react import ReactDOM, React, EVENT
+
+
+HTML_TEXT = """<html>
+<style>
+    .block {border-color: #cccccc;}
+    div {min-height: 20; margin: 5;}
+    h1 {height: 30; margin: 10;}
+    h2 {height: 25; margin: 8;}
+    p {height: 15; margin: 5;}
+    a {height: 15; margin: 3;}
+    .red {background-color:#ff5555; color: #ffffff;}
+    .blue {background-color: #5555ff;}
+    .green {background-color: #55cc55;}
+    .yellow {background-color: #ffe4c4;}
+
+    html, body {
+        height: 100%; margin: 0; padding: 0;
+    }
+    .page {
+        height: 50%;
+    }
+    .page-content {
+        margin: 10px;
+        border: 1px solid #cccccc;
+    }
+</style>
+<body><div id='root' class='yellow'></div></body></html>"""
 
 
 class App(React.Component):
@@ -26,18 +53,23 @@ class App(React.Component):
     
     def render(self):
         count = self.state['count']
-        return f'<div><p>{count}</p><button onclick={self.onClick}/></div>'
+        print('count ----------', count)
+        return f'<div><p class="red">{count}</p><button onclick={EVENT(self.onClick)} /></div>'
 
 
 def main():
-    app = BrowserApp(html_text="""<html><body><div id='root'></div></body></html>""")
+    app = BrowserApp(html_text=HTML_TEXT, update_drawers=False)
 
     root = app.ROOT_NODE.getElementById("root")
     print('FOUND root:', root)
-    
+
     ReactDOM.render("""
         <App count=2 />
     """, root)
+
+    print('RENDERED root:', app.ROOT_NODE)
+
+    app.update_drawers()
     
     app.run()
 
