@@ -6,6 +6,6 @@ PROJ_PATH = dirname(dirname(HERE))
 
 sys.path.append(PROJ_PATH)
 
-from our_browser.our_browser import main
+from our_browser.browser import main
 
 main()

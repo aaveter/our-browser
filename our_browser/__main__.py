@@ -1,4 +1,4 @@
 
-from .our_browser import main
+from .browser import main
 
 main()

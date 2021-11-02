@@ -1,5 +1,5 @@
 import sys
-from .listview import draw_listview
+from our_browser.listview import draw_listview
 
 
 check_is_drawable = lambda node: node.tag and node.tag.text not in ('style', 'script', 'head') and not node.tag.text.startswith('!')

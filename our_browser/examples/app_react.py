@@ -6,7 +6,7 @@ PROJ_PATH = dirname(dirname(HERE))
 
 sys.path.append(PROJ_PATH)
 
-from our_browser.our_browser import BrowserApp
+from our_browser.browser import BrowserApp
 from our_browser.react import ReactDOM, React, EVENT
 
 

@@ -1,5 +1,5 @@
 
-from .ext_depends import noder_parse_text
+from our_browser.ext_depends import noder_parse_text
 
 
 class _ReactDOM:

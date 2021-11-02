@@ -6,9 +6,9 @@ import cairo
 from os.path import abspath, join, dirname
 import sys
 
-from .ext_depends import noder_parse_file, noder_parse_text, DATA_PATH
-from .drawing import make_drawable_tree
-from .listview import ListviewControl, connect_listview
+from our_browser.ext_depends import noder_parse_file, noder_parse_text, DATA_PATH
+from our_browser.drawing import make_drawable_tree
+from our_browser.listview import ListviewControl, connect_listview
 
 
 class DrawingArea(wx.Panel):
