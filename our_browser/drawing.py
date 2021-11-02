@@ -38,27 +38,60 @@ class DrawerNode:
         return self.__str__()
 
 
+class Rect:
+
+    def __init__(self) -> None:
+        self.left = 0
+        self.top = 0
+        self.width = 0
+        self.height = 0
+        
+
+def get_size_prop_from_node(node, name, parent_prop, default=0):
+    if not hasattr(node, 'style'):
+        return 0
+    prop = node.style.get(name, default)
+    if type(prop) == tuple:
+        hproc = prop[0]
+        if parent_prop == None:
+            return default
+        prop = hproc * parent_prop / 100.0
+    return prop
+
+
 class Calced:
+
+    def __init__(self) -> None:
+        self.rect = Rect()
+        self.calced = False
     
     def calc_params(self, node, size):
-        self.margin = 0
-        self.height = 0
-        self.min_height = 0
-        
-        if hasattr(node, 'style'):
-            self.margin = node.style.get('margin', 0) 
-            self.height = node.style.get('height', 0)
-            self.min_height = int(node.style.get('min-height', 0))
 
-        if type(self.height) == tuple:
-            hproc = self.height[0]
-            self.height = hproc * size[1] / 100.0
+        margin = get_size_prop_from_node(node, 'margin', None)
+        width = get_size_prop_from_node(node, 'width', size[0], -1)
+        height = get_size_prop_from_node(node, 'height', size[1])
+        min_height = get_size_prop_from_node(node, 'min-height', None)
 
-        if self.min_height > self.height:
-            self.height = self.min_height
+        if min_height > height:
+            height = min_height
 
-        if size[1] < self.height:
-            size[1] = self.height
+        if size[1] < height:
+            size = (size[0], height)
+
+        self.margin = margin
+        self.min_height = min_height
+
+        if hasattr(node, 'drawer') and node.level > 2:
+            self.rect.width = size[0] - 2*margin
+            self.rect.height = height
+        else:
+            self.rect.width = width if width >= 0 else size[0]
+            self.rect.height = height
+
+        if not self.calced:
+            self.calced = True
+
+        #return size
 
 
 class DrawerBlock(DrawerNode):
@@ -68,15 +101,14 @@ class DrawerBlock(DrawerNode):
         self.calced = Calced()
 
     def calc_size(self, size, pos, started=True):
+        calced = self.calced.calced
+
         self.calced.calc_params(self.node, size)
+        size_my = self.calced.rect.width, self.calced.rect.height
 
         tag = self.node.tag.text if self.node.tag else None
-        if hasattr(self.node, 'drawer') and self.node.level > 2: #tag not in ('body', 'html'):
-            size_my = [size[0] - 2*self.calced.margin, self.calced.height]
-        else:
-            size_my = [size[0], size[1]]
         
-        size_calced = [size_my[0], size_my[1]]
+        size_calced = (size_my[0], size_my[1])
         pos_my = [pos[0] + self.calced.margin, pos[1] + self.calced.margin]
         _ps = [pos_my[0], pos_my[1]]
         
@@ -86,30 +118,38 @@ class DrawerBlock(DrawerNode):
             
             drawer = node.drawer
 
-            drawer.calc_size(size_my, [_ps[0], _ps[1]], started)
+            _size_my = drawer.calc_size(size_my, (_ps[0], _ps[1]), started)
 
-            _ps = self.add_subnode_pos_size(node, pos_my, size_calced, self.calced.margin)
+            _ps, size_calced = self.add_subnode_pos_size(node, _ps, size_calced, self.calced.margin)
 
         self.size_calced = size_calced
         self.pos = pos_my
 
+        if not calced:
+            print('>>>', '  '*self.node.level, self.node.tag, pos, size)
+
         if tag == 'button':
             print('(button)', self.node.level, self.pos, self.size_calced, size_my, self.node.style)
+
+        return size_my
 
     def add_subnode_pos_size(self, node, pos_my, size_calced, margin):
         pos = [pos_my[0], pos_my[1]]
         drawer = node.drawer
         wh = drawer.size_calced
             
-        for i in (0, 1):
-            if wh[i] > size_calced[i]:
-                size_calced[i] = wh[i]
+        if wh[0] > size_calced[0]:
+            size_calced = (wh[0], size_calced[1])
+
+        if wh[1] > size_calced[1]:
+            size_calced = (size_calced[0], wh[1])
+
         pos[1] += wh[1] + margin
 
         if pos[1] + wh[1] - pos_my[1] > size_calced[1]:
-            size_calced[1] = pos[1] + wh[1] - pos_my[1]
+            size_calced = (size_calced[0], pos[1] + wh[1] - pos_my[1])
 
-        return pos
+        return pos, size_calced
 
     def draw(self, cr, started=-0.2):
         started += 0.2

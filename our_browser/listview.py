@@ -9,7 +9,7 @@ class ListviewControl:
         listview.attrs['data_model'] = self
 
     def getItemsCount(self):
-        return 15
+        return 55
 
     def format_template(self, text, i):
         return text.replace('{{ counter }}', str(i))
@@ -39,9 +39,9 @@ def draw_listview(drawer, listview, cr):
         t_drawer.text = template.text
     for i in range(_items_count):
         print('PRINT listview', i, _sz, _ps)
-        t_drawer.calc_size(_sz, [_ps[0], _ps[1]])
+        _sz = t_drawer.calc_size(_sz, [_ps[0], _ps[1]])
         print('  ->', t_drawer.size_calced, t_drawer.pos)
         template.text = listview.format_template(t_drawer.text, i)
-        _ps = t_drawer.add_subnode_pos_size(template, _ps, _sz, margin=0)
+        _ps, _sz = t_drawer.add_subnode_pos_size(template, _ps, _sz, margin=t_drawer.calced.margin)
         t_drawer.draw(cr)
         
