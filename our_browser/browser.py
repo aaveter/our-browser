@@ -17,10 +17,11 @@ class DrawingArea(wx.Panel):
         super(DrawingArea , self).__init__ (*args , **kw)
 
         self.scroll_pos = 0
-        self.calced_once = False
+        self.scroll_show = False
         self.scroll = None
+        self.vbox = None
 
-        self.ROOT = None #= make_drawable_tree(ROOT_NODE)
+        self.ROOT = None
         
         self.SetDoubleBuffered(True)
         self.Bind(wx.EVT_SIZE, self.OnSize)
@@ -43,18 +44,31 @@ class DrawingArea(wx.Panel):
         cr.rectangle(0, 0, size[0], size[1])
         cr.fill()
 
-        self.ROOT.calc_size(size, (0, self.scroll_pos))
-        if not self.calced_once:
-            self.calced_once = True
-            if self.ROOT.calced.rect.height > size[1]:
-                self.scroll.Show()
+        self.calc(size)
 
         self.ROOT.draw(cr)
+
+    def calc(self, size):
+        self.ROOT.calc_size(size, (0, self.scroll_pos))
+
+        if self.ROOT.size_calced[1] > size[1]:
+            position = self.scroll.ThumbPosition
+            thumbSize = size[1] / 10
+            _range = self.ROOT.size_calced[1] - size[1]
+            pageSize = size[1]
+            self.scroll.SetScrollbar(position=position, thumbSize=thumbSize, range=_range, pageSize=pageSize)
+            if not self.scroll_show:
+                self.scroll_show = True
+                self.scroll.Show()
+                self.vbox.Layout()
+        else:
+            if self.scroll_show:
+                self.scroll_show = False
+                self.scroll.Hide()
+                self.vbox.Layout()
     
     def onScrollWin1(self, event):
-        print('SCROLL', event.Position)
         self.scroll_pos = -event.Position
-        #self.Update()
         self.Refresh()
 
     def onClick(self, event):
@@ -75,10 +89,11 @@ class Frame(wx.Frame):
         self.SetIcon(wx.Icon(join(DATA_PATH, "our_browser.ico")))
 
         panel = wx.Panel(self)        
-        vbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.vbox = vbox = wx.BoxSizer(wx.HORIZONTAL)
         panel.SetSizer(vbox)        
 
         self.mainPanel = mainPanel = DrawingArea(panel)
+        mainPanel.vbox = vbox
         vbox.Add(mainPanel, 1, wx.EXPAND | wx.ALL, 0)
 
         mainPanel.scroll = scroll = wx.ScrollBar(panel, style=SB_VERTICAL)

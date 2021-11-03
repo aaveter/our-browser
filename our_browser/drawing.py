@@ -13,18 +13,18 @@ DEFAULT_STYLES = {
 }
 
 
-def make_drawable_tree(parent, drawer=None):
+def make_drawable_tree(parent, drawer=None, with_html=False):
 
     _drawer = None
 
     for node in parent.children:
-        if not drawer and node.tag and node.tag.text == 'body':
+        if not drawer and node.tag and ((with_html and node.tag.text == 'html') or node.tag.text == 'body'):
             drawer = DrawerBlock(node)
 
         elif check_is_drawable(node):
             DrawerBlock(node)
 
-        _drawer = make_drawable_tree(node, drawer)
+        _drawer = make_drawable_tree(node, drawer, with_html=with_html)
 
     if not drawer:
         drawer = _drawer
@@ -142,7 +142,7 @@ class DrawerBlock(DrawerNode):
         self.pos = pos_my
 
         if not calced:
-            print('>>>', '  '*self.node.level, self.node.tag, pos, size)
+            print('>>>', '  '*self.node.level, self.node.tag, pos, size, '->', size_calced)
 
         if tag == 'button':
             print('(button)', self.node.level, self.pos, self.size_calced, size_my, self.node.style)
@@ -160,10 +160,10 @@ class DrawerBlock(DrawerNode):
         if wh[1] > size_calced[1]:
             size_calced = (size_calced[0], wh[1])
 
-        pos[1] += wh[1] + margin
-
         if pos[1] + wh[1] - pos_my[1] > size_calced[1]:
             size_calced = (size_calced[0], pos[1] + wh[1] - pos_my[1])
+
+        pos[1] += wh[1] + margin
 
         return pos, size_calced
 

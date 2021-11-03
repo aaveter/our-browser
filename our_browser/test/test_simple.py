@@ -42,6 +42,19 @@ class TestSimples(unittest.TestCase):
         self.assertEqual(969, div.drawer.calced.rect.width)
         self.assertEqual(0, div.drawer.calced.rect.height)
 
+    def test_page_sizes(self):
+        root = noder_parse_text('<html><body><span></span></body></html>')
+        body = root.children[0].children[0]
+        body.innerHTML = '<style>div {height:500px;}</style><div></div>'
+        html = body.parent
+
+        root_drawer = make_drawable_tree(root, with_html=True)
+        root_drawer.calc_size((300, 300), (0, 0))
+
+        div = body.children[1]
+        self.assertEqual(500, div.drawer.calced.rect.height)
+        self.assertEqual(500, body.drawer.size_calced[1])
+
     def check_node(self, node, tag):
         self.assertIsNotNone(node.tag)
         self.assertEqual(tag, node.tag.text)
