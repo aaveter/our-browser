@@ -22,6 +22,30 @@ class TestSimples(unittest.TestCase):
         root_drawer = make_drawable_tree(root)
         self.assertIsNotNone(root_drawer)
 
+        self.assertFalse(hasattr(root, 'drawer'))
+        self.assertIsNone(root.tag)
+
+        html = root.children[0]
+        self.check_node(html, tag='html')
+
+        root_drawer.calc_size((969, 1282), (0, 0))
+        #self.assertEqual(html.drawer.calced.rect.width, 969)
+
+        body = html.children[0]
+        self.check_node(body, tag='body')
+        self.assertIs(body, root_drawer.node) # FIXME chromium thinks that "html" is root
+
+        self.assertEqual(969, body.drawer.calced.rect.width)
+
+        div = body.children[0]
+        self.check_node(div, tag='div')
+        self.assertEqual(969, div.drawer.calced.rect.width)
+        self.assertEqual(0, div.drawer.calced.rect.height)
+
+    def check_node(self, node, tag):
+        self.assertIsNotNone(node.tag)
+        self.assertEqual(tag, node.tag.text)
+
 
 if __name__ == '__main__':
     unittest.main()

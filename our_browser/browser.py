@@ -17,6 +17,9 @@ class DrawingArea(wx.Panel):
         super(DrawingArea , self).__init__ (*args , **kw)
 
         self.scroll_pos = 0
+        self.calced_once = False
+        self.scroll = None
+
         self.ROOT = None #= make_drawable_tree(ROOT_NODE)
         
         self.SetDoubleBuffered(True)
@@ -41,6 +44,11 @@ class DrawingArea(wx.Panel):
         cr.fill()
 
         self.ROOT.calc_size(size, (0, self.scroll_pos))
+        if not self.calced_once:
+            self.calced_once = True
+            if self.ROOT.calced.rect.height > size[1]:
+                self.scroll.Show()
+
         self.ROOT.draw(cr)
     
     def onScrollWin1(self, event):
@@ -73,7 +81,8 @@ class Frame(wx.Frame):
         self.mainPanel = mainPanel = DrawingArea(panel)
         vbox.Add(mainPanel, 1, wx.EXPAND | wx.ALL, 0)
 
-        scroll = wx.ScrollBar(panel, style=SB_VERTICAL)
+        mainPanel.scroll = scroll = wx.ScrollBar(panel, style=SB_VERTICAL)
+        scroll.Hide()
         scroll.SetScrollbar(position=0, thumbSize=16, range=1000, pageSize=100)
         vbox.Add(scroll, 0, wx.EXPAND | wx.ALL, 0)
 

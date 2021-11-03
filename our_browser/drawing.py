@@ -4,7 +4,14 @@ from our_browser.listview import draw_listview
 
 check_is_drawable = lambda node: node.tag and node.tag.text not in ('style', 'script', 'head') and not node.tag.text.startswith('!')
 #node.tag.text in ('div', 'h1', 'p', 'a', 'span', 'input/', 'h2')
-        
+
+DEFAULT_STYLES = {
+    'html': {
+        'width': 'auto',
+        'height': 'auto'
+    }
+}
+
 
 def make_drawable_tree(parent, drawer=None):
 
@@ -56,6 +63,13 @@ def get_size_prop_from_node(node, name, parent_prop, default=0):
         if parent_prop == None:
             return default
         prop = hproc * parent_prop / 100.0
+    elif type(prop) == str:
+        if parent_prop == None:
+            return default
+        if prop == 'auto':
+            prop = parent_prop
+        else:
+            prop = default
     return prop
 
 
@@ -66,6 +80,8 @@ class Calced:
         self.calced = False
     
     def calc_params(self, node, size):
+
+        tag = node.tag.text
 
         margin = get_size_prop_from_node(node, 'margin', None)
         width = get_size_prop_from_node(node, 'width', size[0], -1)
