@@ -73,19 +73,68 @@ def get_size_prop_from_node(node, name, parent_prop, default=0):
     return prop
 
 
+def fix_lines_line_for_ln(lines, i, width_ln):
+    line = lines[i]
+    if len(line) > width_ln:
+        ix = line[:width_ln].rfind(' ')
+        if ix < 0:
+            return -1
+        line_add = line[ix+1:]
+        line = line[:ix]
+        lines[i] = line
+        add_i = i+1
+        lines.insert(add_i, line_add)
+        return add_i
+    return -1
+
 class Calced:
 
     def __init__(self) -> None:
         self.rect = Rect()
         self.calced = False
+        self.last_size_0 = -1
     
     def calc_params(self, node, size):
 
+        background_color = color = None
+        font_size = 11
+        if hasattr(node, 'style'):
+            color = node.style.get('color', None)
+            background_color = node.style.get('background-color', None)
+            font_size = node.style.get('font-size', 11)
+
+        self.color = color
+        self.background_color = background_color
+        self.font_size = font_size
+
+
         tag = node.tag.text
+        if not hasattr(node, 'lines'):
+            node.lines = None
+        if node.text:
+            if node.lines == None or self.last_size_0 < size[0] or True: # FIXME
+                node.lines = node.text.split('\n')
+            lines = node.lines
+            size_width = size[0]
+            font_size_w = font_size/2
+            if size_width > font_size_w:
+                width_ln = int(size_width / font_size_w)
+                i = len(lines) - 1
+                while i >= 0:
+                    add_i = i
+                    while add_i >= 0:
+                        add_i = fix_lines_line_for_ln(lines, add_i, width_ln)
+                    i -= 1
+
+        self.last_size_0 = size[0]
+
+        height_default = 0
+        if node.lines:
+            height_default = (font_size*2) * len(node.lines)
 
         margin = get_size_prop_from_node(node, 'margin', None)
         width = get_size_prop_from_node(node, 'width', size[0], -1)
-        height = get_size_prop_from_node(node, 'height', size[1])
+        height = get_size_prop_from_node(node, 'height', size[1], height_default)
         min_height = get_size_prop_from_node(node, 'min-height', None)
 
         if min_height > height:
@@ -172,30 +221,20 @@ class DrawerBlock(DrawerNode):
 
         ps, size_calced = self.pos, self.size_calced
 
-        background_color = color = None
-        font_size = 11
-        if hasattr(self.node, 'style'):
-            color = self.node.style.get('color', None)
-            background_color = self.node.style.get('background-color', None)
-            font_size = self.node.style.get('font-size', 11)
+        background_color = self.calced.background_color
+        color = self.calced.color
+        font_size = self.calced.font_size
 
         if background_color:
             cr.set_source_rgb(*hex2color(background_color))
             cr.rectangle(ps[0], ps[1], size_calced[0], size_calced[1])
             cr.fill()
-        # else:
-        #     cr.set_source_rgb(1.0, 1.0, 1.0)
-        #     #cr.set_source_rgb(0.2, 0.23 + started, 0.9)
-        # cr.rectangle(ps[0], ps[1], size_calced[0], size_calced[1])
-        # cr.fill()
 
         if color:
             cr.set_source_rgb(*hex2color(color))
         else:
             cr.set_source_rgb(0.1, 0.1, 0.1)
-        cr.set_font_size(font_size)
-        cr.move_to(ps[0]+5, ps[1]+14)
-        cr.show_text(self.node.text if self.node.text else '')
+        self.draw_lines(cr, self.node.lines, ps, font_size)
 
         tag = self.node.tag.text if self.node.tag else None
         if tag == 'listview':
@@ -210,6 +249,18 @@ class DrawerBlock(DrawerNode):
                 continue
 
             node.drawer.draw(cr, started)
+
+    def draw_lines(self, cr, lines, pos, font_size):
+        if not lines:
+            return
+
+        cr.set_font_size(font_size)
+        x, y = pos
+        
+        for line in lines:
+            cr.move_to(x, y + font_size) #+5
+            cr.show_text(line)
+            y += font_size
 
     def propagateEvent(self, pos, event_name):
         if (
