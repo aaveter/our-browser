@@ -53,8 +53,9 @@ class DrawingArea(wx.Panel):
 
         if self.ROOT.size_calced[1] > size[1]:
             position = self.scroll.ThumbPosition
-            thumbSize = size[1] / 10
+            # thumbSize = size[1] / 10
             _range = self.ROOT.size_calced[1] - size[1]
+            thumbSize = _range / 2 #/ 10
             pageSize = size[1]
             self.scroll.SetScrollbar(position=position, thumbSize=thumbSize, range=_range, pageSize=pageSize)
             if not self.scroll_show:
@@ -63,6 +64,7 @@ class DrawingArea(wx.Panel):
                 self.vbox.Layout()
         else:
             if self.scroll_show:
+                self.scroll.ThumbPosition = 0
                 self.scroll_show = False
                 self.scroll.Hide()
                 self.vbox.Layout()

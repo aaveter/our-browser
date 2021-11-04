@@ -96,29 +96,33 @@ class Calced:
     
     def calc_params(self, node, size):
 
-        background_color = color = None
+        background_color = color = border = None
         font_size = 11
         if hasattr(node, 'style'):
             color = node.style.get('color', None)
             background_color = node.style.get('background-color', None)
             font_size = node.style.get('font-size', 11)
+            border = node.style.get('border', None)
 
         self.color = color
         self.background_color = background_color
         self.font_size = font_size
+        self.border = border
 
+        padding = get_size_prop_from_node(node, 'padding', None)
+        padding_2 = padding * 2
+        text_width = size[0] - padding_2
 
         tag = node.tag.text
         if not hasattr(node, 'lines'):
             node.lines = None
         if node.text:
-            if node.lines == None or self.last_size_0 < size[0] or True: # FIXME
+            if node.lines == None or self.last_size_0 < text_width or True: # FIXME
                 node.lines = node.text.split('\n')
             lines = node.lines
-            size_width = size[0]
-            font_size_w = font_size/2
-            if size_width > font_size_w:
-                width_ln = int(size_width / font_size_w)
+            font_size_w = font_size * 0.46 #/2
+            if text_width > font_size_w:
+                width_ln = int(text_width / font_size_w)
                 i = len(lines) - 1
                 while i >= 0:
                     add_i = i
@@ -126,13 +130,14 @@ class Calced:
                         add_i = fix_lines_line_for_ln(lines, add_i, width_ln)
                     i -= 1
 
-        self.last_size_0 = size[0]
+        self.last_size_0 = text_width
+
+        margin = get_size_prop_from_node(node, 'margin', None)
 
         height_default = 0
         if node.lines:
-            height_default = (font_size*2) * len(node.lines)
-
-        margin = get_size_prop_from_node(node, 'margin', None)
+            height_default = font_size * len(node.lines) + margin + padding_2
+        
         width = get_size_prop_from_node(node, 'width', size[0], -1)
         height = get_size_prop_from_node(node, 'height', size[1], height_default)
         min_height = get_size_prop_from_node(node, 'min-height', None)
@@ -144,6 +149,7 @@ class Calced:
             size = (size[0], height)
 
         self.margin = margin
+        self.padding = padding
         self.min_height = min_height
 
         if hasattr(node, 'drawer') and node.level > 2:
@@ -187,6 +193,10 @@ class DrawerBlock(DrawerNode):
 
             _ps, size_calced = self.add_subnode_pos_size(node, _ps, size_calced, self.calced.margin)
 
+        h = _ps[1] - pos_my[1]
+        if h > size_calced[1]:
+            size_calced = (size_calced[0], h)
+
         self.size_calced = size_calced
         self.pos = pos_my
 
@@ -213,7 +223,6 @@ class DrawerBlock(DrawerNode):
             size_calced = (size_calced[0], pos[1] + wh[1] - pos_my[1])
 
         pos[1] += wh[1] + margin
-
         return pos, size_calced
 
     def draw(self, cr, started=-0.2):
@@ -224,17 +233,22 @@ class DrawerBlock(DrawerNode):
         background_color = self.calced.background_color
         color = self.calced.color
         font_size = self.calced.font_size
+        border = self.calced.border
+
+        rect = (ps[0], ps[1], size_calced[0], size_calced[1])
 
         if background_color:
-            cr.set_source_rgb(*hex2color(background_color))
-            cr.rectangle(ps[0], ps[1], size_calced[0], size_calced[1])
-            cr.fill()
+            self.draw_background(cr, background_color, rect)
+
+        if border:
+            self.draw_border(cr, rect, border[0], border[1], border[2])
 
         if color:
             cr.set_source_rgb(*hex2color(color))
         else:
             cr.set_source_rgb(0.1, 0.1, 0.1)
-        self.draw_lines(cr, self.node.lines, ps, font_size)
+        padding = self.calced.padding
+        self.draw_lines(cr, self.node.lines, (ps[0]+padding, ps[1]+padding), font_size)
 
         tag = self.node.tag.text if self.node.tag else None
         if tag == 'listview':
@@ -249,6 +263,18 @@ class DrawerBlock(DrawerNode):
                 continue
 
             node.drawer.draw(cr, started)
+
+    def draw_background(self, cr, background_color, rect):
+        cr.set_source_rgb(*hex2color(background_color))
+        cr.rectangle(*rect)
+        cr.fill()
+
+    def draw_border(self, cr, rect, border_width, border_type, border_color):
+        rect = (rect[0]+0.5, rect[1]+0.5, rect[2]-1, rect[3]-1)
+        cr.rectangle(*rect)
+        cr.set_source_rgb(*hex2color(border_color))
+        cr.set_line_width(border_width)
+        cr.stroke()
 
     def draw_lines(self, cr, lines, pos, font_size):
         if not lines:
