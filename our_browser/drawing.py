@@ -1,5 +1,6 @@
-import sys
+from os.path import exists, abspath
 from our_browser.listview import draw_listview
+import cairo
 
 
 check_is_drawable = lambda node: node.tag and node.tag.text not in ('style', 'script', 'head') and not node.tag.text.startswith('!')
@@ -114,6 +115,18 @@ class Calced:
         text_width = size[0] - padding_2
 
         tag = node.tag.text
+
+        image = None
+        if tag == 'image':
+            self.image = None
+            self.image_src = None
+            if node.attrs:
+                self.image_src = image_src = node.attrs.get('src', None)
+                if image_src:
+                    image_src = abspath(image_src)
+                if image_src and exists(image_src):
+                    image = self.image = cairo.ImageSurface.create_from_png(image_src)
+
         if not hasattr(node, 'lines'):
             node.lines = None
         if node.text:
@@ -137,6 +150,10 @@ class Calced:
         height_default = 0
         if node.lines:
             height_default = font_size * len(node.lines) + margin + padding_2
+        if image:
+            image_height = image.get_height()
+            if image_height > height_default:
+                height_default = image_height + padding_2
         
         width = get_size_prop_from_node(node, 'width', size[0], -1)
         height = get_size_prop_from_node(node, 'height', size[1], height_default)
@@ -234,11 +251,15 @@ class DrawerBlock(DrawerNode):
         color = self.calced.color
         font_size = self.calced.font_size
         border = self.calced.border
+        image = getattr(self.calced, 'image', None)
 
         rect = (ps[0], ps[1], size_calced[0], size_calced[1])
 
         if background_color:
             self.draw_background(cr, background_color, rect)
+
+        if image:
+            self.draw_image(cr, image, rect)
 
         if border:
             self.draw_border(cr, rect, border[0], border[1], border[2])
@@ -287,6 +308,10 @@ class DrawerBlock(DrawerNode):
             cr.move_to(x, y + font_size) #+5
             cr.show_text(line)
             y += font_size
+
+    def draw_image(self, cr, image, rect):
+        cr.set_source_surface(image, rect[0], rect[1])
+        cr.paint()
 
     def propagateEvent(self, pos, event_name):
         if (
