@@ -53,10 +53,9 @@ class DrawingArea(wx.Panel):
 
         if self.ROOT.size_calced[1] > size[1]:
             position = self.scroll.ThumbPosition
-            # thumbSize = size[1] / 10
-            _range = self.ROOT.size_calced[1] - size[1]
-            thumbSize = _range / 2 #/ 10
             pageSize = size[1]
+            _range = self.ROOT.size_calced[1] - pageSize
+            thumbSize = _range / pageSize
             self.scroll.SetScrollbar(position=position, thumbSize=thumbSize, range=_range, pageSize=pageSize)
             if not self.scroll_show:
                 self.scroll_show = True
@@ -64,6 +63,7 @@ class DrawingArea(wx.Panel):
                 self.vbox.Layout()
         else:
             if self.scroll_show:
+                self.scroll_pos = 0
                 self.scroll.ThumbPosition = 0
                 self.scroll_show = False
                 self.scroll.Hide()
@@ -71,6 +71,19 @@ class DrawingArea(wx.Panel):
     
     def onScrollWin1(self, event):
         self.scroll_pos = -event.Position
+        self.Refresh()
+
+    def onWheelWin(self, event):
+        if not self.scroll_show:
+            return
+        d = -event.GetWheelRotation()/4
+        self.scroll_pos -= d
+        if self.scroll_pos > 0:
+            self.scroll_pos = 0
+        max_pos = self.scroll.GetRange()
+        if self.scroll_pos < -max_pos:
+            self.scroll_pos = -max_pos
+        self.scroll.ThumbPosition = -self.scroll_pos
         self.Refresh()
 
     def onClick(self, event):
@@ -108,6 +121,7 @@ class Frame(wx.Frame):
         self.Centre()
 
         scroll.Bind(wx.EVT_SCROLL, mainPanel.onScrollWin1)
+        self.Bind(wx.EVT_MOUSEWHEEL, mainPanel.onWheelWin)
 
 
 class BrowserApp:
