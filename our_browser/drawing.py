@@ -20,10 +20,10 @@ def make_drawable_tree(parent, drawer=None, with_html=False):
 
     for node in parent.children:
         if not drawer and node.tag and ((with_html and node.tag.text == 'html') or node.tag.text == 'body'):
-            drawer = DrawerBlock(node)
+            drawer = make_drawer(parent, node)
 
         elif check_is_drawable(node):
-            DrawerBlock(node)
+            make_drawer(parent, node)
 
         _drawer = make_drawable_tree(node, drawer, with_html=with_html)
 
@@ -31,6 +31,19 @@ def make_drawable_tree(parent, drawer=None, with_html=False):
         drawer = _drawer
 
     return drawer
+
+
+def make_drawer(parent, node):
+    style = getattr(node, 'style', None)
+
+    if style:
+        if style.get('display', None) == 'flex':
+            return DrawerFlex(node)
+
+        if style.get('flex', None) != None:
+            return DrawerFlexItem(node)
+
+    return DrawerBlock(node)
 
 
 class DrawerNode:
@@ -99,18 +112,21 @@ class Calced:
         background_color = color = border = None
         font_size = 11
         display = None
+        flex = None
         if hasattr(node, 'style'):
             color = node.style.get('color', None)
             background_color = node.style.get('background-color', None)
             font_size = node.style.get('font-size', 11)
             border = node.style.get('border', None)
             display = node.style.get('display', None)
+            flex = node.style.get('flex', None)
 
         self.color = color
         self.background_color = background_color
         self.font_size = font_size
         self.border = border
         self.display = display
+        self.flex = flex
 
         self.padding = padding = get_size_prop_from_node(node, 'padding', None)
         padding_2 = padding * 2
@@ -202,33 +218,19 @@ class DrawerBlock(DrawerNode):
         super().__init__(node)
         self.calced = Calced()
 
-    def calc_size(self, size, pos, started=True):
+    def calc_size(self, size, pos):
         calced = self.calced.calced
 
         self.calced.calc_params(self.node, size)
-        size_my = self.calced.rect.width, self.calced.rect.height
 
         tag = self.node.tag.text if self.node.tag else None
         
-        size_calced = (size_my[0], size_my[1])
-        pos_my = [pos[0] + self.calced.margin, pos[1] + self.calced.margin]
-        _ps = [pos_my[0], pos_my[1]]
+        pos_my = (pos[0] + self.calced.margin, pos[1] + self.calced.margin)
+        size_my = (self.calced.rect.width, self.calced.rect.height)
         
-        for node in self.node.children:
-            if not hasattr(node, 'drawer'):
-                continue
-            
-            drawer = node.drawer
+        size_calced = self.calc_children(pos_my, size_my)
 
-            _size_my = drawer.calc_size(size_my, (_ps[0], _ps[1]), started)
-
-            _ps, size_calced = self.add_subnode_pos_size(node, _ps, size_calced, self.calced.margin)
-
-        h = _ps[1] - pos_my[1]
-        if h > size_calced[1]:
-            size_calced = (size_calced[0], h)
-
-        self.size_calced = size_calced
+        self.size_calced = size_calced if size_calced != None else size_my
         self.pos = pos_my
 
         if not calced:
@@ -238,6 +240,27 @@ class DrawerBlock(DrawerNode):
             print('(button)', self.node.level, self.pos, self.size_calced, size_my, self.node.style)
 
         return size_my
+
+    def calc_children(self, pos_my, size_my):
+
+        _ps = (pos_my[0], pos_my[1])
+        size_calced = (size_my[0], size_my[1])
+
+        for node in self.node.children:
+            if not hasattr(node, 'drawer'):
+                continue
+            
+            drawer = node.drawer
+
+            _size_my = drawer.calc_size(size_my, (_ps[0], _ps[1]))
+
+            _ps, size_calced = self.add_subnode_pos_size(node, _ps, size_calced, self.calced.margin)
+
+        h = _ps[1] - pos_my[1]
+        if h > size_calced[1]:
+            size_calced = (size_calced[0], h)
+
+        return size_calced
 
     def add_subnode_pos_size(self, node, pos_my, size_calced, margin):
         pos = [pos_my[0], pos_my[1]]
@@ -256,8 +279,7 @@ class DrawerBlock(DrawerNode):
         pos[1] += wh[1] + margin
         return pos, size_calced
 
-    def draw(self, cr, started=-0.2):
-        started += 0.2
+    def draw(self, cr):
 
         ps, size_calced = self.pos, self.size_calced
 
@@ -297,7 +319,7 @@ class DrawerBlock(DrawerNode):
             if not hasattr(node, 'drawer'):
                 continue
 
-            node.drawer.draw(cr, started)
+            node.drawer.draw(cr)
 
     def draw_background(self, cr, background_color, rect):
         cr.set_source_rgb(*hex2color(background_color))
@@ -340,6 +362,51 @@ class DrawerBlock(DrawerNode):
                 ret = _propagateEvent(ch, pos, event_name)
                 if ret:
                     return ret
+
+
+class DrawerFlex(DrawerBlock):
+    
+    def calc_children(self, pos_my, size_my):
+        flex_sum = 0
+        for node in self.node.children:
+            style = getattr(node, 'style', None)
+            if style:
+                flex = style.get('flex', None)
+                if flex:
+                    flex_sum += flex
+        self.flex_point = size_my[0] / flex_sum
+
+        _ps = (pos_my[0], pos_my[1])
+        size_calced = (size_my[0], size_my[1])
+
+        for node in self.node.children:
+            if not hasattr(node, 'drawer'):
+                continue
+            
+            drawer = node.drawer
+
+            _size_my = drawer.calc_size(size_my, (_ps[0], _ps[1]))
+
+            _ps, size_calced = drawer.add_node_pos_size(_ps, size_calced, self.flex_point)
+
+        return size_calced
+
+
+class DrawerFlexItem(DrawerBlock):
+
+    def calc_children(self, pos_my, size_my):
+        size_calced = super().calc_children(pos_my, size_my)
+
+        return (self.node.parent.drawer.flex_point * self.calced.flex, size_calced[1])
+
+    def add_node_pos_size(self, pos_my, size_calced, flex_point):
+        pos = (pos_my[0] + flex_point * self.calced.flex, pos_my[1])
+        wh = self.size_calced
+
+        if wh[1] > size_calced[1]:
+            size_calced = (size_calced[0], wh[1])
+
+        return pos, size_calced
 
              
 def _propagateEvent(node, pos, event_name):
