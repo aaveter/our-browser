@@ -96,21 +96,23 @@ class Calced:
         self.last_size_0 = -1
     
     def calc_params(self, node, size):
-
         background_color = color = border = None
         font_size = 11
+        display = None
         if hasattr(node, 'style'):
             color = node.style.get('color', None)
             background_color = node.style.get('background-color', None)
             font_size = node.style.get('font-size', 11)
             border = node.style.get('border', None)
+            display = node.style.get('display', None)
 
         self.color = color
         self.background_color = background_color
         self.font_size = font_size
         self.border = border
+        self.display = display
 
-        padding = get_size_prop_from_node(node, 'padding', None)
+        self.padding = padding = get_size_prop_from_node(node, 'padding', None)
         padding_2 = padding * 2
         text_width = size[0] - padding_2
 
@@ -118,35 +120,22 @@ class Calced:
 
         image = None
         if tag == 'image':
-            self.image = None
-            self.image_src = None
-            if node.attrs:
-                self.image_src = image_src = node.attrs.get('src', None)
-                if image_src:
-                    image_src = abspath(image_src)
-                if image_src and exists(image_src):
-                    image = self.image = cairo.ImageSurface.create_from_png(image_src)
+            image = self.calc_image(tag, node)
 
         if not hasattr(node, 'lines'):
             node.lines = None
         if node.text:
-            if node.lines == None or self.last_size_0 < text_width or True: # FIXME
-                node.lines = node.text.split('\n')
-            lines = node.lines
-            font_size_w = font_size * 0.46 #/2
-            if text_width > font_size_w:
-                width_ln = int(text_width / font_size_w)
-                i = len(lines) - 1
-                while i >= 0:
-                    add_i = i
-                    while add_i >= 0:
-                        add_i = fix_lines_line_for_ln(lines, add_i, width_ln)
-                    i -= 1
+            self.calc_lines(node, font_size, text_width)
 
         self.last_size_0 = text_width
 
-        margin = get_size_prop_from_node(node, 'margin', None)
+        self.margin = margin = get_size_prop_from_node(node, 'margin', None)
 
+        width, height = self.calc_width_height(node, size, margin, padding_2, font_size, image)
+        
+        self.calc_rect(node, size, width, height, margin)
+
+    def calc_width_height(self, node, size, margin, padding_2, font_size, image):
         height_default = 0
         if node.lines:
             height_default = font_size * len(node.lines) + margin + padding_2
@@ -165,10 +154,37 @@ class Calced:
         if size[1] < height:
             size = (size[0], height)
 
-        self.margin = margin
-        self.padding = padding
         self.min_height = min_height
 
+        return width, height
+
+    def calc_lines(self, node, font_size, text_width):
+        if node.lines == None or self.last_size_0 < text_width or True: # FIXME
+            node.lines = node.text.split('\n')
+        lines = node.lines
+        font_size_w = font_size * 0.46 #/2
+        if text_width > font_size_w:
+            width_ln = int(text_width / font_size_w)
+            i = len(lines) - 1
+            while i >= 0:
+                add_i = i
+                while add_i >= 0:
+                    add_i = fix_lines_line_for_ln(lines, add_i, width_ln)
+                i -= 1
+
+    def calc_image(self, node):
+        image = None
+        self.image = None
+        self.image_src = None
+        if node.attrs:
+            self.image_src = image_src = node.attrs.get('src', None)
+            if image_src:
+                image_src = abspath(image_src)
+            if image_src and exists(image_src):
+                image = self.image = cairo.ImageSurface.create_from_png(image_src)
+        return image
+
+    def calc_rect(self, node, size, width, height, margin):
         if hasattr(node, 'drawer') and node.level > 2:
             self.rect.width = size[0] - 2*margin
             self.rect.height = height
@@ -178,8 +194,6 @@ class Calced:
 
         if not self.calced:
             self.calced = True
-
-        #return size
 
 
 class DrawerBlock(DrawerNode):
