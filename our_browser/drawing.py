@@ -113,6 +113,7 @@ class Calced:
         font_size = 11
         display = None
         flex = None
+        flex_direction = None
         if hasattr(node, 'style'):
             color = node.style.get('color', None)
             background_color = node.style.get('background-color', None)
@@ -120,6 +121,7 @@ class Calced:
             border = node.style.get('border', None)
             display = node.style.get('display', None)
             flex = node.style.get('flex', None)
+            flex_direction = node.style.get('flex-direction', None)
 
         self.color = color
         self.background_color = background_color
@@ -127,6 +129,7 @@ class Calced:
         self.border = border
         self.display = display
         self.flex = flex
+        self.flex_direction = flex_direction
 
         self.padding = padding = get_size_prop_from_node(node, 'padding', None)
         padding_2 = padding * 2
@@ -376,6 +379,7 @@ class DrawerFlex(DrawerBlock):
         size_calced = (size_my[0], size_my[1])
 
         self.flex_point = 0
+        flex_vertical = self.calced.flex_direction == 'column'
 
         for node in self.node.children:
             if hasattr(node, 'drawer'):
@@ -385,9 +389,9 @@ class DrawerFlex(DrawerBlock):
                 if flex:
                     flex_sum += flex
                 else:
-                    static_sum += drawer.calced.rect.width
+                    static_sum += drawer.calced.rect.height if flex_vertical else drawer.calced.rect.width
 
-        self.flex_point = (size_my[0]-static_sum) / flex_sum
+        self.flex_point = (size_my[1 if flex_vertical else 0]-static_sum) / flex_sum
 
         for node in self.node.children:
             if not hasattr(node, 'drawer'):
@@ -398,9 +402,9 @@ class DrawerFlex(DrawerBlock):
             _size_my = drawer.calc_size(size_my, (_ps[0], _ps[1]))
 
             if hasattr(drawer, 'add_node_pos_size'):
-                _ps, size_calced = drawer.add_node_pos_size(_ps, size_calced, self.flex_point)
+                _ps, size_calced = drawer.add_node_pos_size(_ps, size_calced, self.flex_point, flex_vertical)
             else:
-                _ps, size_calced = self.add_subnode_pos_size(node, _ps, size_calced, self.calced.margin, vertical=False) # FIXME only for horizontal flex
+                _ps, size_calced = self.add_subnode_pos_size(node, _ps, size_calced, self.calced.margin, vertical=flex_vertical)
 
         return size_calced
 
@@ -409,15 +413,26 @@ class DrawerFlexItem(DrawerBlock):
 
     def calc_children(self, pos_my, size_my):
         size_calced = super().calc_children(pos_my, size_my)
+        flex_vertical = self.node.parent.drawer.calced.flex_direction == 'column'
+        if flex_vertical:
+            return (size_calced[0], self.node.parent.drawer.flex_point * self.calced.flex)
+        else:
+            return (self.node.parent.drawer.flex_point * self.calced.flex, size_calced[1])
 
-        return (self.node.parent.drawer.flex_point * self.calced.flex, size_calced[1])
-
-    def add_node_pos_size(self, pos_my, size_calced, flex_point):
-        pos = (pos_my[0] + flex_point * self.calced.flex, pos_my[1])
+    def add_node_pos_size(self, pos_my, size_calced, flex_point, flex_vertical):
+        pos = (
+            (pos_my[0], pos_my[1] + flex_point * self.calced.flex) 
+            if flex_vertical else 
+            (pos_my[0] + flex_point * self.calced.flex, pos_my[1])
+        )
         wh = self.size_calced
 
-        if wh[1] > size_calced[1]:
-            size_calced = (size_calced[0], wh[1])
+        if flex_vertical:
+            if wh[0] > size_calced[0]:
+                size_calced = (wh[0], size_calced[1])
+        else:
+            if wh[1] > size_calced[1]:
+                size_calced = (size_calced[0], wh[1])
 
         return pos, size_calced
 
