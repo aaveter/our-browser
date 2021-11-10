@@ -391,6 +391,23 @@ class DrawerBlock(DrawerNode):
                 if ret:
                     return ret
 
+    def find_listview_by_pos(self, x, y):
+        if self.node.tag and self.node.tag.text == 'listview':
+            if (
+                self.pos[0] <= x < self.pos[0] + self.size_calced[0] and
+                self.pos[1] <= y < self.pos[1] + self.size_calced[1]
+            ):
+                return self
+        
+        for node in self.node.children:
+            if not hasattr(node, 'drawer'):
+                continue
+            lv = node.drawer.find_listview_by_pos(x, y)
+            if lv:
+                return lv
+
+        return None
+
 
 class DrawerFlex(DrawerBlock):
     

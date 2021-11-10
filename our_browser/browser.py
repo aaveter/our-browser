@@ -74,6 +74,13 @@ class DrawingArea(wx.Panel):
         self.Refresh()
 
     def onWheelWin(self, event):
+        mposx, mposy = wx.GetMousePosition()
+        mposx, mposy = self.ScreenToClient(mposx, mposy)
+        listview = self.ROOT.find_listview_by_pos(mposx, mposy)
+        if listview:
+            listview.node.attrs['data_model'].on_wheel(event)
+            self.Refresh()
+            return
         if not self.scroll_show:
             return
         d = -event.GetWheelRotation()/4
@@ -150,8 +157,10 @@ class BrowserApp:
             self._connect_styles(n)
 
 
-def main(listview_cls=ListviewControl):
-    html_path = sys.argv[1].replace('\\', '/')
+def main(listview_cls=ListviewControl, html_path=None):
+    if html_path == None:
+        html_path = sys.argv[1].replace('\\', '/')
+    
     app = BrowserApp(listview_cls=listview_cls, html_path=html_path)
     app.run()
 
