@@ -163,12 +163,16 @@ class Calced:
             if image_height > height_default:
                 height_default = image_height + padding_2
         
-        width = get_size_prop_from_node(node, 'width', size[0], -1)
-        height = get_size_prop_from_node(node, 'height', size[1], height_default)
+        self._width = width = get_size_prop_from_node(node, 'width', size[0], -1)
+        self._height = height = get_size_prop_from_node(node, 'height', size[1], -1) #height_default)
+        
+        if height < 0:
+            height = height_default
+        
         min_height = get_size_prop_from_node(node, 'min-height', None)
 
         if min_height > height:
-            height = min_height
+            self._height = height = min_height
 
         if size[1] < height:
             size = (size[0], height)
@@ -351,8 +355,27 @@ class DrawerBlock(DrawerNode):
             y += font_size
 
     def draw_image(self, cr, image, rect):
-        cr.set_source_surface(image, rect[0], rect[1])
+        #boo = rect[2] == 100
+        r = (rect[0], rect[1], rect[2], rect[3])
+        img_w, img_h = image.get_width(), image.get_height()
+        wk, hk = (
+            1 if self.calced._width < 0 else rect[2]/img_w, 
+            1 if self.calced._height < 0 else rect[3]/img_h
+        )
+        boo = wk != 1 or hk != 1
+        if boo:
+            r = (rect[0]/wk, rect[1]/hk, rect[2]/wk, rect[3]/hk)
+            #print('~~~~~', (wk, hk), r, (self.calced._width, self.calced._height))
+            cr.scale(wk, hk)
+        # else:
+        #     print('`````', rect, (self.calced._width, self.calced._height))
+        cr.set_source_surface(image, r[0], r[1])
         cr.paint()
+        if boo:
+            cr.scale(1/wk, 1/hk)
+        #     cr.set_source_rgb(0, 0, 0)
+        #     cr.rectangle(*rect)
+        #     cr.stroke()
 
     def propagateEvent(self, pos, event_name):
         if (
