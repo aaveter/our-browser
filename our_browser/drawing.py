@@ -4,7 +4,6 @@ import cairo
 
 
 check_is_drawable = lambda node: node.tag and node.tag.text not in ('style', 'script', 'head') and not node.tag.text.startswith('!')
-#node.tag.text in ('div', 'h1', 'p', 'a', 'span', 'input/', 'h2')
 
 DEFAULT_STYLES = {
     'html': {
@@ -355,7 +354,6 @@ class DrawerBlock(DrawerNode):
             y += font_size
 
     def draw_image(self, cr, image, rect):
-        #boo = rect[2] == 100
         r = (rect[0], rect[1], rect[2], rect[3])
         img_w, img_h = image.get_width(), image.get_height()
         wk, hk = (
@@ -365,17 +363,37 @@ class DrawerBlock(DrawerNode):
         boo = wk != 1 or hk != 1
         if boo:
             r = (rect[0]/wk, rect[1]/hk, rect[2]/wk, rect[3]/hk)
-            #print('~~~~~', (wk, hk), r, (self.calced._width, self.calced._height))
             cr.scale(wk, hk)
-        # else:
-        #     print('`````', rect, (self.calced._width, self.calced._height))
         cr.set_source_surface(image, r[0], r[1])
         cr.paint()
         if boo:
             cr.scale(1/wk, 1/hk)
-        #     cr.set_source_rgb(0, 0, 0)
-        #     cr.rectangle(*rect)
-        #     cr.stroke()
+
+    def draw_scroll(self, cr, _ps, _sz):
+        scroll_width = 20
+        background_color = '#cccccc'
+        rect = (_ps[0]+_sz[0]-scroll_width, _ps[1], scroll_width, _sz[1])
+        cr.set_source_rgb(*hex2color(background_color))
+        cr.rectangle(*rect)
+        cr.fill()
+
+        scroll_width_p2 = scroll_width / 2
+
+        cr.set_source_rgb(*hex2color('#777777'))
+        cr.move_to(rect[0]+scroll_width_p2, rect[1]+5)
+        cr.line_to(rect[0]+scroll_width_p2-5, rect[1]+10)
+        cr.line_to(rect[0]+scroll_width_p2+5, rect[1]+10)
+        cr.line_to(rect[0]+scroll_width_p2, rect[1]+5)
+        cr.fill()
+
+        bottom = _ps[1] + _sz[1]
+        cr.move_to(rect[0]+scroll_width_p2, bottom-5)
+        cr.line_to(rect[0]+scroll_width_p2-5, bottom-10)
+        cr.line_to(rect[0]+scroll_width_p2+5, bottom-10)
+        cr.line_to(rect[0]+scroll_width_p2, bottom-5)
+        cr.fill()
+
+        return (_sz[0]-scroll_width, _sz[1])
 
     def propagateEvent(self, pos, event_name):
         if (
@@ -491,5 +509,4 @@ def _propagateEvent(node, pos, event_name):
 def hex2color(color_hex):
     color_hex = color_hex.split('#')[1]
     return (int(color_hex[:2], 16)/255.0, int(color_hex[2:4], 16)/255.0, int(color_hex[4:6], 16)/255.0)
-
 

@@ -43,7 +43,10 @@ def draw_listview(drawer, listview, cr):
     scroll_pos = listview.scroll_pos
 
     _ps = lv_pos = getattr(drawer, 'pos', (0, 0))
-    _sz = lv_size = getattr(drawer, 'size_calced', (0, 0))
+    _sz = getattr(drawer, 'size_calced', (0, 0))
+
+    _sz = lv_size = drawer.draw_scroll(cr, _ps, _sz)
+
     lv_bottom = lv_pos[1] + lv_size[1]
     
     if not hasattr(t_drawer, 'text'):
@@ -51,7 +54,7 @@ def draw_listview(drawer, listview, cr):
 
     _ps = (_ps[0], _ps[1]+scroll_pos)
 
-    t_drawer.calc_size(_sz, [_ps[0], _ps[1]])
+    #t_drawer.calc_size(_sz, [_ps[0], _ps[1]]) - works into calc_size tree
     
     for i in range(_items_count):
         if _ps[1] < lv_pos[1]:
