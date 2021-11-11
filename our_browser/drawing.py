@@ -371,7 +371,7 @@ class DrawerBlock(DrawerNode):
 
     def draw_scroll(self, cr, _ps, _sz):
         scroll_width = 20
-        background_color = '#cccccc'
+        background_color = '#eeeeee'
         rect = (_ps[0]+_sz[0]-scroll_width, _ps[1], scroll_width, _sz[1])
         cr.set_source_rgb(*hex2color(background_color))
         cr.rectangle(*rect)
@@ -395,6 +395,24 @@ class DrawerBlock(DrawerNode):
 
         return (_sz[0]-scroll_width, _sz[1])
 
+    def draw_scroll_pos(self, cr, _ps, _sz, scroll_pos, scroll_size):
+        scroll_width = 20
+        scroll_pan_height = 50
+        
+        min_y = _ps[1] + scroll_width
+        max_y = _ps[1] + _sz[1] - scroll_width - scroll_pan_height
+
+        y = min_y + scroll_pos
+        if y > max_y:
+            y = max_y
+        if y < min_y:
+            y = min_y
+
+        rect = (_ps[0]+_sz[0], y, scroll_width, scroll_pan_height)
+        cr.set_source_rgb(*hex2color('#cccccc'))
+        cr.rectangle(*rect)
+        cr.fill()
+
     def propagateEvent(self, pos, event_name):
         if (
             self.pos[0] <= pos[0] < self.pos[0] + self.size_calced[0] and 
@@ -402,7 +420,13 @@ class DrawerBlock(DrawerNode):
         ):
             ev = self.node.attrs.get(event_name, None) if self.node.attrs else None
             if ev and ev():
-                return
+                return True
+
+            if self.node.tag and self.node.tag.text =='listview':
+                listview = self.node.attrs['data_model']
+                ret = listview.propagateEvent(pos, event_name)
+                if ret:
+                    return ret
 
             for ch in self.node.children:
                 ret = _propagateEvent(ch, pos, event_name)

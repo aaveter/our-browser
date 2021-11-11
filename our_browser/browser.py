@@ -26,7 +26,9 @@ class DrawingArea(wx.Panel):
         self.SetDoubleBuffered(True)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_LEFT_DOWN, self.onDown)
         self.Bind(wx.EVT_LEFT_UP, self.onClick)
+        self.Bind(wx.EVT_MOTION, self.onMoving)
     
     def OnSize(self, event):
         self.Refresh() # MUST have this, else the rectangle gets rendered corruptly when resizing the window!
@@ -93,12 +95,16 @@ class DrawingArea(wx.Panel):
         self.scroll.ThumbPosition = -self.scroll_pos
         self.Refresh()
 
+    def onDown(self, event):
+        self.ROOT.propagateEvent(event.Position, 'ondown')
+
     def onClick(self, event):
-        print('CLICK', event.Position)
         self.ROOT.propagateEvent(event.Position, 'onclick')
-        print('~~~', self.ROOT.node)
         self.Refresh()
 
+    def onMoving(self, event):
+        if self.ROOT.propagateEvent(event.Position, 'onmoving'):
+            self.Refresh()
 
 class Frame(wx.Frame):
 
