@@ -232,9 +232,9 @@ class DrawerBlock(DrawerNode):
         
         pos_my = (pos[0] + self.calced.margin, pos[1] + self.calced.margin)
         size_my = (self.calced.rect.width, self.calced.rect.height)
-        
+   
         size_calced = self.calc_children(pos_my, size_my)
-
+        
         self.size_calced = size_calced if size_calced != None else size_my
         self.pos = pos_my
 
@@ -414,6 +414,8 @@ class DrawerBlock(DrawerNode):
         cr.fill()
 
     def propagateEvent(self, pos, event_name):
+        if not hasattr(self, 'pos'):
+            return False
         if (
             self.pos[0] <= pos[0] < self.pos[0] + self.size_calced[0] and 
             self.pos[1] <= pos[1] < self.pos[1] + self.size_calced[1]
@@ -475,6 +477,7 @@ class DrawerFlex(DrawerBlock):
 
         self.flex_point = (size_my[1 if flex_vertical else 0]-static_sum) / flex_sum
 
+        _size_calced = size_calced
         for node in self.node.children:
             if not hasattr(node, 'drawer'):
                 continue
@@ -484,9 +487,9 @@ class DrawerFlex(DrawerBlock):
             _size_my = drawer.calc_size(size_my, (_ps[0], _ps[1]))
 
             if hasattr(drawer, 'add_node_pos_size'):
-                _ps, size_calced = drawer.add_node_pos_size(_ps, size_calced, self.flex_point, flex_vertical)
+                _ps, _size_calced = drawer.add_node_pos_size(_ps, _size_calced, self.flex_point, flex_vertical)
             else:
-                _ps, size_calced = self.add_subnode_pos_size(node, _ps, size_calced, self.calced.margin, vertical=flex_vertical)
+                _ps, _size_calced = self.add_subnode_pos_size(node, _ps, _size_calced, self.calced.margin, vertical=flex_vertical)
 
         return size_calced
 
@@ -494,8 +497,15 @@ class DrawerFlex(DrawerBlock):
 class DrawerFlexItem(DrawerBlock):
 
     def calc_children(self, pos_my, size_my):
-        size_calced = super().calc_children(pos_my, size_my)
         flex_vertical = self.node.parent.drawer.calced.flex_direction == 'column'
+
+        if flex_vertical:
+            size_my = (size_my[0], self.node.parent.drawer.flex_point * self.calced.flex)
+        else:
+            size_my = (self.node.parent.drawer.flex_point * self.calced.flex, size_my[1])
+
+        size_calced = super().calc_children(pos_my, size_my)
+        
         if flex_vertical:
             return (size_calced[0], self.node.parent.drawer.flex_point * self.calced.flex)
         else:
