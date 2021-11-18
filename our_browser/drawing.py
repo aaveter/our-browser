@@ -390,6 +390,7 @@ class DrawerBlock(DrawerNode):
             node.drawer.draw(cr)
 
     def draw_background(self, cr, background_color, rect):
+        rect = (rect[0], rect[1], rect[2]+1, rect[3]+1)
         cr.set_source_rgb(*hex2color(background_color))
         cr.rectangle(*rect)
         cr.fill()
@@ -404,9 +405,9 @@ class DrawerBlock(DrawerNode):
             if nm == 'left':
                 x1, y1, x2, y2 = rect[0], rect[1], rect[0], rect[1]+rect[3]
             elif nm == 'right':
-                x1, y1, x2, y2 = rect[0]+rect[2], rect[1], rect[0]+rect[2], rect[1]+rect[3]
+                x1, y1, x2, y2 = rect[0]+rect[2]+0.5, rect[1], rect[0]+rect[2]+0.5, rect[1]+rect[3]
             elif nm == 'top':
-                x1, y1, x2, y2 = rect[0], rect[1], rect[0]+rect[2], rect[1]
+                x1, y1, x2, y2 = rect[0], rect[1]+0.5, rect[0]+rect[2], rect[1]+0.5
             elif nm == 'bottom':
                 x1, y1, x2, y2 = rect[0], rect[1]+rect[3], rect[0]+rect[2], rect[1]+rect[3]
             cr.move_to(x1, y1)
