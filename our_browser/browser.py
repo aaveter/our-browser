@@ -7,7 +7,7 @@ from os.path import abspath, join, dirname
 import sys
 
 from our_browser.ext_depends import noder_parse_file, noder_parse_text, DATA_PATH
-from our_browser.drawing import make_drawable_tree
+from our_browser.drawing import make_drawable_tree, TIMERS_ABILITIES
 from our_browser.listview import ListviewControl, connect_listview
 
 
@@ -153,8 +153,15 @@ class BrowserApp:
     def run(self):
         self.update_drawers()
         self._connect_styles(self.ROOT_NODE)
+
+        for ab in TIMERS_ABILITIES:
+            ab.set_refresher(self.frame.mainPanel.Refresh)
+
         self.frame.Show(True)
         self.app.MainLoop()
+
+        for ab in TIMERS_ABILITIES:
+            ab.stop_timer()
 
     def _connect_styles(self, node):
         styler = self.ROOT_NODE.styler

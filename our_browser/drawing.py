@@ -1,6 +1,7 @@
 from os.path import exists, abspath
 from our_browser.listview import draw_listview
 import cairo
+import threading
 
 
 check_is_drawable = lambda node: node.tag and node.tag.text not in ('style', 'script', 'head') and not node.tag.text.startswith('!')
@@ -11,6 +12,9 @@ DEFAULT_STYLES = {
         'height': 'auto'
     }
 }
+
+
+TIMERS_ABILITIES = []
 
 
 def make_drawable_tree(parent, drawer=None, with_html=False):
@@ -35,14 +39,22 @@ def make_drawable_tree(parent, drawer=None, with_html=False):
 def make_drawer(parent, node):
     style = getattr(node, 'style', None)
 
+    drawer = None
     if style:
         if style.get('display', None) == 'flex':
-            return DrawerFlex(node)
+            drawer = DrawerFlex(node)
 
-        if style.get('flex', None) != None:
-            return DrawerFlexItem(node)
+        elif style.get('flex', None) != None:
+            drawer = DrawerFlexItem(node)
 
-    return DrawerBlock(node)
+    if not drawer:
+        drawer = DrawerBlock(node)
+
+    if drawer:
+        if node.tag and node.tag.text == 'input':
+            AbilityInput(drawer)
+
+    return drawer
 
 
 class DrawerNode:
@@ -238,6 +250,7 @@ class DrawerBlock(DrawerNode):
 
     def __init__(self, node) -> None:
         super().__init__(node)
+        self.ability = None
         self.calced = Calced()
 
     def check_parent_flex(self):
@@ -374,6 +387,9 @@ class DrawerBlock(DrawerNode):
             cr.set_source_rgb(0.1, 0.1, 0.1)
         padding = self.calced.padding
         self.draw_lines(cr, self.node.lines, (ps[0]+padding, ps[1]+padding), font_size)
+
+        if self.ability:
+            self.ability.draw(cr, rect)
 
         tag = self.node.tag.text if self.node.tag else None
         if tag == 'listview':
@@ -566,6 +582,62 @@ class DrawerFlex(DrawerBlock):
                 _ps, _size_calced = self.add_subnode_pos_size(node, _ps, _size_calced, self.calced.margin, vertical=flex_vertical)
 
         return size_calced
+
+
+class AbilityBase:
+
+    def __init__(self, drawer) -> None:
+        self.drawer = drawer
+        drawer.ability = self
+
+    def draw(self, cr, rect):
+        pass
+
+
+class AbilityInput(AbilityBase):
+    
+    def __init__(self, drawer) -> None:
+        super().__init__(drawer)
+        self.cursor_visible = True
+        self.timer = None
+        self.refresher = None
+        self.ending = False
+        self.start_timer()
+        TIMERS_ABILITIES.append(self)
+
+    def set_refresher(self, func):
+        self.refresher = func
+
+    def draw(self, cr, rect):
+        if not self.cursor_visible:
+            return
+        padding = self.drawer.calced.padding
+        cr.set_source_rgb(*hex2color('#000000'))
+        cr.set_line_width(1)
+        x1, y1, x2, y2 = rect[0]+padding, rect[1]+padding, rect[0]+padding, rect[1]+padding + 20
+        cr.move_to(x1, y1)
+        cr.line_to(x2, y2)
+        cr.stroke()
+
+    def start_timer(self):
+        if self.ending:
+            return
+        if self.timer:
+            self.timer.cancel()
+        self.timer = threading.Timer(1.0, self.toggle)
+        self.timer.start()
+
+    def stop_timer(self):
+        print('[ TIMER ] stop')
+        self.ending = True
+        if self.timer:
+            self.timer.cancel()
+
+    def toggle(self):
+        self.cursor_visible = not self.cursor_visible
+        if self.refresher:
+            self.refresher()
+        self.start_timer()
 
 
 class DrawerFlexItem(DrawerBlock):
