@@ -231,6 +231,11 @@ class DrawingArea(wx.Panel):
                 if name == 'up':
                     self.addText('\n')
 
+            elif keycode == 8:
+                print('-- backspace --')
+                if name == 'up':
+                    self.addText(None) # for remove
+
             else:
                 has_shift = event.ShiftDown()
                 keycode3 = event.GetRawKeyCode()
@@ -268,7 +273,10 @@ class DrawingArea(wx.Panel):
         if len(TIMERS_ABILITIES):
             if not TIMERS_ABILITIES[0].drawer.node.text:
                 TIMERS_ABILITIES[0].drawer.node.text = ""
-            TIMERS_ABILITIES[0].drawer.node.text += text
+            if text == None:
+                TIMERS_ABILITIES[0].drawer.node.text = TIMERS_ABILITIES[0].drawer.node.text[:-1]
+            else:
+                TIMERS_ABILITIES[0].drawer.node.text += text
 
             self.Refresh()
 

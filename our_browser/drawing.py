@@ -172,6 +172,9 @@ class Calced:
             node.lines = None
         if node.text:
             self.calc_lines(node, font_size, text_width)
+        else:
+            if node.lines:
+                node.lines = None
 
         self.last_size_0 = text_width
 
@@ -614,7 +617,25 @@ class AbilityInput(AbilityBase):
         padding = self.drawer.calced.padding
         cr.set_source_rgb(*hex2color('#000000'))
         cr.set_line_width(1)
-        x1, y1, x2, y2 = rect[0]+padding, rect[1]+padding, rect[0]+padding, rect[1]+padding + 20
+
+        x0, y0 = rect[0]+padding, rect[1]+padding
+        cursor_height = 20
+        x1, y1, x2, y2 = x0, y0, x0, y0 + cursor_height
+
+        fascent, fdescent, fheight, fxadvance, fyadvance = cr.font_extents()
+        print(fascent, fdescent, fheight, fxadvance, fyadvance)
+        lines = self.drawer.node.lines
+        if lines:
+            hi = len(lines)
+            line = lines[-1]
+            wi = len(line)
+
+            hadd = (hi - 1) * fheight
+            xoff, yoff, textWidth, textHeight = cr.text_extents(line)[:4]
+            wadd = textWidth
+
+            x1, y1, x2, y2 = x0+wadd, y0+hadd, x0+wadd, y0+hadd + cursor_height
+
         cr.move_to(x1, y1)
         cr.line_to(x2, y2)
         cr.stroke()
