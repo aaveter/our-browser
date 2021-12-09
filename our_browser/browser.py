@@ -7,7 +7,7 @@ from os.path import abspath, join, dirname
 import sys
 
 from our_browser.ext_depends import noder_parse_file, noder_parse_text, DATA_PATH
-from our_browser.drawing import make_drawable_tree, TIMERS_ABILITIES
+from our_browser.drawing import make_drawable_tree, INPUT_CONTROL
 from our_browser.listview import ListviewControl, connect_listview
 
 
@@ -204,7 +204,8 @@ class DrawingArea(wx.Panel):
         self.ROOT.propagateEvent(event.Position, 'ondown')
 
     def onClick(self, event):
-        self.ROOT.propagateEvent(event.Position, 'onclick')
+        if not self.ROOT.propagateEvent(event.Position, 'onclick'):
+            INPUT_CONTROL.set_focus(None)
         self.Refresh()
 
     def onMoving(self, event):
@@ -233,7 +234,7 @@ class DrawingArea(wx.Panel):
 
             elif keycode == 8:
                 print('-- backspace --')
-                if name == 'up':
+                if name == 'down':
                     self.addText(None) # for remove
 
             else:
@@ -251,7 +252,7 @@ class DrawingArea(wx.Panel):
                     ch = ch.translate(layout)
 
                 print(name, "You pressed: ", keycode, ch, keycode3, chr(keycode3), 'has_shift:', has_shift)
-                if name == 'up':
+                if name == 'down':
                     self.addText(ch)
 
         else:
@@ -270,14 +271,9 @@ class DrawingArea(wx.Panel):
         event.Skip()
 
     def addText(self, text):
-        if len(TIMERS_ABILITIES):
-            if not TIMERS_ABILITIES[0].drawer.node.text:
-                TIMERS_ABILITIES[0].drawer.node.text = ""
-            if text == None:
-                TIMERS_ABILITIES[0].drawer.node.text = TIMERS_ABILITIES[0].drawer.node.text[:-1]
-            else:
-                TIMERS_ABILITIES[0].drawer.node.text += text
-
+        ability = INPUT_CONTROL.focus_into
+        if ability:
+            ability.addText(text)
             self.Refresh()
 
 
@@ -329,14 +325,12 @@ class BrowserApp:
         self.update_drawers()
         self._connect_styles(self.ROOT_NODE)
 
-        for ab in TIMERS_ABILITIES:
-            ab.set_refresher(self.frame.mainPanel.Refresh)
+        INPUT_CONTROL.set_refresher(self.frame.mainPanel.Refresh)
 
         self.frame.Show(True)
         self.app.MainLoop()
 
-        for ab in TIMERS_ABILITIES:
-            ab.stop_timer()
+        INPUT_CONTROL.stop_timer()
 
     def _connect_styles(self, node):
         styler = self.ROOT_NODE.styler

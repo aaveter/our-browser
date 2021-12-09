@@ -14,7 +14,56 @@ DEFAULT_STYLES = {
 }
 
 
-TIMERS_ABILITIES = []
+class InputControl:
+    focus_into = None
+    timer = None
+    ending = False
+    refresher = None
+
+    def set_refresher(self, func):
+        self.refresher = func
+
+    def set_focus(self, elem):
+        if not elem:
+            if self.focus_into:
+                self.focus_into.on_focus_lost()
+            self.focus_into = None
+        elif hasattr(elem, 'on_timer'):
+            if self.focus_into == elem:
+                return
+            self.focus_into = elem
+
+        if self.focus_into:
+            self.focus_into.on_focus_got()
+            self.ending = False
+            self.start_timer()
+        else:
+            self.stop_timer()
+
+    def start_timer(self):
+        if self.ending:
+            return
+        if self.timer:
+            self.timer.cancel()
+        self.timer = threading.Timer(0.5, self.on_timer)
+        self.timer.start()
+
+    def stop_timer(self):
+        if not self.timer:
+            return
+        print('[ TIMER ] stop')
+        self.ending = True
+        if self.timer:
+            self.timer.cancel()
+            self.timer = None
+
+    def on_timer(self):
+        if self.focus_into:
+            self.focus_into.on_timer()
+            self.start_timer()
+
+
+INPUT_CONTROL = InputControl()
 
 
 def make_drawable_tree(parent, drawer=None, with_html=False):
@@ -439,6 +488,7 @@ class DrawerBlock(DrawerNode):
 
         cr.set_font_size(font_size)
         x, y = pos
+        x += 0.5
         
         for line in lines:
             cr.move_to(x, y + font_size) #+5
@@ -512,6 +562,10 @@ class DrawerBlock(DrawerNode):
             self.pos[0] <= pos[0] < self.pos[0] + self.size_calced[0] and 
             self.pos[1] <= pos[1] < self.pos[1] + self.size_calced[1]
         ):
+            if self.ability:
+                if self.ability.propagateEvent(pos, event_name):
+                    return True
+
             ev = self.node.attrs.get(event_name, None) if self.node.attrs else None
             if ev and ev():
                 return True
@@ -596,20 +650,15 @@ class AbilityBase:
     def draw(self, cr, rect):
         pass
 
+    def propagateEvent(self, pos, event_name):
+        pass
+
 
 class AbilityInput(AbilityBase):
     
     def __init__(self, drawer) -> None:
         super().__init__(drawer)
-        self.cursor_visible = True
-        self.timer = None
-        self.refresher = None
-        self.ending = False
-        self.start_timer()
-        TIMERS_ABILITIES.append(self)
-
-    def set_refresher(self, func):
-        self.refresher = func
+        self.cursor_visible = False
 
     def draw(self, cr, rect):
         if not self.cursor_visible:
@@ -636,29 +685,36 @@ class AbilityInput(AbilityBase):
 
             x1, y1, x2, y2 = x0+wadd, y0+hadd, x0+wadd, y0+hadd + cursor_height
 
-        cr.move_to(x1, y1)
-        cr.line_to(x2, y2)
+        cr.move_to(x1+0.5, y1)
+        cr.line_to(x2+0.5, y2)
         cr.stroke()
 
-    def start_timer(self):
-        if self.ending:
-            return
-        if self.timer:
-            self.timer.cancel()
-        self.timer = threading.Timer(1.0, self.toggle)
-        self.timer.start()
+    def propagateEvent(self, pos, event_name):
+        if event_name == 'onclick':
+            INPUT_CONTROL.set_focus(self)
+            return self
 
-    def stop_timer(self):
-        print('[ TIMER ] stop')
-        self.ending = True
-        if self.timer:
-            self.timer.cancel()
+    def on_timer(self):
+        self.toggle()
 
     def toggle(self):
         self.cursor_visible = not self.cursor_visible
-        if self.refresher:
-            self.refresher()
-        self.start_timer()
+        if INPUT_CONTROL.refresher:
+            INPUT_CONTROL.refresher()
+
+    def on_focus_got(self):
+        self.cursor_visible = True
+
+    def on_focus_lost(self):
+        self.cursor_visible = False
+
+    def addText(self, text):
+        if not self.drawer.node.text:
+            self.drawer.node.text = ""
+        if text == None:
+            self.drawer.node.text = self.drawer.node.text[:-1]
+        else:
+            self.drawer.node.text += text
 
 
 class DrawerFlexItem(DrawerBlock):
