@@ -18,7 +18,7 @@ HTML_TEXT = """<html>
     h2 {height: 25; margin: 8;}
     p {height: 15; margin: 5;}
     a {height: 15; margin: 3;}
-    button {height: 30; margin: 10;}
+    button {height: 30; margin: 10; max-width: 500;}
     .red {background-color:#ff5555; color: #ffffff;}
     .blue {background-color: #5555ff;}
     .green {background-color: #55cc55;}

@@ -249,14 +249,23 @@ class Calced:
             height = height_default
         
         min_height = get_size_prop_from_node(node, 'min-height', None)
+        max_height = get_size_prop_from_node(node, 'max-height', None)
+
+        min_width = get_size_prop_from_node(node, 'min-width', None)
+        max_width = get_size_prop_from_node(node, 'max-width', None)
 
         if min_height > height:
             self._height = height = min_height
+
+        # if max_width > 0 and (max_width < width or width <= 0):
+        #     print("~~~~~~~~~~~~ max_width:", max_width, '<', width)
+        #     self._width = width = max_width
 
         if size[1] < height:
             size = (size[0], height)
 
         self.min_height = min_height
+        self.max_width = max_width
 
         return width, height
 
@@ -293,6 +302,9 @@ class Calced:
         else:
             self.rect.width = width if width >= 0 else size[0]
             self.rect.height = height
+
+        if self.max_width > 0 and self.rect.width > self.max_width:
+            self.rect.width = self.max_width
 
         if not self.calced:
             self.calced = True
