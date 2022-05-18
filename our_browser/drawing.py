@@ -679,19 +679,20 @@ class AbilityInput(AbilityBase):
         cr.set_source_rgb(*hex2color('#000000'))
         cr.set_line_width(1)
 
-        x0, y0 = rect[0]+padding, rect[1]+padding
-        cursor_height = 20
-        x1, y1, x2, y2 = x0, y0, x0, y0 + cursor_height
-
         fascent, fdescent, fheight, fxadvance, fyadvance = cr.font_extents()
         print(fascent, fdescent, fheight, fxadvance, fyadvance)
+
+        x0, y0 = rect[0]+padding, rect[1]+padding
+        cursor_height = fheight #14 #20
+        x1, y1, x2, y2 = x0, y0, x0, y0 + cursor_height
+
         lines = self.drawer.node.lines
         if lines:
             hi = len(lines)
             line = lines[-1]
             wi = len(line)
 
-            hadd = (hi - 1) * fheight
+            hadd = (hi - 1) * (fheight*0.77)
             xoff, yoff, textWidth, textHeight = cr.text_extents(line)[:4]
             wadd = textWidth
 
