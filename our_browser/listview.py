@@ -4,15 +4,16 @@ import cairo
 class ListviewControl:
 
     def __init__(self, listview) -> None:
-        print('-----!!!!!!!!!! ListviewControl:', listview.tag)
+        print('-----!!!!!!!!!! ListviewControl:', listview.tag, "ATTRS:", listview.attrs)
         self.listview = listview
         self.template = None
         self.scroll_pos = 0
         self.scroll_started = False
+        self.items_count = int(listview.attrs.get('items-count', 0))
         listview.attrs['data_model'] = self
 
     def getItemsCount(self):
-        return 10000
+        return self.items_count
 
     def format_template(self, i, template, texts):
         #template.text = listview.format_template(t_drawer.text, i)

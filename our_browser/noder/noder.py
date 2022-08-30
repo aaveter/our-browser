@@ -58,6 +58,7 @@ class Node(ReprLikeStr):
                 return n
             _n = n.getElementById(key)
             if _n:
+                _n.root = self.root if hasattr(self, 'root') else self
                 return _n
 
     def set_node(self, node):
@@ -89,10 +90,12 @@ class Node(ReprLikeStr):
 
 class NodeParser:
 
-    def run(self, text: str):
+    def run(self, text: str, styler=None):
         pos = 0
         root = cur_node = Node(None, None)
-        styler = root.styler = Styler()
+        if not styler:
+            styler = Styler()
+        root.styler = styler
         attrs_parser = AttrsParser()
 
         while True:
@@ -201,8 +204,8 @@ def noder_parse_file(path):
     return root
 
 
-def noder_parse_text(text):
-    root = NodeParser().run(text)
+def noder_parse_text(text, styler=None):
+    root = NodeParser().run(text, styler=styler)
     return root
 
 

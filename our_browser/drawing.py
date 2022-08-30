@@ -733,7 +733,11 @@ class AbilityInput(AbilityBase):
 class DrawerFlexItem(DrawerBlock):
 
     def calc_children(self, pos_my, size_my):
-        flex_vertical = self.node.parent.drawer.calced.flex_direction == 'column'
+        try:
+            flex_vertical = self.node.parent.drawer.calced.flex_direction == 'column'
+        except:
+            print('????', self.node.parent)
+            raise
 
         if flex_vertical:
             size_my = (size_my[0], self.node.parent.drawer.flex_point * self.calced.flex)

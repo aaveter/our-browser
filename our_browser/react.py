@@ -1,5 +1,6 @@
 
 from our_browser.ext_depends import noder_parse_text
+from our_browser.drawing import make_drawable_tree
 
 
 class _ReactDOM:
@@ -18,12 +19,12 @@ class _ReactDOM:
         root = noder_parse_text(html).children[0]
         print('ROOT:', root, root.attrs)
 
-        root = self._find_and_render(root, node)
+        root = self._find_and_render(root, node, main_render=True)
         print('>>', root)
 
         self._set_node(node, root)
 
-    def _find_and_render(self, root, node=None):
+    def _find_and_render(self, root, node=None, main_render=False):
         if node == None:
             node = root
         else:
@@ -32,18 +33,23 @@ class _ReactDOM:
         for cls_name in self.react_classes:
             if root.tag and root.tag.text == cls_name:
                 root = self._render_node(node, self.react_classes[cls_name])
-                return root
+                root.app = node.app if node else root.app
+                if main_render:
+                    break
 
         for n in root.children:
+            n.app = root.app
             self._find_and_render(n)
 
-        return root
+        if main_render:
+            return root
 
     def _render_node(self, root, cls):
         print('[ _render_node ]', cls)
         component = cls(root.attrs)
         component.connect(root)
         component._render(first_start=True)
+        #self._find_and_render(root)
         return root
 
     def _connect_methods(self, node, _methods):
@@ -88,7 +94,7 @@ class _ReactComponent:
     def _render(self, first_start=False):
         ReactDOM._methods_tmp.clear()
         txt = self.render()
-        print('GOT txt:', txt)
+        print('GOT txt:', txt, '!!!!! root:')#, self.node.root)
         _methods, ReactDOM._methods_tmp = ReactDOM._methods_tmp, []
         src_node = noder_parse_text(txt).children[0]
         ReactDOM._set_node(self.node, src_node)
