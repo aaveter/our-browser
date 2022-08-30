@@ -40,7 +40,7 @@ class Styler:
                 continue
             ll = a.split(':')
             key, value = ll[0].strip(), ll[1].strip()
-            if key in ('width', 'height', 'min-height', 'max-height', 'min-width', 'max-width', 'margin', 'padding'):
+            if key in ('width', 'height', 'min-height', 'max-height', 'min-width', 'max-width', 'margin', 'padding', 'border-radius'):
                 if value.endswith('%'):
                     value = (int(value[:-1]), '%')
                 else:

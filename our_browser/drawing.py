@@ -1,6 +1,6 @@
 from os.path import exists, abspath
 from our_browser.listview import draw_listview
-import cairo
+import cairo, math
 import threading
 
 
@@ -169,7 +169,7 @@ class Calced:
         self.last_size_0 = -1
     
     def calc_params(self, node, size, debug=False):
-        background_color = color = border = None
+        background_color = color = border = border_radius = None
         border_left = border_right = border_top = border_bottom = None
         font_size = 11
         display = None
@@ -187,6 +187,8 @@ class Calced:
             border_top = node.style.get('border-top', None)
             border_bottom = node.style.get('border-bottom', None)
 
+            border_radius = int(node.style.get('border-radius', 0))
+
             display = node.style.get('display', None)
             flex = node.style.get('flex', None)
             flex_direction = node.style.get('flex-direction', None)
@@ -194,6 +196,7 @@ class Calced:
 
         self.color = color
         self.background_color = background_color
+        self.border_radius = border_radius
         self.font_size = font_size
 
         self.border = border
@@ -430,6 +433,7 @@ class DrawerBlock(DrawerNode):
         ps, size_calced = self.pos, self.size_calced
 
         background_color = self.calced.background_color
+        border_radius = self.calced.border_radius
         color = self.calced.color
         font_size = self.calced.font_size
         border = self.calced.border
@@ -438,13 +442,13 @@ class DrawerBlock(DrawerNode):
         rect = (ps[0], ps[1], size_calced[0], size_calced[1])
 
         if background_color:
-            self.draw_background(cr, background_color, rect)
+            self.draw_background(cr, background_color, rect, radius=border_radius)
 
         if image:
             self.draw_image(cr, image, rect)
 
         if border:
-            self.draw_border(cr, rect, 'full', border[0], border[1], border[2])
+            self.draw_border(cr, rect, 'full', border[0], border[1], border[2], radius=border_radius)
         for nm in ('left', 'right', 'top', 'bottom'):
             bd = getattr(self.calced, 'border_'+nm, None)
             if bd:
@@ -474,18 +478,24 @@ class DrawerBlock(DrawerNode):
 
             node.drawer.draw(cr)
 
-    def draw_background(self, cr, background_color, rect):
+    def draw_background(self, cr, background_color, rect, radius=None):
         rect = (rect[0], rect[1], rect[2]+1, rect[3]+1)
         cr.set_source_rgb(*hex2color(background_color))
-        cr.rectangle(*rect)
+        if radius:
+            roundrect(cr, rect[0], rect[1], rect[2], rect[3], radius)
+        else:
+            cr.rectangle(*rect)
         cr.fill()
 
-    def draw_border(self, cr, rect, nm, border_width, border_type, border_color):
+    def draw_border(self, cr, rect, nm, border_width, border_type, border_color, radius=None):
         cr.set_source_rgb(*hex2color(border_color))
         cr.set_line_width(border_width)
         if nm == 'full':
-            rect = (rect[0]+0.5, rect[1]+0.5, rect[2]-1, rect[3]-1)
-            cr.rectangle(*rect)    
+            rect = (rect[0]+0.5, rect[1]+0.5, rect[2]-1+1, rect[3]-1+1)
+            if radius:
+                roundrect(cr, rect[0], rect[1], rect[2], rect[3], radius)
+            else:
+                cr.rectangle(*rect)    
         else:
             if nm == 'left':
                 x1, y1, x2, y2 = rect[0], rect[1], rect[0], rect[1]+rect[3]
@@ -616,6 +626,15 @@ class DrawerBlock(DrawerNode):
         return None
 
 
+def roundrect(context, x, y, width, height, r):
+    context.new_sub_path()
+    context.arc(x+r, y+r, r, math.pi, 3*math.pi/2)
+    context.arc(x+width-r, y+r, r, 3*math.pi/2, 0)
+    context.arc(x+width-r, y+height-r, r, 0, math.pi/2)
+    context.arc(x+r, y+height-r, r, math.pi/2, math.pi)
+    context.close_path()
+
+
 class DrawerFlex(DrawerBlock):
     
     def calc_children(self, pos_my, size_my):
@@ -709,6 +728,7 @@ class AbilityInput(AbilityBase):
 
     def propagateEvent(self, pos, event_name):
         if event_name == 'onclick':
+            print('@@@')
             INPUT_CONTROL.set_focus(self)
             return self
 
