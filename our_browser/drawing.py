@@ -217,9 +217,13 @@ class Calced:
         if tag == 'image':
             image = self.calc_image(node)
 
+        self.max_width = max_width = get_size_prop_from_node(node, 'max-width', None)
+
         if not hasattr(node, 'lines'):
             node.lines = None
         if node.text:
+            if max_width and text_width > max_width:
+                text_width = max_width
             self.calc_lines(node, font_size, text_width)
         else:
             if node.lines:
@@ -255,7 +259,6 @@ class Calced:
         max_height = get_size_prop_from_node(node, 'max-height', None)
 
         min_width = get_size_prop_from_node(node, 'min-width', None)
-        max_width = get_size_prop_from_node(node, 'max-width', None)
 
         if min_height > height:
             self._height = height = min_height
@@ -268,7 +271,6 @@ class Calced:
             size = (size[0], height)
 
         self.min_height = min_height
-        self.max_width = max_width
 
         return width, height
 

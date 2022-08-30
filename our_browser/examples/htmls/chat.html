@@ -29,6 +29,7 @@
             .yellow {background-color: #ffe4c4;}
             .page {height: 100%;}
             .item {margin: 5px; border: 1px solid #cccccc; min-height: 20px;}
+            .chat {margin: 0; padding: 5px; background-color: #ffffff; height: 70px;}
             .message {padding: 5px; background-color: #ffffff; max-width: 496px;}
         </style>
     </head>
@@ -44,7 +45,7 @@
                     <div class="flex-1 _white border-right common-padding common-font">
                         <listview class="page green" id="chats-listview" items-count="1000">
                             <template>
-                                <item class='item yellow flex-horizontal'>
+                                <item class='item yellow flex-horizontal chat'>
                                     <image class="image-26 top-panel-content-margin" src="our_browser/examples/htmls/settings.png" />
                                     <div class="flex-1 common-font">User {{ counter }}</div>
                                 </item>
