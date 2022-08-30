@@ -179,7 +179,7 @@ class Calced:
         if hasattr(node, 'style'):
             color = node.style.get('color', None)
             background_color = node.style.get('background-color', None)
-            font_size = node.style.get('font-size', 11)
+            font_size = int(node.style.get('font-size', 11))
             
             border = node.style.get('border', None)
             border_left = node.style.get('border-left', None)

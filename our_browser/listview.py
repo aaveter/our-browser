@@ -14,8 +14,15 @@ class ListviewControl:
     def getItemsCount(self):
         return 10000
 
-    def format_template(self, text, i):
-        return text.replace('{{ counter }}', str(i))
+    def format_template(self, i, template, texts):
+        #template.text = listview.format_template(t_drawer.text, i)
+        #t_drawer = template.drawer
+        text = texts['text']
+        template.text = text.replace('{{ counter }}', str(i)) if text else text
+        children_texts = texts['children']
+        for j, ch_template in enumerate(template.children):
+            ch_texts = children_texts[j]
+            self.format_template(i, ch_template, ch_texts)
 
     def on_wheel(self, event):
         d = event.GetWheelRotation()/4
@@ -36,7 +43,7 @@ class ListviewControl:
             if self.scroll_started:
                 d = (self.scroll_started[1] - pos[1]) #* 3
                 self.scroll_started = pos
-                print('EVENT lv:', pos, event_name, self.isIntoScroll(pos), d)
+                #print('EVENT lv:', pos, event_name, self.isIntoScroll(pos), d)
                 self.append_scroll(d)
                 return True
 
@@ -66,6 +73,15 @@ def connect_listview(node, listview_cls=ListviewControl):
         connect_listview(n)
 
 
+def fill_template_texts(template, texts):
+    texts['text'] = template.text
+    children = texts['children'] = []
+    for ch_template in template.children:
+        child_texts = {}
+        fill_template_texts(ch_template, child_texts)
+        children.append(child_texts)
+
+
 def draw_listview(drawer, listview, cr):
     _items_count = listview.getItemsCount()
     
@@ -80,9 +96,11 @@ def draw_listview(drawer, listview, cr):
 
     lv_top = lv_pos[1]
     lv_bottom = lv_pos[1] + lv_size[1]
-    
-    if not hasattr(t_drawer, 'text'):
-        t_drawer.text = template.text
+
+    if not hasattr(listview, 'texts'):
+        listview.texts = {}
+        fill_template_texts(template, listview.texts)
+    texts = listview.texts
 
     _ps = (_ps[0], _ps[1]-scroll_pos)
 
@@ -92,13 +110,18 @@ def draw_listview(drawer, listview, cr):
     temp_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
     temp_cr = cairo.Context(temp_surface)
     
+    item_w = _sz[0]
     for i in range(_items_count):
+        _sz = (item_w, _sz[1])
+
         bottom = _ps[1] + _sz[1]
         if bottom < lv_top:
             _ps, _sz = t_drawer.add_subnode_pos_size(template, _ps, _sz, margin=t_drawer.calced.margin)
             continue
         
-        template.text = listview.format_template(t_drawer.text, i)
+        listview.format_template(i, template, texts)
+
+        #template.text = listview.format_template(t_drawer.text, i)
         
         _sz = t_drawer.calc_size(_sz, (_ps[0], _ps[1]))
 
