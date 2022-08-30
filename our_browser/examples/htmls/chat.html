@@ -25,10 +25,11 @@
             .common-font {font-size: 16;}
             .top-panel-content-font {font-size: 20;}
 
-            .green2 {background-color: #55cc55;}
+            .green2 {background-color: #e5ddd5;}
             .yellow {background-color: #ffe4c4;}
             .page {height: 100%;}
-            .item {margin: 5px; border: 1px solid #cccccc; height: 20px;}
+            .item {margin: 5px; border: 1px solid #cccccc; min-height: 20px;}
+            .message {padding: 5px; background-color: #ffffff; max-width: 496px;}
         </style>
     </head>
     <body class="width-100p height-100p" id="body">
@@ -43,8 +44,9 @@
                     <div class="flex-1 _white border-right common-padding common-font">
                         <listview class="page green" id="chats-listview" items-count="1000">
                             <template>
-                                <item class='item yellow common-font'>
-                                    User {{ counter }}
+                                <item class='item yellow flex-horizontal'>
+                                    <image class="image-26 top-panel-content-margin" src="our_browser/examples/htmls/settings.png" />
+                                    <div class="flex-1 common-font">User {{ counter }}</div>
                                 </item>
                             </template>
                             <items>
@@ -62,18 +64,23 @@
                         <image class="image-26 top-panel-content-margin" src="our_browser/examples/htmls/cancel.png" />
                     </div>
                     <div class="flex-1 white_ common-padding common-font">
-                        <listview class="page green" id="messages-listview">
+                        <listview class="page green2" id="messages-listview">
                             <template>
-                                <item class='item yellow flex-horizontal'>
-                                    <image class="image-26 top-panel-content-margin" src="our_browser/examples/htmls/settings.png" />
-                                    <div class="flex-1 common-font">Message {{ counter }}</div>
+                                <item class='item common-font message'>
+                                    Message {{ counter }}
                                 </item>
                             </template>
                             <items>
                             </items>
                         </listview>
                     </div>
-                    <input class="height-100 border-top common-padding common-font" />
+                    <div class="height-100 border-top flex-horizontal flex-align-center">
+                        <input class="flex-1 common-padding common-font" />
+                        <SendButton>
+                            <image class="image-26 top-panel-content-margin" src="our_browser/examples/htmls/send.png" />
+                        </SendButton>
+                        <image class="image-26 top-panel-content-margin" src="our_browser/examples/htmls/dropfile.png" />
+                    </div>
                 </div>
             </div>
         </div>

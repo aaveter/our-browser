@@ -168,7 +168,7 @@ class Calced:
         self.calced = False
         self.last_size_0 = -1
     
-    def calc_params(self, node, size):
+    def calc_params(self, node, size, debug=False):
         background_color = color = border = None
         border_left = border_right = border_top = border_bottom = None
         font_size = 11
@@ -224,6 +224,9 @@ class Calced:
         else:
             if node.lines:
                 node.lines = None
+
+        if debug:
+            print('^^^^^ lines count:', len(node.lines) if node.lines != None else '-')
 
         self.last_size_0 = text_width
 
@@ -324,9 +327,9 @@ class DrawerBlock(DrawerNode):
             if parent_calced and getattr(parent_calced, 'display', None) == 'flex':
                 return parent
 
-    def calc_size(self, size, pos):
+    def calc_size(self, size, pos, debug=False):
 
-        self.calced.calc_params(self.node, size)
+        self.calced.calc_params(self.node, size, debug=debug)
 
         tag = self.node.tag.text if self.node.tag else None
         

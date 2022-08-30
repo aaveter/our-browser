@@ -9,21 +9,25 @@ class ListviewControl:
         self.template = None
         self.scroll_pos = 0
         self.scroll_started = False
-        self.items_count = int(listview.attrs.get('items-count', 0))
+        items_count = int(listview.attrs.get('items-count', 0))
+        self.items = ['item-{}'.format(i) for i in range(items_count)]
         listview.attrs['data_model'] = self
 
     def getItemsCount(self):
-        return self.items_count
+        return len(self.items)
 
-    def format_template(self, i, template, texts):
+    def format_template(self, i, template, texts, item=None):
+        if item == None:
+            item = self.items[i] if i>=0 and i<len(self.items) else False
         #template.text = listview.format_template(t_drawer.text, i)
         #t_drawer = template.drawer
         text = texts['text']
-        template.text = text.replace('{{ counter }}', str(i)) if text else text
+        counter = item if item else str(i)
+        template.text = text.replace('{{ counter }}', counter) if text else text
         children_texts = texts['children']
         for j, ch_template in enumerate(template.children):
             ch_texts = children_texts[j]
-            self.format_template(i, ch_template, ch_texts)
+            self.format_template(i, ch_template, ch_texts, item)
 
     def on_wheel(self, event):
         d = event.GetWheelRotation()/4
@@ -121,10 +125,8 @@ def draw_listview(drawer, listview, cr):
             continue
         
         listview.format_template(i, template, texts)
-
-        #template.text = listview.format_template(t_drawer.text, i)
         
-        _sz = t_drawer.calc_size(_sz, (_ps[0], _ps[1]))
+        _sz = t_drawer.calc_size(_sz, (_ps[0], _ps[1]), debug=False)
 
         _ps, _sz = t_drawer.add_subnode_pos_size(template, _ps, _sz, margin=t_drawer.calced.margin)
 
