@@ -318,6 +318,13 @@ class Calced:
             self.calced = True
 
 
+def cr_set_source_rgb_any_hex(cr, color):
+    col = hex2color(color)
+    if len(col) == 3:
+        cr.set_source_rgb(*col)
+    else:
+        cr.set_source_rgba(*col)
+
 class DrawerBlock(DrawerNode):
 
     def __init__(self, node) -> None:
@@ -455,7 +462,7 @@ class DrawerBlock(DrawerNode):
                 self.draw_border(cr, rect, nm, bd[0], bd[1], bd[2])
 
         if color:
-            cr.set_source_rgb(*hex2color(color))
+            cr_set_source_rgb_any_hex(cr, color)
         else:
             cr.set_source_rgb(0.1, 0.1, 0.1)
         padding = self.calced.padding
@@ -480,7 +487,7 @@ class DrawerBlock(DrawerNode):
 
     def draw_background(self, cr, background_color, rect, radius=None):
         rect = (rect[0], rect[1], rect[2]+1, rect[3]+1)
-        cr.set_source_rgb(*hex2color(background_color))
+        cr_set_source_rgb_any_hex(cr, background_color)
         if radius:
             roundrect(cr, rect[0], rect[1], rect[2], rect[3], radius)
         else:
@@ -488,7 +495,7 @@ class DrawerBlock(DrawerNode):
         cr.fill()
 
     def draw_border(self, cr, rect, nm, border_width, border_type, border_color, radius=None):
-        cr.set_source_rgb(*hex2color(border_color))
+        cr_set_source_rgb_any_hex(cr, border_color)
         cr.set_line_width(border_width)
         if nm == 'full':
             rect = (rect[0]+0.5, rect[1]+0.5, rect[2]-1+1, rect[3]-1+1)
@@ -542,7 +549,7 @@ class DrawerBlock(DrawerNode):
         scroll_width = 20
         background_color = '#eeeeee'
         rect = (_ps[0]+_sz[0]-scroll_width, _ps[1], scroll_width, _sz[1])
-        cr.set_source_rgb(*hex2color(background_color))
+        cr_set_source_rgb_any_hex(cr, background_color)
         cr.rectangle(*rect)
         cr.fill()
 
@@ -585,10 +592,16 @@ class DrawerBlock(DrawerNode):
     def propagateEvent(self, pos, event_name):
         if not hasattr(self, 'pos'):
             return False
+        
+        changed = False
         if (
             self.pos[0] <= pos[0] < self.pos[0] + self.size_calced[0] and 
             self.pos[1] <= pos[1] < self.pos[1] + self.size_calced[1]
         ):
+            if not self.node.is_hovered:
+                self.node.is_hovered = True
+                changed = True
+
             if self.ability:
                 if self.ability.propagateEvent(pos, event_name):
                     return True
@@ -607,6 +620,16 @@ class DrawerBlock(DrawerNode):
                 ret = _propagateEvent(ch, pos, event_name)
                 if ret:
                     return ret
+        else:
+            if self.node.is_hovered:
+                self.node.is_hovered = False
+                changed = True
+
+            if self.node.tag and self.node.tag.text =='listview':
+                listview = self.node.attrs['data_model']
+                listview.propagateEventOut(pos, event_name)
+
+        return changed
 
     def find_listview_by_pos(self, x, y):
         if self.node.tag and self.node.tag.text == 'listview':
@@ -807,5 +830,9 @@ def _propagateEvent(node, pos, event_name):
 
 def hex2color(color_hex):
     color_hex = color_hex.split('#')[1]
-    return (int(color_hex[:2], 16)/255.0, int(color_hex[2:4], 16)/255.0, int(color_hex[4:6], 16)/255.0)
+    if len(color_hex) >= 8:
+        return (int(color_hex[:2], 16)/255.0, int(color_hex[2:4], 16)/255.0, int(color_hex[4:6], 16)/255.0,
+            int(color_hex[6:8], 16)/255.0)
+    else:
+        return (int(color_hex[:2], 16)/255.0, int(color_hex[2:4], 16)/255.0, int(color_hex[4:6], 16)/255.0)
 

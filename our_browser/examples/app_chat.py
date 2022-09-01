@@ -98,7 +98,23 @@ class SendButton(React.Component):
         })
 
     def render(self):
-        return f'<image class="image-26 top-panel-content-margin" onclick={EVENT(self.onClick)} src="our_browser/examples/htmls/send.png" />'
+        return f'<image class="image-26 top-panel-content-margin button" onclick={EVENT(self.onClick)} src="our_browser/examples/htmls/send.png" />'
+
+class ImageButton(React.Component):
+
+    def __init__(self, props) -> None:
+        super().__init__()
+        self.src = props['src']
+
+    def onClick(self):
+        pass
+
+    def render(self):
+        return f'''
+            <div class="image-button button">
+                <image class="image-26 image-button-content" src="{self.src}" />
+            </div>
+        '''
 
 
 def main():

@@ -52,6 +52,9 @@ class ListviewControl:
                 self.append_scroll(d)
                 return True
 
+    def propagateEventOut(self, pos, event_name):
+        self.scroll_started = False
+
     def isIntoScroll(self, pos):
         drawer = self.listview.drawer
         scroll_width = 20

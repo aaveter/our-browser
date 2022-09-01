@@ -36,6 +36,18 @@ class Node(ReprLikeStr):
         self.tag_end = tag_end
         self.attrs = None
         self.text = None
+        self.is_hovered = False
+
+    @property
+    def style(self):
+        if self.is_hovered:
+            if not hasattr(self, 'style_hover_full'):
+                style_hover_full = {}
+                style_hover_full.update(self.style_simple)
+                style_hover_full.update(self.style_hover)
+                self.style_hover_full = style_hover_full
+            return self.style_hover_full
+        return self.style_simple
 
     def __str__(self) -> str:
         pre = '  ' * self.level

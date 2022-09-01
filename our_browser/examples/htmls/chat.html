@@ -31,6 +31,9 @@
             .item {margin: 5px; border: 1px solid #cccccc; min-height: 20px;}
             .chat {margin: 0; padding: 5px; background-color: #ffffff; height: 70px;}
             .message {padding: 5px; background-color: #ffffff; max-width: 496px; border-radius: 8px;}
+            .image-button {height:40px; width:40px; border-radius:20px; display: flex; align-items: center; margin:5px;}
+            .image-button-content {margin-left:10px;}
+            .button:hover {border_: 1px solid #77ff77; background-color: #e5ddd577;}
         </style>
     </head>
     <body class="width-100p height-100p" id="body">
@@ -38,9 +41,11 @@
             <div class="flex-1 border height-100p green" id="left-flex-1">
                 <div class="height-100p flex-vertical" id="left-flex">
                     <div class="top-panel-height orange flex-horizontal border flex-align-center" id="left-top-flex">
-                        <image class="image-26 top-panel-content-margin" src="our_browser/examples/htmls/settings.png" />
+                        <ImageButton src="our_browser/examples/htmls/settings.png">
+                            <image class="image-26 top-panel-content-margin button" src="our_browser/examples/htmls/settings.png" />
+                        </ImageButton>
                         <ChatButton class="flex-1 top-panel-content-font">Chat App</ChatButton>
-                        <image class="image-26 top-panel-content-margin" src="our_browser/examples/htmls/search.png" />
+                        <image class="image-26 top-panel-content-margin button" src="our_browser/examples/htmls/search.png" />
                     </div>
                     <div class="flex-1 _white border-right common-padding common-font">
                         <listview class="page green" id="chats-listview" items-count="1000">
@@ -61,8 +66,8 @@
                     <div class="top-panel-height orange flex-horizontal flex-align-center">
                         <image class="image-26 top-panel-content-margin" src="our_browser/examples/htmls/user_black.png" />
                         <div class="flex-1 top-panel-content-font">User name</div>
-                        <image class="image-26 top-panel-content-margin" src="our_browser/examples/htmls/three_dots.png" />
-                        <image class="image-26 top-panel-content-margin" src="our_browser/examples/htmls/cancel.png" />
+                        <image class="image-26 top-panel-content-margin button" src="our_browser/examples/htmls/three_dots.png" />
+                        <image class="image-26 top-panel-content-margin button" src="our_browser/examples/htmls/cancel.png" />
                     </div>
                     <div class="flex-1 white_ common-padding common-font">
                         <listview class="page green2" id="messages-listview">
@@ -78,9 +83,9 @@
                     <div class="height-100 border-top flex-horizontal flex-align-center">
                         <input class="flex-1 common-padding common-font height-100" />
                         <SendButton>
-                            <image class="image-26 top-panel-content-margin" src="our_browser/examples/htmls/send.png" />
+                            <image class="image-26 top-panel-content-margin button" src="our_browser/examples/htmls/send.png" />
                         </SendButton>
-                        <image class="image-26 top-panel-content-margin" src="our_browser/examples/htmls/dropfile.png" />
+                        <image class="image-26 top-panel-content-margin button" src="our_browser/examples/htmls/dropfile.png" />
                     </div>
                 </div>
             </div>

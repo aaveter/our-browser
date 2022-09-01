@@ -71,8 +71,8 @@ class Styler:
     def connect_styles_to_node(self, node):
         tag = node.tag.text if node.tag else None
         classes = node.attrs.get('classList', None) if node.attrs else None
-        if classes:
-            print('>>> classes', classes)
+        # if classes:
+        #     print('>>> classes', classes)
 
         style = {}
         if tag:
@@ -82,14 +82,18 @@ class Styler:
                 style['font-size'] = 24
 
         names = ([tag] if tag else []) + ([('.' + _cl) for _cl in classes] if classes else [])
-        for n in names:
-            _style = self.styles.get(n, None)
-            if _style:
-                style.update(_style)
+        
+        for add in (None, 'hover'):
+            style_cur, style_name = ({}, add) if add else (style, 'simple')
+            for n in names:
+                nn = (n + ':' + add) if add else n
+                _style = self.styles.get(nn, None)
+                if _style:
+                    style_cur.update(_style)
 
-        node.style = style
-        if style:
-            print(':::', node, style)
+            setattr(node, 'style_'+style_name, style_cur)
+            # if style:
+            #     print(':::', node, style)
 
 
 def str2int(value):
