@@ -1,11 +1,13 @@
 import wx
 import cairo
+import statistics
 
 class ListviewControl:
 
     def __init__(self, listview) -> None:
         print('-----!!!!!!!!!! ListviewControl:', listview.tag, "ATTRS:", listview.attrs)
         self.listview = listview
+        self.mean_h = 50
         self.template = None
         self.scroll_pos = 0
         self.scroll_started = False
@@ -48,7 +50,7 @@ class ListviewControl:
             if self.scroll_started:
                 d = (self.scroll_started[1] - pos[1]) #* 3
                 self.scroll_started = pos
-                #print('EVENT lv:', pos, event_name, self.isIntoScroll(pos), d)
+                #print('EVENT lv:', pos, 'listview:', self.listview.drawer.size_calced)
                 self.append_scroll(d)
                 return True
 
@@ -96,6 +98,7 @@ def draw_listview(drawer, listview, cr):
     template = listview.template.children[0]
     t_drawer = template.drawer
     scroll_pos = listview.scroll_pos
+    scroll_pos_y = _items_count * listview.mean_h * listview.scroll_pos / drawer.size_calced[1]
 
     _ps = lv_pos = getattr(drawer, 'pos', (0, 0))
     _sz = getattr(drawer, 'size_calced', (0, 0))
@@ -110,7 +113,7 @@ def draw_listview(drawer, listview, cr):
         fill_template_texts(template, listview.texts)
     texts = listview.texts
 
-    _ps = (_ps[0], _ps[1]-scroll_pos)
+    _ps = (_ps[0], _ps[1]-scroll_pos_y)
 
     #t_drawer.calc_size(_sz, [_ps[0], _ps[1]]) - works into calc_size tree
 
@@ -118,6 +121,7 @@ def draw_listview(drawer, listview, cr):
     temp_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
     temp_cr = cairo.Context(temp_surface)
     
+    hh = []
     item_w = _sz[0]
     for i in range(_items_count):
         _sz = (item_w, _sz[1])
@@ -125,6 +129,7 @@ def draw_listview(drawer, listview, cr):
         bottom = _ps[1] + _sz[1]
         if bottom < lv_top:
             _ps, _sz = t_drawer.add_subnode_pos_size(template, _ps, _sz, margin=t_drawer.calced.margin)
+            #hh.append(_sz[1])
             continue
         
         listview.format_template(i, template, texts)
@@ -132,11 +137,15 @@ def draw_listview(drawer, listview, cr):
         _sz = t_drawer.calc_size(_sz, (_ps[0], _ps[1]), debug=False)
 
         _ps, _sz = t_drawer.add_subnode_pos_size(template, _ps, _sz, margin=t_drawer.calced.margin)
+        hh.append(_sz[1])
 
         t_drawer.draw(temp_cr)
 
         if _ps[1] > lv_bottom:
             break
+
+    listview.mean_h = statistics.mean(hh) if len(hh) else listview.mean_h
+    #print('[ mean_h ] {}'.format(listview.mean_h))
 
     cr.set_source_surface(temp_surface, 0, 0) #, lv_pos[0], lv_pos[1])
     cr.rectangle(lv_pos[0], lv_pos[1], lv_size[0], lv_size[1])

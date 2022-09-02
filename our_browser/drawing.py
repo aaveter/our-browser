@@ -240,6 +240,10 @@ class Calced:
         self.margin = margin = get_size_prop_from_node(node, 'margin', None)
 
         width, height = self.calc_width_height(node, size, margin, padding_2, font_size, image)
+
+        if debug:
+            print('  --- width:', width, 'height:', height)
+            print('  --- calc_params.size:', size)
         
         self.calc_rect(node, size, width, height, margin)
 
@@ -305,7 +309,7 @@ class Calced:
 
     def calc_rect(self, node, size, width, height, margin):
         if hasattr(node, 'drawer') and node.level > 2:
-            self.rect.width = (width if width >= 0 else size[0]) - (0 if node.drawer.check_parent_flex() else 2*margin)
+            self.rect.width = (width if width >= 0 else size[0]) #- (0 if node.drawer.check_parent_flex() else 2*margin)
             self.rect.height = height
         else:
             self.rect.width = width if width >= 0 else size[0]
@@ -350,16 +354,29 @@ class DrawerBlock(DrawerNode):
    
         self.pos = pos_my
         self.size_my = size_my
+        if debug:
+            print('  --- self.pos:', pos_my)
+            print('  --- self.size_my:', size_my)
 
         size_calced = self.calc_children(pos_my, size_my)
+        if debug:
+            print('  --- size_calced:', size_calced)
 
         parent = self.check_parent_flex()
         if parent:
+            if debug:
+                print('  --- check_parent_flex.parent')
             align_items = parent.calced.align_items
             if align_items == 'center':
+                if debug:
+                    print('  --- check_parent_flex.align_items = center')
                 self.pos = (self.pos[0], parent.pos[1] + parent.size_my[1]/2 - size_calced[1]/2)
         
         self.size_calced = size_calced if size_calced != None else size_my
+
+        if debug:
+            print('  --- self.size_calced:', self.size_calced)
+            print('  --- size_my:', size_my)
 
         # if tag == 'image':
         #     print('(image)', self.node.level, self.pos, self.size_calced, 'size_my:', size_my, self.node.style, self.calced.rect.width, self.calced.rect.height)
@@ -371,6 +388,11 @@ class DrawerBlock(DrawerNode):
         _ps = (pos_my[0], pos_my[1])
         size_calced = (size_my[0], size_my[1])
 
+        image_button = False
+        if (self.node.attrs and 'classList' in self.node.attrs and 'image-button' in self.node.attrs['classList']):
+            print('|calc_children: ImageButton >', self.__class__.__name__, self.node, 'POS:', self.pos, 'size_calced:', size_calced)
+            image_button = True
+
         _size_calced = size_calced
         for node in self.node.children:
             if not hasattr(node, 'drawer'):
@@ -378,9 +400,18 @@ class DrawerBlock(DrawerNode):
             
             drawer = node.drawer
 
-            _size_my = drawer.calc_size(size_my, (_ps[0], _ps[1]))
+            if image_button:
+                print('  >> ImageChild >', drawer.__class__.__name__, node, 'POS:', _ps, 'size_my:', size_my)
+
+            _size_my = drawer.calc_size(size_my, (_ps[0], _ps[1]), debug=image_button)
+
+            if image_button:
+                print('  :: ImageChild >', drawer.__class__.__name__, node, 'POS:', drawer.pos, '_size_my:', _size_my, 'margin:', drawer.calced.margin)
 
             _ps, _size_calced = self.add_subnode_pos_size(node, _ps, _size_calced, self.calced.margin)
+
+            if image_button:
+                print('  -> ImageChild >', drawer.__class__.__name__, node, 'POS:', drawer.pos, 'size_calced:', drawer.size_calced)
 
         parent_drawer = getattr(self.node.parent, 'drawer', None)
         if parent_drawer and getattr(parent_drawer.calced, 'display', None) == 'flex':
@@ -471,18 +502,27 @@ class DrawerBlock(DrawerNode):
         if self.ability:
             self.ability.draw(cr, rect)
 
+        image_button = None
+
         tag = self.node.tag.text if self.node.tag else None
         if tag == 'listview':
             listview = self.node.attrs.get('data_model', None)
             if listview and listview.template:
                 draw_listview(self, listview, cr)
                 return
+        elif tag == 'ImageButton' or (self.node.attrs and 'classList' in self.node.attrs and 'image-button' in self.node.attrs['classList']):
+            print('< ImageButton >', self.__class__.__name__, self.node, 'POS:', self.pos, 'size_calced:', self.size_calced)
+            image_button = True
+        elif hasattr(self, 'image_button_parent'):
+            print('< ImageChild >', self.__class__.__name__, self.node, 'POS:', self.pos, 'size_calced:', self.size_calced)
         
         for node in self.node.children:
             
             if not hasattr(node, 'drawer'):
                 continue
 
+            if image_button:
+                node.drawer.image_button_parent = True
             node.drawer.draw(cr)
 
     def draw_background(self, cr, background_color, rect, radius=None):
@@ -595,6 +635,7 @@ class DrawerBlock(DrawerNode):
         
         changed = False
         if (
+            hasattr(self, 'size_calced') and
             self.pos[0] <= pos[0] < self.pos[0] + self.size_calced[0] and 
             self.pos[1] <= pos[1] < self.pos[1] + self.size_calced[1]
         ):
@@ -604,22 +645,22 @@ class DrawerBlock(DrawerNode):
 
             if self.ability:
                 if self.ability.propagateEvent(pos, event_name):
-                    return True
+                    changed = True # return True
 
             ev = self.node.attrs.get(event_name, None) if self.node.attrs else None
             if ev and ev():
-                return True
+                changed = True # return True
 
             if self.node.tag and self.node.tag.text =='listview':
                 listview = self.node.attrs['data_model']
                 ret = listview.propagateEvent(pos, event_name)
                 if ret:
-                    return ret
+                    changed = True # return ret
 
             for ch in self.node.children:
                 ret = _propagateEvent(ch, pos, event_name)
                 if ret:
-                    return ret
+                    changed = True # return ret
         else:
             if self.node.is_hovered:
                 self.node.is_hovered = False
@@ -681,7 +722,7 @@ class DrawerFlex(DrawerBlock):
                     mg = drawer.calced.margin
                     static_sum += (drawer.calced.rect.height if flex_vertical else drawer.calced.rect.width) + mg*2
 
-        self.flex_point = (size_my[1 if flex_vertical else 0]-static_sum) / flex_sum
+        self.flex_point = ((size_my[1 if flex_vertical else 0]-static_sum) / flex_sum) if flex_sum > 0 else 0
 
         _size_calced = size_calced
         for node in self.node.children:
@@ -819,13 +860,17 @@ class DrawerFlexItem(DrawerBlock):
              
 def _propagateEvent(node, pos, event_name):
     drawer = getattr(node, 'drawer', None)
+    changed = False
     if drawer:
-        return drawer.propagateEvent(pos, event_name)
+        if drawer.propagateEvent(pos, event_name):
+            changed = True
     
     for ch in node.children:
         ret = _propagateEvent(ch, pos, event_name)
         if ret:
-            return ret
+            changed = True #return ret
+
+    return changed
 
 
 def hex2color(color_hex):

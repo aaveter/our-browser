@@ -31,8 +31,8 @@
             .item {margin: 5px; border: 1px solid #cccccc; min-height: 20px;}
             .chat {margin: 0; padding: 5px; background-color: #ffffff; height: 70px;}
             .message {padding: 5px; background-color: #ffffff; max-width: 496px; border-radius: 8px;}
-            .image-button {height:40px; width:40px; border-radius:20px; display: flex; align-items: center; margin:5px;}
-            .image-button-content {margin-left:10px;}
+            .image-button {height:40px; width:40px; border-radius:20px; _display: flex; align-items: center; margin:5px; padding: 5px;}
+            .image-button-content {margin:10px;}
             .button:hover {border_: 1px solid #77ff77; background-color: #e5ddd577;}
         </style>
     </head>
@@ -41,7 +41,7 @@
             <div class="flex-1 border height-100p green" id="left-flex-1">
                 <div class="height-100p flex-vertical" id="left-flex">
                     <div class="top-panel-height orange flex-horizontal border flex-align-center" id="left-top-flex">
-                        <ImageButton src="our_browser/examples/htmls/settings.png">
+                        <ImageButton class="image-button" src="our_browser/examples/htmls/settings.png">
                             <image class="image-26 top-panel-content-margin button" src="our_browser/examples/htmls/settings.png" />
                         </ImageButton>
                         <ChatButton class="flex-1 top-panel-content-font">Chat App</ChatButton>
