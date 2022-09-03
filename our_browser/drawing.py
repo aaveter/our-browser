@@ -358,9 +358,9 @@ class DrawerBlock(DrawerNode):
             print('  --- self.pos:', pos_my)
             print('  --- self.size_my:', size_my)
 
-        size_calced = self.calc_children(pos_my, size_my)
-        if debug:
-            print('  --- size_calced:', size_calced)
+        # size_calced = self.calc_children(pos_my, size_my)
+        # if debug:
+        #     print('  --- size_calced:', size_calced)
 
         parent = self.check_parent_flex()
         if parent:
@@ -370,7 +370,13 @@ class DrawerBlock(DrawerNode):
             if align_items == 'center':
                 if debug:
                     print('  --- check_parent_flex.align_items = center')
-                self.pos = (self.pos[0], parent.pos[1] + parent.size_my[1]/2 - size_calced[1]/2)
+                self.pos = (self.pos[0], parent.pos[1] + parent.size_my[1]/2 - size_my[1]/2) #size_calced[1]/2)
+
+        pos_my = (self.pos[0], self.pos[1])
+
+        size_calced = self.calc_children(pos_my, size_my)
+        if debug:
+            print('  --- size_calced:', size_calced)
         
         self.size_calced = size_calced if size_calced != None else size_my
 
@@ -389,9 +395,9 @@ class DrawerBlock(DrawerNode):
         size_calced = (size_my[0], size_my[1])
 
         image_button = False
-        if (self.node.attrs and 'classList' in self.node.attrs and 'image-button' in self.node.attrs['classList']):
-            print('|calc_children: ImageButton >', self.__class__.__name__, self.node, 'POS:', self.pos, 'size_calced:', size_calced)
-            image_button = True
+        # if (self.node.attrs and 'classList' in self.node.attrs and 'image-button' in self.node.attrs['classList']):
+        #     print('|calc_children: ImageButton >', self.__class__.__name__, self.node, 'POS:', self.pos, 'size_calced:', size_calced)
+        #     image_button = True
 
         _size_calced = size_calced
         for node in self.node.children:
@@ -403,7 +409,7 @@ class DrawerBlock(DrawerNode):
             if image_button:
                 print('  >> ImageChild >', drawer.__class__.__name__, node, 'POS:', _ps, 'size_my:', size_my)
 
-            _size_my = drawer.calc_size(size_my, (_ps[0], _ps[1]), debug=image_button)
+            _size_my = drawer.calc_size(size_my, (_ps[0], _ps[1]))#, debug=image_button)
 
             if image_button:
                 print('  :: ImageChild >', drawer.__class__.__name__, node, 'POS:', drawer.pos, '_size_my:', _size_my, 'margin:', drawer.calced.margin)
@@ -510,11 +516,11 @@ class DrawerBlock(DrawerNode):
             if listview and listview.template:
                 draw_listview(self, listview, cr)
                 return
-        elif tag == 'ImageButton' or (self.node.attrs and 'classList' in self.node.attrs and 'image-button' in self.node.attrs['classList']):
-            print('< ImageButton >', self.__class__.__name__, self.node, 'POS:', self.pos, 'size_calced:', self.size_calced)
-            image_button = True
-        elif hasattr(self, 'image_button_parent'):
-            print('< ImageChild >', self.__class__.__name__, self.node, 'POS:', self.pos, 'size_calced:', self.size_calced)
+        # elif tag == 'ImageButton' or (self.node.attrs and 'classList' in self.node.attrs and 'image-button' in self.node.attrs['classList']):
+        #     print('< ImageButton >', self.__class__.__name__, self.node, 'POS:', self.pos, 'size_calced:', self.size_calced)
+        #     image_button = True
+        # elif hasattr(self, 'image_button_parent'):
+        #     print('< ImageChild >', self.__class__.__name__, self.node, 'POS:', self.pos, 'size_calced:', self.size_calced)
         
         for node in self.node.children:
             

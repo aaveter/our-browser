@@ -98,7 +98,11 @@ class SendButton(React.Component):
         })
 
     def render(self):
-        return f'<image class="image-26 top-panel-content-margin button" onclick={EVENT(self.onClick)} src="our_browser/examples/htmls/send.png" />'
+        return f'''
+            <div class="image-button button" onclick={EVENT(self.onClick)} >
+                <image class="image-26 image-button-content" src="our_browser/examples/htmls/send.png" />
+            </div>
+        '''
 
 class ImageButton(React.Component):
 
