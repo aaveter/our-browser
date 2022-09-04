@@ -2,6 +2,12 @@ import wx
 import cairo
 import statistics
 
+
+class ItemBase:
+
+    def __init__(self, text) -> None:
+        self.text = text
+
 class ListviewControl:
 
     def __init__(self, listview) -> None:
@@ -12,7 +18,7 @@ class ListviewControl:
         self.scroll_pos = 0
         self.scroll_started = False
         items_count = int(listview.attrs.get('items-count', 0))
-        self.items = ['item-{}'.format(i) for i in range(items_count)]
+        self.items = [ItemBase('item-{}'.format(i)) for i in range(items_count)]
         listview.attrs['data_model'] = self
 
     def getItemsCount(self):
@@ -24,8 +30,26 @@ class ListviewControl:
         #template.text = listview.format_template(t_drawer.text, i)
         #t_drawer = template.drawer
         text = texts['text']
-        counter = item if item else str(i)
-        template.text = text.replace('{{ counter }}', counter) if text else text
+        counter = str(i)
+
+        if text:
+            lst = text.split('{{')
+            if len(lst) > 1:
+                for i, part in enumerate(lst):
+                    if i == 0:
+                        continue
+                    a, b = part.split('}}')
+                    a = a.strip()
+                    if a == 'counter':
+                        a = counter
+                    elif a.startswith('item.'):
+                        a = getattr(item, a[5:], 'None')
+                    lst[i] = a + b
+                text = ''.join(lst)
+        else:
+            text = ''
+
+        template.text = text #text.replace('{{ counter }}', counter) if text else text
         children_texts = texts['children']
         for j, ch_template in enumerate(template.children):
             ch_texts = children_texts[j]

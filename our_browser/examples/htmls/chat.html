@@ -54,8 +54,8 @@
                                 <item class='item yellow flex-horizontal flex-align-center chat'>
                                     <image class="image-26 top-panel-content-margin" src="our_browser/examples/htmls/user_black.png" />
                                     <div class="flex-1 height-50">
-                                        <div class="chat-name">Chat name</div>
-                                        <div class="common-font">User {{ counter }}</div>
+                                        <div class="chat-name">Chat name {{ counter }}</div>
+                                        <div class="common-font">User {{ item.text }}</div>
                                     </div>
                                 </item>
                             </template>
@@ -77,7 +77,7 @@
                         <listview class="page green2" id="messages-listview">
                             <template>
                                 <item class='item common-font message'>
-                                    Message {{ counter }}
+                                    Message {{ item.text }}
                                 </item>
                             </template>
                             <items>
