@@ -787,9 +787,9 @@ class AbilityInput(AbilityBase):
         k = 0
         if lines:
             cutted_lines = []
-            for li in lines:
+            for i, li in enumerate(lines):
                 dk = self.cursor_pos - k
-                if dk > 0:
+                if dk >= 0:
                     _fin = False
                     ln = len(li)
                     if dk < ln:
@@ -801,6 +801,7 @@ class AbilityInput(AbilityBase):
                     k += ln
                     if _fin:
                         break
+                k += 1
 
             if cutted_lines:
                 hi = len(cutted_lines)
@@ -809,7 +810,7 @@ class AbilityInput(AbilityBase):
 
                 hadd = (hi - 1) * fascent + fdescent #(fheight*0.77)
                 xoff, yoff, textWidth, textHeight = cr.text_extents(line)[:4]
-                wadd = textWidth
+                wadd = textWidth - fdescent
 
                 x1, y1, x2, y2 = x0+wadd, y0+hadd, x0+wadd, y0+hadd + cursor_height
 
@@ -826,6 +827,8 @@ class AbilityInput(AbilityBase):
                 self.cursor_pos -= 1
         elif way == 'right':
             self.cursor_pos += 1
+        self.cursor_visible = True
+        INPUT_CONTROL.start_timer()
         return True
 
     def doEvent(self, pos, event_name):
@@ -851,10 +854,20 @@ class AbilityInput(AbilityBase):
     def addText(self, text):
         if not self.drawer.node.text:
             self.drawer.node.text = ""
+        
+        if self.cursor_pos < 0:
+            self.cursor_pos = 0
+        elif self.cursor_pos > len(self.drawer.node.text):
+            self.cursor_pos = len(self.drawer.node.text)
+
         if text == None:
-            self.drawer.node.text = self.drawer.node.text[:-1]
+            if self.cursor_pos > 0:
+                self.drawer.node.text = self.drawer.node.text[:self.cursor_pos-1] + self.drawer.node.text[self.cursor_pos:]
         else:
-            self.drawer.node.text += text
+            if len(self.drawer.node.text) == 0:
+                self.drawer.node.text += text
+            else:
+                self.drawer.node.text = self.drawer.node.text[:self.cursor_pos] + text + self.drawer.node.text[self.cursor_pos:]
 
 
 class DrawerFlexItem(DrawerBlock):

@@ -262,7 +262,7 @@ class DrawingArea(wx.Panel):
                 cursor_way = 'left'
             elif keycode2 == wx.WXK_RIGHT:
                 print('-- right --')
-                cursor_way = 'left'
+                cursor_way = 'right'
             else:
                 print('-- no key --')
                 if keycode2 == wx.WXK_F1:
