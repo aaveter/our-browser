@@ -814,8 +814,9 @@ class AbilityInput(AbilityBase):
 
                 x1, y1, x2, y2 = x0+wadd, y0+hadd, x0+wadd, y0+hadd + cursor_height
 
-        if self.cursor_pos > k:
-            self.cursor_pos = k
+        if self.drawer.node.text:
+            if self.cursor_pos > len(self.drawer.node.text):
+                self.cursor_pos = len(self.drawer.node.text)
 
         cr.move_to(x1+0.5, y1)
         cr.line_to(x2+0.5, y2)
@@ -831,6 +832,25 @@ class AbilityInput(AbilityBase):
             self.cursor_pos = 0
         elif way == 'end':
             self.cursor_pos = len(self.drawer.node.text)
+        elif way == 'up':
+            lst = self.drawer.node.text[:self.cursor_pos].split('\n')
+            if len(lst) > 1:
+                lst[:], last_deleted_ln = lst[:-1], len(lst[-1])
+                last_ln = len(lst[-1])
+                if last_deleted_ln > last_ln:
+                    last_deleted_ln = last_ln
+                self.cursor_pos = len('\n'.join(lst)) - last_ln + last_deleted_ln
+        elif way == 'down':
+            lst1 = self.drawer.node.text[:self.cursor_pos].split('\n')
+            lst2 = self.drawer.node.text[self.cursor_pos:].split('\n')
+            if len(lst2) > 1:
+                last_ln = len(lst1[-1])
+                ln_0 = len(lst2[0])
+                ln_1 = len(lst2[1])
+                if last_ln > ln_1:
+                    last_ln = ln_1
+                self.cursor_pos = len('\n'.join(lst1)) + ln_0 + 1 + last_ln
+
         self.cursor_visible = True
         INPUT_CONTROL.start_timer()
         return True
