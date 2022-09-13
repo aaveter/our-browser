@@ -256,17 +256,23 @@ class DrawingArea(wx.Panel):
                     self.addText(ch)
 
         else:
+            cursor_way = None
             if keycode2 == wx.WXK_LEFT:
                 print('-- left --')
-
+                cursor_way = 'left'
             elif keycode2 == wx.WXK_RIGHT:
                 print('-- right --')
-
+                cursor_way = 'left'
             else:
                 print('-- no key --')
-
                 if keycode2 == wx.WXK_F1:
                     pass
+
+            if cursor_way:
+                ability = INPUT_CONTROL.focus_into
+                if ability:
+                    if ability.moveCursor(cursor_way):
+                        self.Refresh()
 
         event.Skip()
 
@@ -274,6 +280,8 @@ class DrawingArea(wx.Panel):
         ability = INPUT_CONTROL.focus_into
         if ability:
             ability.addText(text)
+            way = 'left' if text == None else 'right'
+            ability.moveCursor(way)
             self.Refresh()
 
 

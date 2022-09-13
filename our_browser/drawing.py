@@ -765,6 +765,7 @@ class AbilityInput(AbilityBase):
     def __init__(self, drawer) -> None:
         super().__init__(drawer)
         self.cursor_visible = False
+        self.cursor_pos = 0
 
     def draw(self, cr, rect):
         if not self.cursor_visible:
@@ -774,27 +775,58 @@ class AbilityInput(AbilityBase):
         cr.set_line_width(1)
 
         fascent, fdescent, fheight, fxadvance, fyadvance = cr.font_extents()
-        #print(fascent, fdescent, fheight, fxadvance, fyadvance)
+        # print(fascent, fdescent, fheight, fxadvance, fyadvance)
+        # print(fascent / fheight)
 
         x0, y0 = rect[0]+padding, rect[1]+padding
         cursor_height = fheight #14 #20
         x1, y1, x2, y2 = x0, y0, x0, y0 + cursor_height
 
         lines = self.drawer.node.lines
+        
+        k = 0
         if lines:
-            hi = len(lines)
-            line = lines[-1]
-            wi = len(line)
+            cutted_lines = []
+            for li in lines:
+                dk = self.cursor_pos - k
+                if dk > 0:
+                    _fin = False
+                    ln = len(li)
+                    if dk < ln:
+                        li = li[:dk]
+                        _fin = True
+                    elif dk == ln:
+                        _fin = True
+                    cutted_lines.append(li)
+                    k += ln
+                    if _fin:
+                        break
 
-            hadd = (hi - 1) * (fheight*0.77)
-            xoff, yoff, textWidth, textHeight = cr.text_extents(line)[:4]
-            wadd = textWidth
+            if cutted_lines:
+                hi = len(cutted_lines)
+                line = cutted_lines[-1]
+                wi = len(line)
 
-            x1, y1, x2, y2 = x0+wadd, y0+hadd, x0+wadd, y0+hadd + cursor_height
+                hadd = (hi - 1) * fascent + fdescent #(fheight*0.77)
+                xoff, yoff, textWidth, textHeight = cr.text_extents(line)[:4]
+                wadd = textWidth
+
+                x1, y1, x2, y2 = x0+wadd, y0+hadd, x0+wadd, y0+hadd + cursor_height
+
+        if self.cursor_pos > k:
+            self.cursor_pos = k
 
         cr.move_to(x1+0.5, y1)
         cr.line_to(x2+0.5, y2)
         cr.stroke()
+    
+    def moveCursor(self, way):
+        if way == 'left':
+            if self.cursor_pos > 0:
+                self.cursor_pos -= 1
+        elif way == 'right':
+            self.cursor_pos += 1
+        return True
 
     def doEvent(self, pos, event_name):
         if event_name == 'onclick':
