@@ -64,7 +64,7 @@ class ListviewControl:
         if self.scroll_pos < 0:
             self.scroll_pos = 0
 
-    def propagateEvent(self, pos, event_name):
+    def doEvent(self, pos, event_name):
         if event_name == 'onclick':
             self.scroll_started = False
         elif event_name == 'ondown':
@@ -78,7 +78,7 @@ class ListviewControl:
                 self.append_scroll(d)
                 return True
 
-    def propagateEventOut(self, pos, event_name):
+    def doEventOut(self, pos, event_name):
         self.scroll_started = False
 
     def isIntoScroll(self, pos):

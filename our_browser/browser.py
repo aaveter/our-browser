@@ -7,7 +7,7 @@ from os.path import abspath, join, dirname
 import sys
 
 from our_browser.ext_depends import noder_parse_file, noder_parse_text, DATA_PATH
-from our_browser.drawing import make_drawable_tree, INPUT_CONTROL
+from our_browser.drawing import make_drawable_tree, INPUT_CONTROL, _propagateEvent
 from our_browser.listview import ListviewControl, connect_listview
 
 
@@ -201,15 +201,15 @@ class DrawingArea(wx.Panel):
         self.Refresh()
 
     def onDown(self, event):
-        self.ROOT.propagateEvent(event.Position, 'ondown')
+        _propagateEvent(self.ROOT.node, event.Position, 'ondown')
 
     def onClick(self, event):
-        if not self.ROOT.propagateEvent(event.Position, 'onclick'):
+        if not _propagateEvent(self.ROOT.node, event.Position, 'onclick'):
             INPUT_CONTROL.set_focus(None)
         self.Refresh()
 
     def onMoving(self, event):
-        if self.ROOT.propagateEvent(event.Position, 'onmoving'):
+        if _propagateEvent(self.ROOT.node, event.Position, 'onmoving'):
             self.Refresh()
 
     def onKeyDown(self, event):

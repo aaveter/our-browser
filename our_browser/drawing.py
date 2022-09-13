@@ -650,7 +650,7 @@ class DrawerBlock(DrawerNode):
                 changed = True
 
             if self.ability:
-                if self.ability.propagateEvent(pos, event_name):
+                if self.ability.doEvent(pos, event_name):
                     changed = True # return True
 
             ev = self.node.attrs.get(event_name, None) if self.node.attrs else None
@@ -659,14 +659,14 @@ class DrawerBlock(DrawerNode):
 
             if self.node.tag and self.node.tag.text =='listview':
                 listview = self.node.attrs['data_model']
-                ret = listview.propagateEvent(pos, event_name)
+                ret = listview.doEvent(pos, event_name)
                 if ret:
                     changed = True # return ret
 
-            for ch in self.node.children:
-                ret = _propagateEvent(ch, pos, event_name)
-                if ret:
-                    changed = True # return ret
+            # for ch in self.node.children:
+            #     ret = _propagateEvent(ch, pos, event_name)
+            #     if ret:
+            #         changed = True # return ret
         else:
             if self.node.is_hovered:
                 self.node.is_hovered = False
@@ -674,7 +674,7 @@ class DrawerBlock(DrawerNode):
 
             if self.node.tag and self.node.tag.text =='listview':
                 listview = self.node.attrs['data_model']
-                listview.propagateEventOut(pos, event_name)
+                listview.doEventOut(pos, event_name)
 
         return changed
 
@@ -756,7 +756,7 @@ class AbilityBase:
     def draw(self, cr, rect):
         pass
 
-    def propagateEvent(self, pos, event_name):
+    def doEvent(self, pos, event_name):
         pass
 
 
@@ -774,7 +774,7 @@ class AbilityInput(AbilityBase):
         cr.set_line_width(1)
 
         fascent, fdescent, fheight, fxadvance, fyadvance = cr.font_extents()
-        print(fascent, fdescent, fheight, fxadvance, fyadvance)
+        #print(fascent, fdescent, fheight, fxadvance, fyadvance)
 
         x0, y0 = rect[0]+padding, rect[1]+padding
         cursor_height = fheight #14 #20
@@ -796,7 +796,7 @@ class AbilityInput(AbilityBase):
         cr.line_to(x2+0.5, y2)
         cr.stroke()
 
-    def propagateEvent(self, pos, event_name):
+    def doEvent(self, pos, event_name):
         if event_name == 'onclick':
             print('@@@')
             INPUT_CONTROL.set_focus(self)
