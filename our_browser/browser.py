@@ -109,6 +109,13 @@ layout = dict(zip(map(ord, "qwertyuiop[]asdfghjkl;'zxcvbnm,./`"
                            "йцукенгшщзхъфывапролджэячсмитьбю.ё"
                            'ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ,Ё'))
 
+NUMS = '1234567890'
+NUMS_SIGNS = '!@#$%^&*()'
+NUMS_SIGNS_RU = '!"№;%:?*()'
+SPECIALS = NUMS + '`-=[];\'\\,./'
+SPECIALS_SIGNS = NUMS_SIGNS + '~_+{}:"|<>?'
+SPECIALS_SIGNS_RU = NUMS_SIGNS_RU + 'Ё_+ХЪЖЭ/БЮ,'
+
 
 class DrawingArea(wx.Panel):
     
@@ -132,6 +139,7 @@ class DrawingArea(wx.Panel):
         self.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
         self.Bind(wx.EVT_KEY_UP, self.onKeyUp)
         #self.Bind(wx.EVT_CHAR, self.onKeyChar)
+        self.Bind(wx.EVT_CHAR_HOOK, self.onKeyChar)
 
         #self.SetFocus()
     
@@ -219,7 +227,19 @@ class DrawingArea(wx.Panel):
         self.onKey(event, 'up')
 
     def onKeyChar(self, event):
-        print('-- char --')
+        keycode2 = event.GetKeyCode()
+        cursor_way = None
+        if keycode2 == wx.WXK_LEFT:
+            cursor_way = 'left'
+        elif keycode2 == wx.WXK_RIGHT:
+            cursor_way = 'right'
+        elif keycode2 == wx.WXK_UP:
+            cursor_way = 'up'
+        elif keycode2 == wx.WXK_DOWN:
+            cursor_way = 'down'
+        if cursor_way:
+            self.onKey(event, 'down')
+        event.Skip()
     
     def onKey(self, event, name):
         keycode = event.GetUnicodeKey()
@@ -258,6 +278,13 @@ class DrawingArea(wx.Panel):
 
                 if get_keyboard_language().lower() == 'russian':
                     ch = ch.translate(layout)
+                    if has_shift and ch in SPECIALS:
+                        ind = SPECIALS.index(ch)
+                        ch = SPECIALS_SIGNS_RU[ind]
+                else:
+                    if has_shift and ch in SPECIALS:
+                        ind = SPECIALS.index(ch)
+                        ch = SPECIALS_SIGNS[ind]
 
                 print(name, "You pressed: ", keycode, ch, keycode3, chr(keycode3), 'has_shift:', has_shift)
                 if name == 'down':
@@ -266,17 +293,24 @@ class DrawingArea(wx.Panel):
         else:
             cursor_way = None
             if keycode2 == wx.WXK_LEFT:
-                print('-- left --')
                 cursor_way = 'left'
             elif keycode2 == wx.WXK_RIGHT:
-                print('-- right --')
                 cursor_way = 'right'
+            elif keycode2 == wx.WXK_UP:
+                cursor_way = 'up'
+            elif keycode2 == wx.WXK_DOWN:
+                cursor_way = 'down'
+            elif keycode2 == wx.WXK_HOME:
+                cursor_way = 'home'
+            elif keycode2 == wx.WXK_END:
+                cursor_way = 'end'
             else:
                 print('-- no key --')
                 if keycode2 == wx.WXK_F1:
                     pass
 
-            if cursor_way:
+            if cursor_way and name == 'down':
+                print('-- curwor_way: {} -- ({})'.format(cursor_way, name))
                 ability = INPUT_CONTROL.focus_into
                 if ability:
                     if ability.moveCursor(cursor_way):

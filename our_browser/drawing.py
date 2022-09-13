@@ -827,6 +827,10 @@ class AbilityInput(AbilityBase):
                 self.cursor_pos -= 1
         elif way == 'right':
             self.cursor_pos += 1
+        elif way == 'home':
+            self.cursor_pos = 0
+        elif way == 'end':
+            self.cursor_pos = len(self.drawer.node.text)
         self.cursor_visible = True
         INPUT_CONTROL.start_timer()
         return True
