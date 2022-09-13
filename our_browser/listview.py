@@ -175,6 +175,6 @@ def draw_listview(drawer, listview, cr):
     cr.rectangle(lv_pos[0], lv_pos[1], lv_size[0], lv_size[1])
     cr.fill()
 
-    scroll_size = _ps[1] - lv_pos[1]
+    scroll_size = _items_count * listview.mean_h #_ps[1] - lv_pos[1]
 
     drawer.draw_scroll_pos(cr, lv_pos, lv_size, scroll_pos, scroll_size)

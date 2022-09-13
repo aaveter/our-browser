@@ -619,7 +619,10 @@ class DrawerBlock(DrawerNode):
 
     def draw_scroll_pos(self, cr, _ps, _sz, scroll_pos, scroll_size):
         scroll_width = 20
-        scroll_pan_height = 50
+        scroll_pan_height_d = (_sz[1] - scroll_size/2 - 50) if scroll_size <= _sz[1]*2 else (_sz[1] / scroll_size) #50
+        if scroll_pan_height_d < 5:
+            scroll_pan_height_d = 10
+        scroll_pan_height = scroll_pan_height_d # _sz[1] - 
         
         min_y = _ps[1] + scroll_width
         max_y = _ps[1] + _sz[1] - scroll_width - scroll_pan_height
