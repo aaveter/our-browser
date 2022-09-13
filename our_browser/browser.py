@@ -227,15 +227,23 @@ class DrawingArea(wx.Panel):
         
         if keycode != wx.WXK_NONE:
 
-            if keycode == 13:
+            if keycode == wx.WXK_RETURN: #13:
                 print('-- enter --')
                 if name == 'up':
                     self.addText('\n')
 
-            elif keycode == 8:
+            elif keycode == wx.WXK_BACK: #8:
                 print('-- backspace --')
                 if name == 'down':
                     self.addText(None) # for remove
+
+            elif keycode == wx.WXK_TAB:
+                if name == 'down':
+                    print('-- tab --')
+
+            elif keycode == wx.WXK_DELETE:
+                if name == 'down':
+                    print('-- delete --')
 
             else:
                 has_shift = event.ShiftDown()
