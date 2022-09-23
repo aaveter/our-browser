@@ -266,8 +266,7 @@ class BrowserApp:
     def __init__(self, html_path=None, html_text='', listview_cls=ListviewControl) -> None:
 
         self.listview_cls = listview_cls
-        self.ROOT_NODE = ROOT_NODE = noder_parse_file(html_path) if html_path else noder_parse_text(html_text)
-        #connect_listview(ROOT_NODE, listview_cls=listview_cls)
+        self.ROOT_NODE = noder_parse_file(html_path) if html_path else noder_parse_text(html_text)
 
         self.app = wx.App()
         self.frame = Frame(None)

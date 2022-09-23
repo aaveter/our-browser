@@ -112,12 +112,35 @@ class ImageButton(React.Component):
         super().__init__()
         self.src = props['src']
 
-    def onClick(self):
-        pass
-
     def render(self):
         return f'''
             <div class="image-button button">
+                <image class="image-26 image-button-content" src="{self.src}" />
+            </div>
+        '''
+
+
+class SearchButton(React.Component):
+
+    def __init__(self, props) -> None:
+        super().__init__()
+        self.src = props['src']
+        self.state = {
+            'edit': False
+        }
+
+    def onClick(self):
+        self.setState({
+            'edit': not self.state['edit']
+        })
+
+    def render(self):
+        if self.state['edit']:
+            return f'''
+                <input class="flex-1 common-padding common-font height-100 white" />
+            '''
+        return f'''
+            <div class="image-button button" onclick={EVENT(self.onClick)} >
                 <image class="image-26 image-button-content" src="{self.src}" />
             </div>
         '''

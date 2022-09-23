@@ -71,8 +71,6 @@ class Styler:
     def connect_styles_to_node(self, node):
         tag = node.tag.text if node.tag else None
         classes = node.attrs.get('classList', None) if node.attrs else None
-        # if classes:
-        #     print('>>> classes', classes)
 
         style = {}
         if tag:
@@ -92,8 +90,6 @@ class Styler:
                     style_cur.update(_style)
 
             setattr(node, 'style_'+style_name, style_cur)
-            # if style:
-            #     print(':::', node, style)
 
 
 def str2int(value):
