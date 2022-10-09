@@ -4,6 +4,25 @@ import ctypes
 user32 = ctypes.WinDLL('user32', use_last_error=True)
 
 
+def fix_key_by_mode(ch, has_shift):
+    _upper = check_capslock()
+    if has_shift:
+        _upper = not _upper
+    if not _upper:
+        ch = ch.lower()
+
+    if get_keyboard_language().lower() == 'russian':
+        ch = ch.translate(EN_RU_LAYOUT)
+        if has_shift and ch in SPECIALS:
+            ind = SPECIALS.index(ch)
+            ch = SPECIALS_SIGNS_RU[ind]
+    else:
+        if has_shift and ch in SPECIALS:
+            ind = SPECIALS.index(ch)
+            ch = SPECIALS_SIGNS[ind]
+    return ch
+
+
 def check_capslock():
     caps_status = win32api.GetKeyState(win32con.VK_CAPITAL)
     return caps_status != 0
@@ -88,7 +107,13 @@ def get_keyboard_language():
         return str(language_id_hex)
 
 
-layout = dict(zip(map(ord, "qwertyuiop[]asdfghjkl;'zxcvbnm,./`"
+EN_RU_LAYOUT = dict(zip(map(ord, "qwertyuiop[]asdfghjkl;'zxcvbnm,./`"
                            'QWERTYUIOP{}ASDFGHJKL:"ZXCVBNM<>?~'),
                            "йцукенгшщзхъфывапролджэячсмитьбю.ё"
                            'ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ,Ё'))
+NUMS = '1234567890'
+NUMS_SIGNS = '!@#$%^&*()'
+NUMS_SIGNS_RU = '!"№;%:?*()'
+SPECIALS = NUMS + '`-=[];\'\\,./'
+SPECIALS_SIGNS = NUMS_SIGNS + '~_+{}:"|<>?'
+SPECIALS_SIGNS_RU = NUMS_SIGNS_RU + 'Ё_+ХЪЖЭ/БЮ,'

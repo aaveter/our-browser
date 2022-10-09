@@ -9,26 +9,96 @@ import sys
 from our_browser.ext_depends import noder_parse_file, noder_parse_text, DATA_PATH
 from our_browser.drawing import make_drawable_tree, INPUT_CONTROL, _propagateEvent
 from our_browser.listview import ListviewControl, connect_listview
-from our_browser.os_help import check_capslock, get_keyboard_language
+from our_browser.os_help import fix_key_by_mode
 
 
-NUMS = '1234567890'
-NUMS_SIGNS = '!@#$%^&*()'
-NUMS_SIGNS_RU = '!"№;%:?*()'
-SPECIALS = NUMS + '`-=[];\'\\,./'
-SPECIALS_SIGNS = NUMS_SIGNS + '~_+{}:"|<>?'
-SPECIALS_SIGNS_RU = NUMS_SIGNS_RU + 'Ё_+ХЪЖЭ/БЮ,'
+def main(listview_cls=ListviewControl, html_path=None):
+    if html_path == None:
+        html_path = sys.argv[1].replace('\\', '/')
+    
+    app = BrowserApp(listview_cls=listview_cls, html_path=html_path)
+    app.run()
 
+
+class BrowserApp:
+
+    def __init__(self, html_path=None, html_text='', listview_cls=ListviewControl) -> None:
+
+        self.listview_cls = listview_cls
+        self.ROOT_NODE = noder_parse_file(html_path) if html_path else noder_parse_text(html_text)
+
+        self.app = wx.App()
+        self.frame = Frame(None)
+
+    def update_drawers(self):
+        self.frame.mainPanel.ROOT = make_drawable_tree(self.ROOT_NODE)
+
+    def run(self):
+        connect_listview(self.ROOT_NODE, listview_cls=self.listview_cls)
+
+        self.update_drawers()
+        self._connect_styles(self.ROOT_NODE)
+
+        INPUT_CONTROL.set_refresher(self.frame.mainPanel.Refresh)
+
+        self.frame.Show(True)
+        self.app.MainLoop()
+
+        INPUT_CONTROL.stop_timer()
+
+    def _connect_styles(self, node):
+        styler = self.ROOT_NODE.styler
+        styler.connect_styles_to_node(node)
+        for n in node.children:
+            self._connect_styles(n)
+
+
+class Frame(wx.Frame):
+
+    def __init__(self, *args, **kwargs):
+        super(Frame, self).__init__(*args, **kwargs) 
+        
+        self.InitUI()
+
+    def InitUI(self):
+        self.SetIcon(wx.Icon(join(DATA_PATH, "our_browser.ico")))
+
+        panel = wx.Panel(self)        
+        self.vbox = vbox = wx.BoxSizer(wx.HORIZONTAL)
+        panel.SetSizer(vbox)        
+
+        self.mainPanel = mainPanel = DrawingArea(panel)
+        mainPanel.mainFrame = self
+        mainPanel.vbox = vbox
+        vbox.Add(mainPanel, 1, wx.EXPAND | wx.ALL, 0)
+
+        mainPanel.scroll = scroll = wx.ScrollBar(panel, style=SB_VERTICAL)
+        scroll.Hide()
+        scroll.SetScrollbar(position=0, thumbSize=16, range=1000, pageSize=100)
+        vbox.Add(scroll, 0, wx.EXPAND | wx.ALL, 0)
+
+        self.dev = dev = DevTreeArea(panel)
+        dev.Hide()
+        dev.SetSize((100, 600))
+        vbox.Add(dev, 1, wx.EXPAND | wx.ALL, 0)
+
+        self.SetSize((800, 600))
+        self.SetTitle('Our Browser')
+        self.Centre()
+
+        scroll.Bind(wx.EVT_SCROLL, mainPanel.onScrollWin1)
+        self.Bind(wx.EVT_MOUSEWHEEL, mainPanel.onWheelWin)
 
 class DrawingArea(wx.Panel):
     
     def __init__ (self , *args , **kw):
-        super(DrawingArea , self).__init__ (*args , **kw)
+        super(DrawingArea, self).__init__ (*args , **kw)
 
         self.scroll_pos = 0
         self.scroll_show = False
         self.scroll = None
         self.vbox = None
+        self.mainFrame = None
 
         self.ROOT = None
         
@@ -43,6 +113,8 @@ class DrawingArea(wx.Panel):
         self.Bind(wx.EVT_KEY_UP, self.onKeyUp)
         #self.Bind(wx.EVT_CHAR, self.onKeyChar)
         self.Bind(wx.EVT_CHAR_HOOK, self.onKeyChar)
+
+        self.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
 
         #self.SetFocus()
     
@@ -173,21 +245,7 @@ class DrawingArea(wx.Panel):
                 keycode3 = event.GetRawKeyCode()
 
                 ch = chr(keycode)
-                _upper = check_capslock()
-                if has_shift:
-                    _upper = not _upper
-                if not _upper:
-                    ch = ch.lower()
-
-                if get_keyboard_language().lower() == 'russian':
-                    ch = ch.translate(layout)
-                    if has_shift and ch in SPECIALS:
-                        ind = SPECIALS.index(ch)
-                        ch = SPECIALS_SIGNS_RU[ind]
-                else:
-                    if has_shift and ch in SPECIALS:
-                        ind = SPECIALS.index(ch)
-                        ch = SPECIALS_SIGNS[ind]
+                ch = fix_key_by_mode(ch, has_shift)
 
                 print(name, "You pressed: ", keycode, ch, keycode3, chr(keycode3), 'has_shift:', has_shift)
                 if name == 'down':
@@ -229,77 +287,56 @@ class DrawingArea(wx.Panel):
             ability.moveCursor(way)
             self.Refresh()
 
+    def OnRightDown(self, e):
+        if not hasattr(self, "popupID1"):
+            self.popupID1 = wx.NewId()
+            self.Bind(wx.EVT_MENU, self.onPopup, id=self.popupID1)
+        self._popupMenu = PopMenu(self, self.popupID1)
+        self.PopupMenu(self._popupMenu, e.GetPosition())
 
-class Frame(wx.Frame):
-
-    def __init__(self, *args, **kwargs):
-        super(Frame, self).__init__(*args, **kwargs) 
-        
-        self.InitUI()
-
-    def InitUI(self):
-        self.SetIcon(wx.Icon(join(DATA_PATH, "our_browser.ico")))
-
-        panel = wx.Panel(self)        
-        self.vbox = vbox = wx.BoxSizer(wx.HORIZONTAL)
-        panel.SetSizer(vbox)        
-
-        self.mainPanel = mainPanel = DrawingArea(panel)
-        mainPanel.vbox = vbox
-        vbox.Add(mainPanel, 1, wx.EXPAND | wx.ALL, 0)
-
-        mainPanel.scroll = scroll = wx.ScrollBar(panel, style=SB_VERTICAL)
-        scroll.Hide()
-        scroll.SetScrollbar(position=0, thumbSize=16, range=1000, pageSize=100)
-        vbox.Add(scroll, 0, wx.EXPAND | wx.ALL, 0)
-
-        self.SetSize((800, 600))
-        self.SetTitle('Our Browser')
-        self.Centre()
-
-        scroll.Bind(wx.EVT_SCROLL, mainPanel.onScrollWin1)
-        self.Bind(wx.EVT_MOUSEWHEEL, mainPanel.onWheelWin)
+    def onPopup(self, event):
+        itemId = event.GetId()
+        menu = event.GetEventObject()
+        menuItem = menu.FindItemById(itemId)
+        txt = menuItem.GetItemLabel()
+        if txt.lower() == 'show dev':
+            self.mainFrame.dev.Show()
+            self.mainFrame.vbox.Layout()
+        elif txt.lower() == 'hide dev':
+            self.mainFrame.dev.Hide()
+            self.mainFrame.vbox.Layout()
 
 
-class BrowserApp:
-
-    def __init__(self, html_path=None, html_text='', listview_cls=ListviewControl) -> None:
-
-        self.listview_cls = listview_cls
-        self.ROOT_NODE = noder_parse_file(html_path) if html_path else noder_parse_text(html_text)
-
-        self.app = wx.App()
-        self.frame = Frame(None)
-
-    def update_drawers(self):
-        self.frame.mainPanel.ROOT = make_drawable_tree(self.ROOT_NODE)
-
-    def run(self):
-        connect_listview(self.ROOT_NODE, listview_cls=self.listview_cls)
-
-        self.update_drawers()
-        self._connect_styles(self.ROOT_NODE)
-
-        INPUT_CONTROL.set_refresher(self.frame.mainPanel.Refresh)
-
-        self.frame.Show(True)
-        self.app.MainLoop()
-
-        INPUT_CONTROL.stop_timer()
-
-    def _connect_styles(self, node):
-        styler = self.ROOT_NODE.styler
-        styler.connect_styles_to_node(node)
-        for n in node.children:
-            self._connect_styles(n)
+class PopMenu(wx.Menu): 
+  
+    def __init__(self, parent, menuId):
+        super(PopMenu, self).__init__()
+  
+        self.parent = parent
+  
+        popmenu = wx.MenuItem(self, menuId, 'Hide dev' if parent.mainFrame.dev.IsShown() else 'Show dev')
+        self.Append(popmenu)
 
 
-def main(listview_cls=ListviewControl, html_path=None):
-    if html_path == None:
-        html_path = sys.argv[1].replace('\\', '/')
+class DevTreeArea(wx.Panel):
     
-    app = BrowserApp(listview_cls=listview_cls, html_path=html_path)
-    app.run()
+    def __init__ (self , *args , **kw):
+        super(DevTreeArea, self).__init__ (*args , **kw)
+
+        self.ROOT = None
+        
+        self.SetDoubleBuffered(True)
+        self.Bind(wx.EVT_SIZE, self.OnSize)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+    
+    def OnSize(self, event):
+        self.Refresh() # MUST have this, else the rectangle gets rendered corruptly when resizing the window!
+        event.Skip() # seems to reduce the ammount of OnSize and OnPaint events generated when resizing the window
+        
+    def OnPaint(self, e):
+        dc = wx.PaintDC(self)
+        cr = wx.lib.wxcairo.ContextFromDC(dc)
+        # self.DoDrawing(cr, dc)
 
 
 if __name__ == '__main__':
