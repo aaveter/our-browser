@@ -32,6 +32,7 @@ class BrowserApp:
 
     def update_drawers(self):
         self.frame.mainPanel.ROOT = make_drawable_tree(self.ROOT_NODE)
+        self.frame.mainPanel.ROOT.ROOT_NODE = self.ROOT_NODE
 
     def run(self):
         connect_listview(self.ROOT_NODE, listview_cls=self.listview_cls)
@@ -300,6 +301,7 @@ class DrawingArea(wx.Panel):
         menuItem = menu.FindItemById(itemId)
         txt = menuItem.GetItemLabel()
         if txt.lower() == 'show dev':
+            self.mainFrame.dev.ROOT_NODE = self.ROOT.ROOT_NODE if self.ROOT else None
             self.mainFrame.dev.Show()
             self.mainFrame.vbox.Layout()
         elif txt.lower() == 'hide dev':
@@ -318,12 +320,14 @@ class PopMenu(wx.Menu):
         self.Append(popmenu)
 
 
+from our_browser.drawing import cr_set_source_rgb_any_hex
+
 class DevTreeArea(wx.Panel):
     
     def __init__ (self , *args , **kw):
         super(DevTreeArea, self).__init__ (*args , **kw)
 
-        self.ROOT = None
+        self.ROOT_NODE = None
         
         self.SetDoubleBuffered(True)
         self.Bind(wx.EVT_SIZE, self.OnSize)
@@ -337,6 +341,36 @@ class DevTreeArea(wx.Panel):
         dc = wx.PaintDC(self)
         cr = wx.lib.wxcairo.ContextFromDC(dc)
         # self.DoDrawing(cr, dc)
+
+        if self.ROOT_NODE:
+            self.draw_node(cr, self.ROOT_NODE, line_y=0, level=0)
+
+    def draw_node(self, cr, node, line_y, level):
+        h = 11
+        rect = (10 + level*5, 10 + line_y*(h+2), 100, h)
+        cr_set_source_rgb_any_hex(cr, '#333333')
+        cr.set_line_width(1)
+        rect = (rect[0]+0.5, rect[1]+0.5, rect[2]-1+1, rect[3]-1+1)
+        cr.rectangle(*rect)
+        cr.stroke()
+
+        font_size = 9
+        cr.set_font_size(font_size)
+        x, y = (rect[0]+5, rect[1])
+        x += 0.5
+        if node.tag:
+            cr.move_to(x, y + font_size)
+            text = node.tag.text
+            drawer = getattr(node, 'drawer', None)
+            if drawer:
+                text += ': {}'.format(drawer.__class__.__name__[6:])
+            cr.show_text(text)
+
+        line_y += 1
+        for ch in node.children:
+            line_y = self.draw_node(cr, ch, line_y, level+1)
+
+        return line_y
 
 
 if __name__ == '__main__':

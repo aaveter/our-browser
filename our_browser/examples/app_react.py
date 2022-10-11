@@ -64,13 +64,10 @@ def main():
     app = BrowserApp(html_text=HTML_TEXT)
 
     root = app.ROOT_NODE.getElementById("root")
-    print('FOUND root:', root, id(root))
 
     ReactDOM.render("""
         <App count=2 />
     """, root)
-
-    print('RENDERED root:', app.ROOT_NODE)
 
     root.app = app
     

@@ -27,8 +27,6 @@ class Styler:
                 name_d = self.styles[name]
                 name_d.update(_style)
 
-                print('''    {} -> {}'''.format(name, _style))
-
             pos = j+1
 
     def parse_style(self, text):
@@ -58,7 +56,6 @@ class Styler:
                     if _lst[0].isnumeric():
                         value = (int(_lst[0]), _lst[1], _lst[2])
                     else:
-                        print('!!!', _lst)
                         value = None
 
             elif key == 'flex':
@@ -96,5 +93,4 @@ def str2int(value):
     if value.isnumeric():
         return int(value)
     else:
-        print('!!!', value)
         return 0

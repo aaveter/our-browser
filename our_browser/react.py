@@ -17,10 +17,8 @@ class _ReactDOM:
             d[cls.__name__] = cls
 
         root = noder_parse_text(html).children[0]
-        print('ROOT:', root, root.attrs)
 
         root = self._find_and_render(root, node, main_render=True)
-        print('>>', root)
 
         self._set_node(node, root)
 
@@ -94,7 +92,6 @@ class _ReactComponent:
     def _render(self, first_start=False):
         ReactDOM._methods_tmp.clear()
         txt = self.render()
-        print('GOT txt:', txt, '!!!!! root:')#, self.node.root)
         _methods, ReactDOM._methods_tmp = ReactDOM._methods_tmp, []
         src_node = noder_parse_text(txt).children[0]
         ReactDOM._set_node(self.node, src_node)

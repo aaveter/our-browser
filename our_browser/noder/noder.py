@@ -74,7 +74,6 @@ class Node(ReprLikeStr):
                 return _n
 
     def set_node(self, node):
-        print('set_node TO ({} <- {}):'.format(id(self), id(node)), node)
         self.children = node.children
         self.tag = node.tag
         self.tag_end = node.tag_end

@@ -150,15 +150,12 @@ def main():
     app = BrowserApp(html_text=HTML_TEXT)
 
     root = app.ROOT_NODE.getElementById("root")
-    print('FOUND root:', root, id(root), 'styler:', root.root.styler)
 
     root.app = app
 
     ReactDOM.render("""
         <App count=2 />
     """, root)
-
-    print('RENDERED root:', app.ROOT_NODE)
     
     app.run()
 
