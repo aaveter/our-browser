@@ -79,6 +79,7 @@ class Frame(wx.Frame):
         vbox.Add(scroll, 0, wx.EXPAND | wx.ALL, 0)
 
         self.dev = dev = DevTreeArea(panel)
+        dev.mainPanel = mainPanel
         dev.Hide()
         dev.SetSize((100, 600))
         vbox.Add(dev, 1, wx.EXPAND | wx.ALL, 0)
@@ -301,7 +302,6 @@ class DrawingArea(wx.Panel):
         menuItem = menu.FindItemById(itemId)
         txt = menuItem.GetItemLabel()
         if txt.lower() == 'show dev':
-            self.mainFrame.dev.ROOT = self.ROOT
             self.mainFrame.dev.ROOT_NODE = self.ROOT.ROOT_NODE if self.ROOT else None
             self.mainFrame.dev.Show()
             self.mainFrame.vbox.Layout()
@@ -328,7 +328,7 @@ class DevTreeArea(wx.Panel):
     def __init__ (self , *args , **kw):
         super(DevTreeArea, self).__init__ (*args , **kw)
 
-        self.ROOT = None
+        self.mainPanel = None
         self.ROOT_NODE = None
         self.current_y = -1
         
@@ -336,6 +336,10 @@ class DevTreeArea(wx.Panel):
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_LEFT_UP, self.onClick)
+
+    @property
+    def ROOT(self):
+        return self.mainPanel.ROOT
     
     def OnSize(self, event):
         self.Refresh() # MUST have this, else the rectangle gets rendered corruptly when resizing the window!
