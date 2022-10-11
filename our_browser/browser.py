@@ -330,10 +330,12 @@ class DevTreeArea(wx.Panel):
 
         self.ROOT = None
         self.ROOT_NODE = None
+        self.current_y = -1
         
         self.SetDoubleBuffered(True)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_LEFT_UP, self.onClick)
     
     def OnSize(self, event):
         self.Refresh() # MUST have this, else the rectangle gets rendered corruptly when resizing the window!
@@ -350,7 +352,7 @@ class DevTreeArea(wx.Panel):
     def draw_node(self, cr, node, line_y, level):
         h = 11
         rect = (10 + level*5, 10 + line_y*(h+2), 100, h)
-        cr_set_source_rgb_any_hex(cr, '#333333')
+        cr_set_source_rgb_any_hex(cr, '#333399' if line_y==self.current_y else '#333333')
         cr.set_line_width(1)
         rect = (rect[0]+0.5, rect[1]+0.5, rect[2]-1+1, rect[3]-1+1)
         cr.rectangle(*rect)
@@ -379,11 +381,28 @@ class DevTreeArea(wx.Panel):
             text = '[ ROOT ] ' + text
         cr.show_text(text)
 
+        if line_y==self.current_y:
+            x, y = 250, 10
+            for add in ('simple', 'hover'):
+                _style = getattr(node, 'style_'+add, None)
+                if _style:
+                    for a, v in _style.items():
+                        cr.move_to(x, y + font_size)
+                        text = "{}: {}".format(a, v)
+                        cr.show_text(text)
+                        y += font_size
+                cr.rectangle(250, y, 100, 1)
+                cr.stroke()
+
         line_y += 1
         for ch in node.children:
             line_y = self.draw_node(cr, ch, line_y, level+1)
 
         return line_y
+
+    def onClick(self, event):
+        self.current_y = int((event.Position[1] - 10) / 13)
+        self.Refresh()
 
 
 if __name__ == '__main__':

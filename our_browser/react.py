@@ -64,13 +64,12 @@ class _ReactDOM:
             self._connect_methods(ch, _methods)
 
     def _set_node(self, dst, src, attrs_smart_update=False):
-        self._set_node_attrs(dst, src)
+        self._set_node_attrs(dst, src, attrs_smart_update=attrs_smart_update)
         dst.set_node(src, attrs_smart_update=attrs_smart_update)
 
-    def _set_node_attrs(self, dst, src):
-        if dst.attrs != None:
-            if src.attrs != None:
-                dst.attrs.update(src.attrs)
+    def _set_node_attrs(self, dst, src, attrs_smart_update=False):
+        if dst.attrs != None and src.attrs != None and attrs_smart_update:
+            dst.attrs.update(src.attrs)
         else:
             dst.attrs = src.attrs
 
@@ -100,8 +99,8 @@ class _ReactComponent:
         ReactDOM._set_node(self.node, src_node, attrs_smart_update=attrs_smart_update)
         ReactDOM._connect_methods(self.node, _methods)
         if not first_start:
-            self.node.app.update_drawers()
             self.node.app._connect_styles(self.node)
+            self.node.app.update_drawers()
 
 
 class React:

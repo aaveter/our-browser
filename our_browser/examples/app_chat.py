@@ -137,7 +137,7 @@ class SearchButton(React.Component):
     def render(self):
         if self.state['edit']:
             return f'''
-                <input class="flex-1 common-padding common-font height-100 white" />
+                <input class="flex-1 common-padding common-font height-100p white" />
             '''
         return f'''
             <div class="image-button button" onclick={EVENT(self.onClick)} >
