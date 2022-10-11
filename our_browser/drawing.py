@@ -193,6 +193,8 @@ class Calced:
             flex = node.style.get('flex', None)
             flex_direction = node.style.get('flex-direction', None)
             align_items = node.style.get('align-items', None)
+            _font_weight_default = 'bold' if node.tag and node.tag.text == 'b' else 'normal'
+            self.font_weight = node.style.get('font-weight', _font_weight_default)
 
         self.color = color
         self.background_color = background_color
@@ -480,6 +482,7 @@ class DrawerBlock(DrawerNode):
         border_radius = self.calced.border_radius
         color = self.calced.color
         font_size = self.calced.font_size
+        font_weight = self.calced.font_weight
         border = self.calced.border
         image = getattr(self.calced, 'image', None)
 
@@ -503,7 +506,7 @@ class DrawerBlock(DrawerNode):
         else:
             cr.set_source_rgb(0.1, 0.1, 0.1)
         padding = self.calced.padding
-        self.draw_lines(cr, self.node.lines, (ps[0]+padding, ps[1]+padding), font_size)
+        self.draw_lines(cr, self.node.lines, (ps[0]+padding, ps[1]+padding), font_size, font_weight)
 
         if self.ability:
             self.ability.draw(cr, rect)
@@ -562,11 +565,16 @@ class DrawerBlock(DrawerNode):
             cr.line_to(x2, y2)
         cr.stroke()
 
-    def draw_lines(self, cr, lines, pos, font_size):
+    def draw_lines(self, cr, lines, pos, font_size, font_weight):
         if not lines:
             return
 
         cr.set_font_size(font_size)
+        ff_tmp = None
+        if font_weight == 'bold':
+            ff_tmp = cr.get_font_face()
+            cr.select_font_face(ff_tmp.get_family(), cairo.FONT_SLANT_NORMAL, 
+                cairo.FONT_WEIGHT_BOLD)
         x, y = pos
         x += 0.5
         
@@ -574,6 +582,9 @@ class DrawerBlock(DrawerNode):
             cr.move_to(x, y + font_size) #+5
             cr.show_text(line)
             y += font_size
+
+        if ff_tmp:
+            cr.set_font_face(ff_tmp)
 
     def draw_image(self, cr, image, rect):
         r = (rect[0], rect[1], rect[2], rect[3])

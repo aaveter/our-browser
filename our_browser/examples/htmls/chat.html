@@ -77,7 +77,8 @@
                         <listview class="page green2" id="messages-listview">
                             <template>
                                 <item class='item common-font message'>
-                                    Message {{ item.text }}
+                                    <b>{{ item.sender }}</b>
+                                    <div>Message {{ item.text }}</div>
                                 </item>
                             </template>
                             <items>
