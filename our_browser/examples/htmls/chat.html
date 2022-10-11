@@ -32,6 +32,7 @@
             .item {margin: 5px; border: 1px solid #cccccc; min-height: 20px;}
             .chat {margin: 0; padding: 5px; background-color: #ffffff; height: 70px;}
             .message {padding: 5px; background-color: #ffffff; max-width: 496px; border-radius: 8px;}
+            .message-time {font-size: 11; color: #999999;}
             .image-button {height:40px; width:40px; border-radius:20px; _display: flex; align-items: center; margin:5px; padding: 5px;}
             .image-button-content {margin:9px;}
             .button:hover {border_: 1px solid #77ff77; background-color: #e5ddd577;}
@@ -79,6 +80,7 @@
                                 <item class='item common-font message'>
                                     <b>{{ item.sender }}</b>
                                     <div>Message {{ item.text }}</div>
+                                    <div class='message-time'>{{ item.time }}</div>
                                 </item>
                             </template>
                             <items>

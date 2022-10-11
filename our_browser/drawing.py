@@ -128,10 +128,24 @@ class Rect:
         self.height = 0
         
 
+def get_size_prop_from_node_or_parent(node, name, parent_prop, default=0):
+    _nodes = [node]
+    if node.parent:
+        _nodes.append(node.parent)
+    for n in _nodes:
+        v = get_size_prop_from_node(n, name, parent_prop, default=None)
+        if v != None:
+            return v
+    return default
+    
+
 def get_size_prop_from_node(node, name, parent_prop, default=0):
     if not hasattr(node, 'style'):
         return 0
     prop = node.style.get(name, default)
+    return get_size_prop_from_prop(prop, parent_prop, default)
+
+def get_size_prop_from_prop(prop, parent_prop, default=0):
     if type(prop) == tuple:
         hproc = prop[0]
         if parent_prop == None:
@@ -179,7 +193,12 @@ class Calced:
         if hasattr(node, 'style'):
             color = node.style.get('color', None)
             background_color = node.style.get('background-color', None)
-            font_size = int(node.style.get('font-size', 11))
+            fs = node.style.get('font-size', None)
+            if not fs and node.parent and node.parent.style:
+                fs = node.parent.style.get('font-size', 11)
+            if not fs:
+                fs = 11
+            font_size = int(fs)
             
             border = node.style.get('border', None)
             border_left = node.style.get('border-left', None)
@@ -212,7 +231,7 @@ class Calced:
         self.flex_direction = flex_direction
         self.align_items = align_items
 
-        self.padding = padding = get_size_prop_from_node(node, 'padding', None)
+        self.padding = padding = get_size_prop_from_node_or_parent(node, 'padding', None)
         padding_2 = padding * 2
         text_width = size[0] - padding_2
 
@@ -239,7 +258,7 @@ class Calced:
 
         self.last_size_0 = text_width
 
-        self.margin = margin = get_size_prop_from_node(node, 'margin', None)
+        self.margin = margin = get_size_prop_from_node_or_parent(node, 'margin', None)
 
         width, height = self.calc_width_height(node, size, margin, padding_2, font_size, image)
 
