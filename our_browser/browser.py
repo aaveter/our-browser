@@ -301,6 +301,7 @@ class DrawingArea(wx.Panel):
         menuItem = menu.FindItemById(itemId)
         txt = menuItem.GetItemLabel()
         if txt.lower() == 'show dev':
+            self.mainFrame.dev.ROOT = self.ROOT
             self.mainFrame.dev.ROOT_NODE = self.ROOT.ROOT_NODE if self.ROOT else None
             self.mainFrame.dev.Show()
             self.mainFrame.vbox.Layout()
@@ -327,6 +328,7 @@ class DevTreeArea(wx.Panel):
     def __init__ (self , *args , **kw):
         super(DevTreeArea, self).__init__ (*args , **kw)
 
+        self.ROOT = None
         self.ROOT_NODE = None
         
         self.SetDoubleBuffered(True)
@@ -358,13 +360,24 @@ class DevTreeArea(wx.Panel):
         cr.set_font_size(font_size)
         x, y = (rect[0]+5, rect[1])
         x += 0.5
+        text = ''
         if node.tag:
             cr.move_to(x, y + font_size)
             text = node.tag.text
             drawer = getattr(node, 'drawer', None)
             if drawer:
                 text += ': {}'.format(drawer.__class__.__name__[6:])
-            cr.show_text(text)
+            for nm in ('id', 'id2',):
+                _attrs = getattr(node, 'attrs', None)
+                if _attrs:
+                    _id = _attrs.get(nm, None)
+                    if _id != None:
+                        text += ' {}={}'.format(nm, _id)
+
+        _drawer = getattr(node, 'drawer', None)
+        if self.ROOT and _drawer == self.ROOT:
+            text = '[ ROOT ] ' + text
+        cr.show_text(text)
 
         line_y += 1
         for ch in node.children:

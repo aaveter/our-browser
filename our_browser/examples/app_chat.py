@@ -14,7 +14,7 @@ from our_browser.listview import ItemBase
 HTML_SRC = open(join(HERE, 'htmls', 'chat.html'), encoding='utf-8').read()
 HTML_LST = HTML_SRC.split('<body')
 HTML_START = HTML_LST[0]
-HTML_END = "<body><div class='width-100p height-100p' id='root'></div></body></html>"
+HTML_END = "<body class='width-100p height-100p flex-horizontal'><div class='width-100p height-100p flex-horizontal' id='root' id2='111'></div></body></html>"
 HTML_TEXT = HTML_START + HTML_END
 HTML_INNER = '>'.join(HTML_LST[1].split('>')[1:]).split('</body')[0].strip()
 # print(HTML_TEXT)
@@ -47,7 +47,7 @@ class App(React.Component):
         count = self.state['count']
         print('count ----------', count)
         #return f'<div><p class="yellow">{count}</p><button class="red" onclick={EVENT(self.onClick)} /></div>'
-        return HTML_SRC # FIXME want INNER
+        return HTML_INNER #HTML_SRC # FIXME want INNER
 
 
 class ChatButton(React.Component):

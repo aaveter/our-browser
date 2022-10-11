@@ -73,11 +73,14 @@ class Node(ReprLikeStr):
                 _n.root = self.root if hasattr(self, 'root') else self
                 return _n
 
-    def set_node(self, node):
+    def set_node(self, node, attrs_smart_update=False):
         self.children = node.children
         self.tag = node.tag
         self.tag_end = node.tag_end
-        self.attrs = node.attrs
+        if attrs_smart_update and self.attrs != None and node.attrs != None:
+            self.attrs.update(node.attrs)
+        else:
+            self.attrs = node.attrs
         self.text = node.text
         self._update_childs_level(self.level+1)
 
