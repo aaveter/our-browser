@@ -3,6 +3,8 @@ from our_browser.listview import draw_listview
 import cairo, math
 import threading
 
+from our_browser.draw_commons import cr_set_source_rgb_any_hex, hex2color
+
 
 check_is_drawable = lambda node: node.tag and node.tag.text not in ('style', 'script', 'head') and not node.tag.text.startswith('!')
 
@@ -343,13 +345,6 @@ class Calced:
             self.calced = True
 
 
-def cr_set_source_rgb_any_hex(cr, color):
-    col = hex2color(color)
-    if len(col) == 3:
-        cr.set_source_rgb(*col)
-    else:
-        cr.set_source_rgba(*col)
-
 class DrawerBlock(DrawerNode):
 
     def __init__(self, node) -> None:
@@ -620,53 +615,6 @@ class DrawerBlock(DrawerNode):
         cr.paint()
         if boo:
             cr.scale(1/wk, 1/hk)
-
-    def draw_scroll(self, cr, _ps, _sz):
-        scroll_width = 20
-        background_color = '#eeeeee'
-        rect = (_ps[0]+_sz[0]-scroll_width, _ps[1], scroll_width, _sz[1])
-        cr_set_source_rgb_any_hex(cr, background_color)
-        cr.rectangle(*rect)
-        cr.fill()
-
-        scroll_width_p2 = scroll_width / 2
-
-        cr.set_source_rgb(*hex2color('#777777'))
-        cr.move_to(rect[0]+scroll_width_p2, rect[1]+5)
-        cr.line_to(rect[0]+scroll_width_p2-5, rect[1]+10)
-        cr.line_to(rect[0]+scroll_width_p2+5, rect[1]+10)
-        cr.line_to(rect[0]+scroll_width_p2, rect[1]+5)
-        cr.fill()
-
-        bottom = _ps[1] + _sz[1]
-        cr.move_to(rect[0]+scroll_width_p2, bottom-5)
-        cr.line_to(rect[0]+scroll_width_p2-5, bottom-10)
-        cr.line_to(rect[0]+scroll_width_p2+5, bottom-10)
-        cr.line_to(rect[0]+scroll_width_p2, bottom-5)
-        cr.fill()
-
-        return (_sz[0]-scroll_width, _sz[1])
-
-    def draw_scroll_pos(self, cr, _ps, _sz, scroll_pos, scroll_size):
-        scroll_width = 20
-        scroll_pan_height_d = (_sz[1] - scroll_size/2 - 50) if scroll_size <= _sz[1]*2 else (_sz[1] / scroll_size) #50
-        if scroll_pan_height_d < 5:
-            scroll_pan_height_d = 10
-        scroll_pan_height = scroll_pan_height_d # _sz[1] - 
-        
-        min_y = _ps[1] + scroll_width
-        max_y = _ps[1] + _sz[1] - scroll_width - scroll_pan_height
-
-        y = min_y + scroll_pos
-        if y > max_y:
-            y = max_y
-        if y < min_y:
-            y = min_y
-
-        rect = (_ps[0]+_sz[0], y, scroll_width, scroll_pan_height)
-        cr.set_source_rgb(*hex2color('#cccccc'))
-        cr.rectangle(*rect)
-        cr.fill()
 
     def propagateEvent(self, pos, event_name):
         if not hasattr(self, 'pos'):
@@ -979,13 +927,4 @@ def _propagateEvent(node, pos, event_name):
             changed = True #return ret
 
     return changed
-
-
-def hex2color(color_hex):
-    color_hex = color_hex.split('#')[1]
-    if len(color_hex) >= 8:
-        return (int(color_hex[:2], 16)/255.0, int(color_hex[2:4], 16)/255.0, int(color_hex[4:6], 16)/255.0,
-            int(color_hex[6:8], 16)/255.0)
-    else:
-        return (int(color_hex[:2], 16)/255.0, int(color_hex[2:4], 16)/255.0, int(color_hex[4:6], 16)/255.0)
 

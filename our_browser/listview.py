@@ -2,21 +2,114 @@ import wx
 import cairo
 import statistics
 
+from our_browser.draw_commons import cr_set_source_rgb_any_hex, hex2color
+
 
 class ItemBase:
 
     def __init__(self, text) -> None:
         self.text = text
 
-class ListviewControl:
+
+class Scrollable:
+
+    def __init__(self) -> None:
+        self.scroll_pos = 0
+        self.scroll_started = False
+
+    def draw_scroll(self, cr, _ps, _sz):
+        scroll_width = 20
+        background_color = '#eeeeee'
+        rect = (_ps[0]+_sz[0]-scroll_width, _ps[1], scroll_width, _sz[1])
+        cr_set_source_rgb_any_hex(cr, background_color)
+        cr.rectangle(*rect)
+        cr.fill()
+
+        scroll_width_p2 = scroll_width / 2
+
+        cr.set_source_rgb(*hex2color('#777777'))
+        cr.move_to(rect[0]+scroll_width_p2, rect[1]+5)
+        cr.line_to(rect[0]+scroll_width_p2-5, rect[1]+10)
+        cr.line_to(rect[0]+scroll_width_p2+5, rect[1]+10)
+        cr.line_to(rect[0]+scroll_width_p2, rect[1]+5)
+        cr.fill()
+
+        bottom = _ps[1] + _sz[1]
+        cr.move_to(rect[0]+scroll_width_p2, bottom-5)
+        cr.line_to(rect[0]+scroll_width_p2-5, bottom-10)
+        cr.line_to(rect[0]+scroll_width_p2+5, bottom-10)
+        cr.line_to(rect[0]+scroll_width_p2, bottom-5)
+        cr.fill()
+
+        return (_sz[0]-scroll_width, _sz[1])
+
+    def draw_scroll_pos(self, cr, _ps, _sz, scroll_pos, scroll_size):
+        scroll_width = 20
+        scroll_pan_height_d = (_sz[1] - scroll_size/2 - 50) if scroll_size <= _sz[1]*2 else (_sz[1] / scroll_size) #50
+        if scroll_pan_height_d < 5:
+            scroll_pan_height_d = 10
+        scroll_pan_height = scroll_pan_height_d # _sz[1] - 
+        
+        min_y = _ps[1] + scroll_width
+        max_y = _ps[1] + _sz[1] - scroll_width - scroll_pan_height
+
+        y = min_y + scroll_pos
+        if y > max_y:
+            y = max_y
+        if y < min_y:
+            y = min_y
+
+        rect = (_ps[0]+_sz[0], y, scroll_width, scroll_pan_height)
+        cr.set_source_rgb(*hex2color('#cccccc'))
+        cr.rectangle(*rect)
+        cr.fill()
+
+    def on_wheel(self, event):
+        d = event.GetWheelRotation()/4
+        self.append_scroll(d)
+
+    def append_scroll(self, d):
+        self.scroll_pos -= d
+        if self.scroll_pos < 0:
+            self.scroll_pos = 0
+
+    def doEvent(self, pos, event_name):
+        if event_name == 'onclick':
+            self.scroll_started = False
+        elif event_name == 'ondown':
+            if self.isIntoScroll(pos):
+                self.scroll_started = pos
+        elif event_name == 'onmoving':
+            if self.scroll_started:
+                d = (self.scroll_started[1] - pos[1]) #* 3
+                self.scroll_started = pos
+                #print('EVENT lv:', pos, 'listview:', self.listview.drawer.size_calced)
+                self.append_scroll(d)
+                return True
+
+    def doEventOut(self, pos, event_name):
+        self.scroll_started = False
+
+    def isIntoScroll(self, pos):
+        drawer = self.listview.drawer
+        scroll_width = 20
+        scroll_right = drawer.pos[0] + drawer.size_calced[0]
+        scroll_left = scroll_right - scroll_width
+        scroll_top = drawer.pos[1] + scroll_width
+        scroll_bottom = drawer.pos[1] + drawer.size_calced[1] - scroll_width
+        return scroll_left <= pos[0] < scroll_right and scroll_top <= pos[1] < scroll_bottom
+
+
+class ListviewControl(Scrollable):
 
     def __init__(self, listview) -> None:
+        super().__init__()
         print('-----!!!!!!!!!! ListviewControl:', listview.tag, "ATTRS:", listview.attrs)
         self.listview = listview
         self.mean_h = 50
         self.template = None
-        self.scroll_pos = 0
-        self.scroll_started = False
+        # self.scroll_pos = 0
+        # self.scroll_started = False
         items_count = int(listview.attrs.get('items-count', 0))
         self.items = [ItemBase('item-{}'.format(i)) for i in range(items_count)]
         listview.attrs['data_model'] = self
@@ -54,41 +147,6 @@ class ListviewControl:
         for j, ch_template in enumerate(template.children):
             ch_texts = children_texts[j]
             self.format_template(i, ch_template, ch_texts, item)
-
-    def on_wheel(self, event):
-        d = event.GetWheelRotation()/4
-        self.append_scroll(d)
-
-    def append_scroll(self, d):
-        self.scroll_pos -= d
-        if self.scroll_pos < 0:
-            self.scroll_pos = 0
-
-    def doEvent(self, pos, event_name):
-        if event_name == 'onclick':
-            self.scroll_started = False
-        elif event_name == 'ondown':
-            if self.isIntoScroll(pos):
-                self.scroll_started = pos
-        elif event_name == 'onmoving':
-            if self.scroll_started:
-                d = (self.scroll_started[1] - pos[1]) #* 3
-                self.scroll_started = pos
-                #print('EVENT lv:', pos, 'listview:', self.listview.drawer.size_calced)
-                self.append_scroll(d)
-                return True
-
-    def doEventOut(self, pos, event_name):
-        self.scroll_started = False
-
-    def isIntoScroll(self, pos):
-        drawer = self.listview.drawer
-        scroll_width = 20
-        scroll_right = drawer.pos[0] + drawer.size_calced[0]
-        scroll_left = scroll_right - scroll_width
-        scroll_top = drawer.pos[1] + scroll_width
-        scroll_bottom = drawer.pos[1] + drawer.size_calced[1] - scroll_width
-        return scroll_left <= pos[0] < scroll_right and scroll_top <= pos[1] < scroll_bottom
         
 
 
@@ -127,7 +185,7 @@ def draw_listview(drawer, listview, cr):
     _ps = lv_pos = getattr(drawer, 'pos', (0, 0))
     _sz = getattr(drawer, 'size_calced', (0, 0))
 
-    _sz = lv_size = drawer.draw_scroll(cr, _ps, _sz)
+    _sz = lv_size = listview.draw_scroll(cr, _ps, _sz)
 
     lv_top = lv_pos[1]
     lv_bottom = lv_pos[1] + lv_size[1]
@@ -177,4 +235,5 @@ def draw_listview(drawer, listview, cr):
 
     scroll_size = _items_count * listview.mean_h #_ps[1] - lv_pos[1]
 
-    drawer.draw_scroll_pos(cr, lv_pos, lv_size, scroll_pos, scroll_size)
+    listview.draw_scroll_pos(cr, lv_pos, lv_size, scroll_pos, scroll_size)
+
