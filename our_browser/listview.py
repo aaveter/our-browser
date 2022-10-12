@@ -15,6 +15,7 @@ class Scrollable:
 
     def __init__(self) -> None:
         self.scroll_pos = 0
+        self.scroll_pos_y = 0
         self.scroll_started = False
 
     def draw_scroll(self, cr, _ps, _sz):
@@ -43,7 +44,11 @@ class Scrollable:
 
         return (_sz[0]-scroll_width, _sz[1])
 
-    def draw_scroll_pos(self, cr, _ps, _sz, scroll_pos, scroll_size):
+    def draw_scroll_pos(self, cr, _ps, _sz, items_count, drawer):
+        self.scroll_pos_y = items_count * self.mean_h * self.scroll_pos / drawer.size_calced[1]
+
+        scroll_size = items_count * self.mean_h
+
         scroll_width = 20
         scroll_pan_height_d = (_sz[1] - scroll_size/2 - 50) if scroll_size <= _sz[1]*2 else (_sz[1] / scroll_size) #50
         if scroll_pan_height_d < 5:
@@ -53,7 +58,7 @@ class Scrollable:
         min_y = _ps[1] + scroll_width
         max_y = _ps[1] + _sz[1] - scroll_width - scroll_pan_height
 
-        y = min_y + scroll_pos
+        y = min_y + self.scroll_pos
         if y > max_y:
             y = max_y
         if y < min_y:
@@ -108,8 +113,6 @@ class ListviewControl(Scrollable):
         self.listview = listview
         self.mean_h = 50
         self.template = None
-        # self.scroll_pos = 0
-        # self.scroll_started = False
         items_count = int(listview.attrs.get('items-count', 0))
         self.items = [ItemBase('item-{}'.format(i)) for i in range(items_count)]
         listview.attrs['data_model'] = self
@@ -179,8 +182,6 @@ def draw_listview(drawer, listview, cr):
     
     template = listview.template.children[0]
     t_drawer = template.drawer
-    scroll_pos = listview.scroll_pos
-    scroll_pos_y = _items_count * listview.mean_h * listview.scroll_pos / drawer.size_calced[1]
 
     _ps = lv_pos = getattr(drawer, 'pos', (0, 0))
     _sz = getattr(drawer, 'size_calced', (0, 0))
@@ -195,7 +196,7 @@ def draw_listview(drawer, listview, cr):
         fill_template_texts(template, listview.texts)
     texts = listview.texts
 
-    _ps = (_ps[0], _ps[1]-scroll_pos_y)
+    _ps = (_ps[0], _ps[1]-listview.scroll_pos_y)
 
     #t_drawer.calc_size(_sz, [_ps[0], _ps[1]]) - works into calc_size tree
 
@@ -233,7 +234,5 @@ def draw_listview(drawer, listview, cr):
     cr.rectangle(lv_pos[0], lv_pos[1], lv_size[0], lv_size[1])
     cr.fill()
 
-    scroll_size = _items_count * listview.mean_h #_ps[1] - lv_pos[1]
-
-    listview.draw_scroll_pos(cr, lv_pos, lv_size, scroll_pos, scroll_size)
+    listview.draw_scroll_pos(cr, lv_pos, lv_size, _items_count, drawer)
 
