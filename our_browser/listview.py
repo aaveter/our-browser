@@ -17,11 +17,16 @@ class Scrollable:
         self.scroll_pos = 0
         self.scroll_pos_y = 0
         self.scroll_started = False
+        self.height = 0
+        self.max_scroll_y = 0
 
     def draw_scroll(self, cr, _ps, _sz):
         scroll_width = 20
         background_color = '#eeeeee'
-        rect = (_ps[0]+_sz[0]-scroll_width, _ps[1], scroll_width, _sz[1])
+        self.height = height = _sz[1]
+        area_width = _sz[0]-scroll_width
+        x, y = _ps[0]+area_width, _ps[1]
+        rect = (x, y, scroll_width, height)
         cr_set_source_rgb_any_hex(cr, background_color)
         cr.rectangle(*rect)
         cr.fill()
@@ -29,31 +34,32 @@ class Scrollable:
         scroll_width_p2 = scroll_width / 2
 
         cr.set_source_rgb(*hex2color('#777777'))
-        cr.move_to(rect[0]+scroll_width_p2, rect[1]+5)
-        cr.line_to(rect[0]+scroll_width_p2-5, rect[1]+10)
-        cr.line_to(rect[0]+scroll_width_p2+5, rect[1]+10)
-        cr.line_to(rect[0]+scroll_width_p2, rect[1]+5)
+        cr.move_to(x+scroll_width_p2, y+5)
+        cr.line_to(x+scroll_width_p2-5, y+10)
+        cr.line_to(x+scroll_width_p2+5, y+10)
+        cr.line_to(x+scroll_width_p2, y+5)
         cr.fill()
 
-        bottom = _ps[1] + _sz[1]
-        cr.move_to(rect[0]+scroll_width_p2, bottom-5)
-        cr.line_to(rect[0]+scroll_width_p2-5, bottom-10)
-        cr.line_to(rect[0]+scroll_width_p2+5, bottom-10)
-        cr.line_to(rect[0]+scroll_width_p2, bottom-5)
+        bottom = y + height
+        cr.move_to(x+scroll_width_p2, bottom-5)
+        cr.line_to(x+scroll_width_p2-5, bottom-10)
+        cr.line_to(x+scroll_width_p2+5, bottom-10)
+        cr.line_to(x+scroll_width_p2, bottom-5)
         cr.fill()
 
-        return (_sz[0]-scroll_width, _sz[1])
+        return (area_width, height)
 
     def draw_scroll_pos(self, cr, _ps, _sz, items_count, drawer):
-        self.scroll_pos_y = items_count * self.mean_h * self.scroll_pos / drawer.size_calced[1]
+        #scroll_area_height = items_count * self.mean_h
 
-        scroll_size = items_count * self.mean_h
+        #self.scroll_pos_y = scroll_area_height * self.scroll_pos / drawer.size_calced[1]
 
         scroll_width = 20
-        scroll_pan_height_d = (_sz[1] - scroll_size/2 - 50) if scroll_size <= _sz[1]*2 else (_sz[1] / scroll_size) #50
-        if scroll_pan_height_d < 5:
-            scroll_pan_height_d = 10
-        scroll_pan_height = scroll_pan_height_d # _sz[1] - 
+        # scroll_pan_height_d = (_sz[1] - scroll_size/2 - 50) if scroll_size <= _sz[1]*2 else (_sz[1] / scroll_size) #50
+        # if scroll_pan_height_d < 5:
+        #     scroll_pan_height_d = 10
+        # scroll_pan_height = scroll_pan_height_d # _sz[1] - 
+        self.scroll_pan_height = scroll_pan_height = 50
         
         min_y = _ps[1] + scroll_width
         max_y = _ps[1] + _sz[1] - scroll_width - scroll_pan_height
@@ -74,7 +80,39 @@ class Scrollable:
         self.append_scroll(d)
 
     def append_scroll(self, d):
-        self.scroll_pos -= d
+        scroll_area_height = self.getItemsCount() * self.mean_h
+
+        scroll_height = self.height - 40 - self.scroll_pan_height
+
+        dy = d * scroll_area_height / self.height
+        
+        scroll_pos_y = self.scroll_pos_y
+        scroll_pos_y -= dy
+        self.scroll_pos_y = int(scroll_pos_y)
+
+        max_scroll_y = scroll_area_height - self.height
+        if max_scroll_y < 0:
+            max_scroll_y = 0
+        self.max_scroll_y = max_scroll_y
+
+        if self.scroll_pos_y > max_scroll_y:
+            self.scroll_pos_y = max_scroll_y
+
+        if self.scroll_pos_y < 0:
+            self.scroll_pos_y = 0
+
+        max_scroll_pos = scroll_height
+        if max_scroll_pos < 0:
+            max_scroll_pos = 0
+
+        if max_scroll_y > 0:
+            self.scroll_pos = self.scroll_pos_y * scroll_height / max_scroll_y
+        else:
+            self.scroll_pos = 0
+
+        #self.scroll_pos -= ds
+        if self.scroll_pos > max_scroll_pos:
+            self.scroll_pos = max_scroll_pos
         if self.scroll_pos < 0:
             self.scroll_pos = 0
 
