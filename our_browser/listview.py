@@ -2,7 +2,7 @@ import wx
 import cairo
 import statistics
 
-from our_browser.draw_commons import cr_set_source_rgb_any_hex, hex2color
+from our_browser.draw_commons import cr_set_source_rgb_any_hex, hex2color, PRIOR_EVENT_HANDLERS
 
 
 class ItemBase:
@@ -117,21 +117,25 @@ class Scrollable:
             self.scroll_pos = 0
 
     def doEvent(self, pos, event_name):
-        if event_name == 'onclick':
-            self.scroll_started = False
-        elif event_name == 'ondown':
+        if event_name == 'ondown':
             if self.isIntoScroll(pos):
                 self.scroll_started = pos
+                PRIOR_EVENT_HANDLERS.insert(0, self)
+
+    def doEventPrior(self, pos, event_name):
+        if event_name == 'onclick':
+            self.scroll_started = False
+            PRIOR_EVENT_HANDLERS.remove(self)
+            return True
         elif event_name == 'onmoving':
             if self.scroll_started:
                 d = (self.scroll_started[1] - pos[1]) #* 3
                 self.scroll_started = pos
-                #print('EVENT lv:', pos, 'listview:', self.listview.drawer.size_calced)
                 self.append_scroll(d)
                 return True
 
     def doEventOut(self, pos, event_name):
-        self.scroll_started = False
+        pass #self.scroll_started = False
 
     def isIntoScroll(self, pos):
         drawer = self.listview.drawer
@@ -147,7 +151,6 @@ class ListviewControl(Scrollable):
 
     def __init__(self, listview) -> None:
         super().__init__()
-        print('-----!!!!!!!!!! ListviewControl:', listview.tag, "ATTRS:", listview.attrs)
         self.listview = listview
         self.mean_h = 50
         self.template = None
@@ -200,9 +203,7 @@ def connect_listview(node, listview_cls=ListviewControl):
                 listview_cls(n)
             elif n.tag.text == 'template':
                 if node.tag and node.tag.text =='listview':
-                    print('-----!!!!!!!!!! template:', n.tag)
                     node.attrs['data_model'].template = n
-
         connect_listview(n)
 
 

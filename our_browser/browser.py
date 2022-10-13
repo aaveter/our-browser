@@ -8,6 +8,7 @@ import sys
 
 from our_browser.ext_depends import noder_parse_file, noder_parse_text, DATA_PATH
 from our_browser.drawing import make_drawable_tree, INPUT_CONTROL, _propagateEvent
+from our_browser.draw_commons import PRIOR_EVENT_HANDLERS
 from our_browser.listview import ListviewControl, connect_listview
 from our_browser.os_help import fix_key_by_mode
 
@@ -186,15 +187,30 @@ class DrawingArea(wx.Panel):
         self.Refresh()
 
     def onDown(self, event):
+        for pr in PRIOR_EVENT_HANDLERS:
+            if pr.doEventPrior(event.Position, 'ondown'):
+                return
         _propagateEvent(self.ROOT.node, event.Position, 'ondown')
 
     def onClick(self, event):
-        if not _propagateEvent(self.ROOT.node, event.Position, 'onclick'):
+        handled = False
+        for pr in PRIOR_EVENT_HANDLERS:
+            handled = pr.doEventPrior(event.Position, 'onclick')
+            if handled:
+                break
+        if not handled and not _propagateEvent(self.ROOT.node, event.Position, 'onclick'):
             INPUT_CONTROL.set_focus(None)
         self.Refresh()
 
     def onMoving(self, event):
-        if _propagateEvent(self.ROOT.node, event.Position, 'onmoving'):
+        handled = False
+        for pr in PRIOR_EVENT_HANDLERS:
+            handled = pr.doEventPrior(event.Position, 'onmoving')
+            if handled:
+                break
+        if not handled and _propagateEvent(self.ROOT.node, event.Position, 'onmoving'):
+            handled = True
+        if handled:
             self.Refresh()
 
     def onKeyDown(self, event):

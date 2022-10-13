@@ -26,9 +26,9 @@ class InputControl:
         self.refresher = func
 
     def set_focus(self, elem):
+        if self.focus_into and self.focus_into != elem:
+            self.focus_into.on_focus_lost()
         if not elem:
-            if self.focus_into:
-                self.focus_into.on_focus_lost()
             self.focus_into = None
         elif hasattr(elem, 'on_timer'):
             if self.focus_into == elem:

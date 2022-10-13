@@ -1,4 +1,9 @@
 
+class PriorEventHandlers(list):
+    pass
+
+PRIOR_EVENT_HANDLERS = PriorEventHandlers()
+
 
 def cr_set_source_rgb_any_hex(cr, color):
     col = hex2color(color)
