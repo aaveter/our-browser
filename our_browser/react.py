@@ -76,6 +76,9 @@ class _ReactDOM:
 
 class _ReactComponent:
 
+    def __init__(self, props=None) -> None:
+        pass
+
     def connect(self, node) -> None:
         self.node = node
         node.react_component = self
@@ -96,6 +99,9 @@ class _ReactComponent:
         txt = self.render()
         _methods, ReactDOM._methods_tmp = ReactDOM._methods_tmp, []
         src_node = noder_parse_text(txt).children[0]
+        for ch in src_node.children:
+            ch.app = self.node.app
+            ReactDOM._find_and_render(ch)
         ReactDOM._set_node(self.node, src_node, attrs_smart_update=attrs_smart_update)
         ReactDOM._connect_methods(self.node, _methods)
         if not first_start:

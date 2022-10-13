@@ -65,6 +65,40 @@ class App(React.Component):
         return HTML_INNER #HTML_SRC # FIXME want INNER
 
 
+class LeftTopPanel(React.Component):
+
+    def __init__(self, props) -> None:
+        super().__init__()
+        self.state = {
+            'search': False
+        }
+
+    def onSearchClick(self):
+        print('click', self)
+        self.setState({
+            'search': not self.state['search']
+        })
+
+    def render(self):
+        if self.state['search']:
+            inner =  f'''
+                <input class="flex-1 common-padding common-font height-100p white" />
+                <div class="width-50 height-100p white">
+                    <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={EVENT(self.onSearchClick)} />
+                </div>
+            '''
+        else:
+            inner = f'''
+                <ImageButton src="our_browser/examples/htmls/settings.png" />
+                <ChatButton class="flex-1 top-panel-content-font">Chat App</ChatButton>
+                <SearchButton src="our_browser/examples/htmls/search.png" onClick={EVENT(self.onSearchClick)} />
+            '''
+        return f'''<div class="top-panel-height orange flex-horizontal border flex-align-center" id="left-top-flex">
+            {inner}
+        </div>
+        '''
+
+
 class ChatButton(React.Component):
 
     def __init__(self, props) -> None:
@@ -126,11 +160,16 @@ class ImageButton(React.Component):
     def __init__(self, props) -> None:
         super().__init__()
         self.src = props['src']
+        self.onClickHandler = props.get('onClick', None)
+        self.className = props.get('className', 'image-button button')
 
     def render(self):
+        add = ''
+        if self.onClickHandler:
+            add = f'onclick={EVENT(self.onClickHandler)}'
         return f'''
-            <div class="image-button button">
-                <image class="image-26 image-button-content" src="{self.src}" />
+            <div class="{self.className}">
+                <image class="image-26 image-button-content" src="{self.src}" {add} />
             </div>
         '''
 
@@ -140,22 +179,11 @@ class SearchButton(React.Component):
     def __init__(self, props) -> None:
         super().__init__()
         self.src = props['src']
-        self.state = {
-            'edit': False
-        }
-
-    def onClick(self):
-        self.setState({
-            'edit': not self.state['edit']
-        })
+        self.onClickHandler = props['onClick']
 
     def render(self):
-        if self.state['edit']:
-            return f'''
-                <input class="flex-1 common-padding common-font height-100p white" />
-            '''
         return f'''
-            <div class="image-button button" onclick={EVENT(self.onClick)} >
+            <div class="image-button button" onclick={EVENT(self.onClickHandler)} >
                 <image class="image-26 image-button-content" src="{self.src}" />
             </div>
         '''
