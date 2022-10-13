@@ -61,8 +61,7 @@ class App(React.Component):
     def render(self):
         count = self.state['count']
         print('count ----------', count)
-        #return f'<div><p class="yellow">{count}</p><button class="red" onclick={EVENT(self.onClick)} /></div>'
-        return HTML_INNER #HTML_SRC # FIXME want INNER
+        return HTML_INNER
 
 
 class LeftTopPanel(React.Component):
@@ -104,15 +103,14 @@ class ChatButton(React.Component):
     def __init__(self, props) -> None:
         super().__init__()
         self.state = {
-            'count': 0 #props['count']
+            'count': None
         }
 
     def onClick(self):
-        #print('>>>>>>>>> COMPONENT click:', id(self), "app.root:", self.node.app.ROOT_NODE)
-        chats_listview = self.node.app.ROOT_NODE.getElementById("messages-listview")
+        chats_listview = self.node.app.ROOT_NODE.getElementById("chats-listview")
         data_model = chats_listview.attrs['data_model']
         print('&& ??? data_model:', data_model)
-        data_model.items_count = int(self.state['count']) + 1
+        data_model.items_count += 1
         self.setState({
             'count': data_model.items_count
         })
@@ -120,7 +118,6 @@ class ChatButton(React.Component):
     def render(self):
         count = self.state['count']
         print('count ----------', count)
-        #return f'<div><p class="yellow">{count}</p><button class="red" onclick={EVENT(self.onClick)} /></div>'
         return f'<button class="flex-1 top-panel-content-font" onclick={EVENT(self.onClick)} >Chat App</button>'
 
 
@@ -130,11 +127,15 @@ class SendButton(React.Component):
         super().__init__()
         self.mes_k = 0
         self.state = {
-            'messages': []
+            'messages': None
         }
 
     def onClick(self):
-        #print('>>>>>>>>> COMPONENT click:', id(self), "app.root:", self.node.app.ROOT_NODE)
+        self.setState({
+            'messages': self.appendMessage()
+        })
+
+    def appendMessage(self):
         chats_listview = self.node.app.ROOT_NODE.getElementById("messages-listview")
         data_model = chats_listview.attrs['data_model']
         print('&& ??? data_model:', data_model)
@@ -144,11 +145,11 @@ class SendButton(React.Component):
         messages = data_model.items
         messages.append(MESSAGES[self.mes_k])
         data_model.items = messages
-        self.setState({
-            'messages': messages
-        })
+        return messages
 
     def render(self):
+        # if self.state['messages'] == None:
+        #     self.state['messages'] = self.appendMessage()
         return f'''
             <div class="image-button button" onclick={EVENT(self.onClick)} >
                 <image class="image-26 image-button-content" src="our_browser/examples/htmls/send.png" />

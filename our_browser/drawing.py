@@ -3,7 +3,7 @@ from our_browser.listview import draw_listview
 import cairo, math
 import threading
 
-from our_browser.draw_commons import cr_set_source_rgb_any_hex, hex2color
+from our_browser.draw_commons import cr_set_source_rgb_any_hex, hex2color, Scrollable
 
 
 check_is_drawable = lambda node: node.tag and node.tag.text not in ('style', 'script', 'head') and not node.tag.text.startswith('!')
@@ -192,6 +192,7 @@ class Calced:
         flex = None
         flex_direction = None
         align_items = None
+        text_align = None
         if hasattr(node, 'style'):
             color = node.style.get('color', None)
             background_color = node.style.get('background-color', None)
@@ -214,6 +215,7 @@ class Calced:
             flex = node.style.get('flex', None)
             flex_direction = node.style.get('flex-direction', None)
             align_items = node.style.get('align-items', None)
+            text_align = node.style.get('text-align', None)
             _font_weight_default = 'bold' if node.tag and node.tag.text == 'b' else 'normal'
             self.font_weight = node.style.get('font-weight', _font_weight_default)
 
@@ -232,6 +234,7 @@ class Calced:
         self.flex = flex
         self.flex_direction = flex_direction
         self.align_items = align_items
+        self.text_align = text_align
 
         self.padding = padding = get_size_prop_from_node_or_parent(node, 'padding', None)
         padding_2 = padding * 2
@@ -308,7 +311,7 @@ class Calced:
         if node.lines == None or self.last_size_0 < text_width or True: # FIXME
             node.lines = node.text.split('\n')
         lines = node.lines
-        font_size_w = font_size * 0.46 #/2
+        font_size_w = self.calc_font_size_w(font_size)
         if text_width > font_size_w:
             width_ln = int(text_width / font_size_w)
             i = len(lines) - 1
@@ -317,6 +320,9 @@ class Calced:
                 while add_i >= 0:
                     add_i = fix_lines_line_for_ln(lines, add_i, width_ln)
                 i -= 1
+
+    def calc_font_size_w(self, font_size):
+        return font_size * 0.46 #/2
 
     def calc_image(self, node):
         image = None
@@ -520,7 +526,8 @@ class DrawerBlock(DrawerNode):
         else:
             cr.set_source_rgb(0.1, 0.1, 0.1)
         padding = self.calced.padding
-        self.draw_lines(cr, self.node.lines, (ps[0]+padding, ps[1]+padding), font_size, font_weight)
+        self.draw_lines(cr, self.node.lines, (ps[0]+padding, ps[1]+padding), size_calced[0]-padding*2,
+            font_size, font_weight, self.calced.text_align)
 
         if self.ability:
             self.ability.draw(cr, rect)
@@ -579,7 +586,7 @@ class DrawerBlock(DrawerNode):
             cr.line_to(x2, y2)
         cr.stroke()
 
-    def draw_lines(self, cr, lines, pos, font_size, font_weight):
+    def draw_lines(self, cr, lines, pos, width, font_size, font_weight, text_align):
         if not lines:
             return
 
@@ -590,11 +597,22 @@ class DrawerBlock(DrawerNode):
             cr.select_font_face(ff_tmp.get_family(), cairo.FONT_SLANT_NORMAL, 
                 cairo.FONT_WEIGHT_BOLD)
         x, y = pos
+        y0 = y
+        if self.ability:
+            scroll_pos_y = getattr(self.ability, 'scroll_pos_y', 0)
+            if scroll_pos_y:
+                y -= scroll_pos_y
         x += 0.5
+        x0 = x
+        is_right_aligned = text_align == 'right'
         
         for line in lines:
-            cr.move_to(x, y + font_size) #+5
-            cr.show_text(line)
+            if is_right_aligned:
+                line_width = self.calced.calc_font_size_w(font_size) * len(line)
+                x = x + width - line_width
+            if y >= y0:
+                cr.move_to(x, y + font_size) #+5
+                cr.show_text(line)
             y += font_size
 
         if ff_tmp:
@@ -659,8 +677,8 @@ class DrawerBlock(DrawerNode):
 
         return changed
 
-    def find_listview_by_pos(self, x, y):
-        if self.node.tag and self.node.tag.text == 'listview':
+    def find_node_by_pos_and_tags(self, x, y, tags):
+        if self.node.tag and self.node.tag.text in tags:
             if (
                 self.pos[0] <= x < self.pos[0] + self.size_calced[0] and
                 self.pos[1] <= y < self.pos[1] + self.size_calced[1]
@@ -670,11 +688,14 @@ class DrawerBlock(DrawerNode):
         for node in self.node.children:
             if not hasattr(node, 'drawer'):
                 continue
-            lv = node.drawer.find_listview_by_pos(x, y)
+            lv = node.drawer.find_node_by_pos_and_tags(x, y, tags)
             if lv:
                 return lv
 
         return None
+
+    def find_listview_by_pos(self, x, y):
+        return self.find_node_by_pos_and_tags(x, y, ('listview',))
 
 
 def roundrect(context, x, y, width, height, r):
@@ -741,14 +762,28 @@ class AbilityBase:
         pass
 
 
-class AbilityInput(AbilityBase):
+class AbilityInput(AbilityBase, Scrollable):
     
     def __init__(self, drawer) -> None:
         super().__init__(drawer)
+        Scrollable.__init__(self)
         self.cursor_visible = False
         self.cursor_pos = 0
+        
+    @property
+    def mean_h(self):
+        return 20
 
     def draw(self, cr, rect):
+
+        drawer = self.drawer
+        _ps = lv_pos = getattr(drawer, 'pos', (0, 0))
+        _sz = getattr(drawer, 'size_calced', (0, 0))
+        _sz = lv_size = self.draw_scroll(cr, _ps, _sz)
+        
+        _items_count = self.getItemsCount()
+        self.draw_scroll_pos(cr, lv_pos, lv_size, _items_count, drawer)
+
         if not self.cursor_visible:
             return
         padding = self.drawer.calced.padding
@@ -759,7 +794,8 @@ class AbilityInput(AbilityBase):
         # print(fascent, fdescent, fheight, fxadvance, fyadvance)
         # print(fascent / fheight)
 
-        x0, y0 = rect[0]+padding, rect[1]+padding
+        y00 = rect[1]+padding
+        x0, y0 = rect[0]+padding, y00 - self.scroll_pos_y
         cursor_height = fheight #14 #20
         x1, y1, x2, y2 = x0, y0, x0, y0 + cursor_height
 
@@ -799,9 +835,10 @@ class AbilityInput(AbilityBase):
             if self.cursor_pos > len(self.drawer.node.text):
                 self.cursor_pos = len(self.drawer.node.text)
 
-        cr.move_to(x1+0.5, y1)
-        cr.line_to(x2+0.5, y2)
-        cr.stroke()
+        if y1 >= y00:
+            cr.move_to(x1+0.5, y1)
+            cr.line_to(x2+0.5, y2)
+            cr.stroke()
     
     def moveCursor(self, way):
         if way == 'left':
@@ -841,6 +878,7 @@ class AbilityInput(AbilityBase):
             print('@@@')
             INPUT_CONTROL.set_focus(self)
             return self
+        return Scrollable.doEvent(self, pos, event_name)
 
     def on_timer(self):
         self.toggle()
@@ -873,6 +911,15 @@ class AbilityInput(AbilityBase):
                 self.drawer.node.text += text
             else:
                 self.drawer.node.text = self.drawer.node.text[:self.cursor_pos] + text + self.drawer.node.text[self.cursor_pos:]
+
+    def getDrawer(self):
+        return self.drawer
+
+    def getItemsCount(self):
+        lines = self.drawer.node.lines
+        if lines != None:
+            return len(lines)
+        return 0
 
 
 class DrawerFlexItem(DrawerBlock):

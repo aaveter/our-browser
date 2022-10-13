@@ -169,9 +169,13 @@ class DrawingArea(wx.Panel):
     def onWheelWin(self, event):
         mposx, mposy = wx.GetMousePosition()
         mposx, mposy = self.ScreenToClient(mposx, mposy)
-        listview = self.ROOT.find_listview_by_pos(mposx, mposy)
-        if listview:
-            listview.node.attrs['data_model'].on_wheel(event)
+        #listview = self.ROOT.find_listview_by_pos(mposx, mposy)
+        scrollable = self.ROOT.find_node_by_pos_and_tags(mposx, mposy, ('listview', 'input',))
+        if scrollable:
+            if scrollable.node.tag.text == 'listview':
+                scrollable.node.attrs['data_model'].on_wheel(event)
+            else:
+                scrollable.ability.on_wheel(event)
             self.Refresh()
             return
         if not self.scroll_show:
