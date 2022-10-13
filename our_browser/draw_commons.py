@@ -29,6 +29,7 @@ class Scrollable:
         self.scroll_started = False
         self.height = 0
         self.max_scroll_y = 0
+        self.scroll_pan_height = 50
 
     def draw_scroll(self, cr, _ps, _sz):
         scroll_width = 20
@@ -69,10 +70,9 @@ class Scrollable:
         # if scroll_pan_height_d < 5:
         #     scroll_pan_height_d = 10
         # scroll_pan_height = scroll_pan_height_d # _sz[1] - 
-        self.scroll_pan_height = scroll_pan_height = 50
         
         min_y = _ps[1] + scroll_width
-        max_y = _ps[1] + _sz[1] - scroll_width - scroll_pan_height
+        max_y = _ps[1] + _sz[1] - scroll_width - self.scroll_pan_height
 
         y = min_y + self.scroll_pos
         if y > max_y:
@@ -80,17 +80,22 @@ class Scrollable:
         if y < min_y:
             y = min_y
 
-        rect = (_ps[0]+_sz[0], y, scroll_width, scroll_pan_height)
+        rect = (_ps[0]+_sz[0], y, scroll_width, self.scroll_pan_height)
         cr.set_source_rgb(*hex2color('#cccccc'))
         cr.rectangle(*rect)
         cr.fill()
+
+    def calc_scroll_area_height(self):
+        return self.getItemsCount() * self.mean_h
 
     def on_wheel(self, event):
         d = event.GetWheelRotation()/4
         self.append_scroll(d)
 
     def append_scroll(self, d):
-        scroll_area_height = self.getItemsCount() * self.mean_h
+        drawer = self.getDrawer()
+        _, self.height = getattr(drawer, 'size_calced', (0, 0))
+        scroll_area_height = self.calc_scroll_area_height()
 
         scroll_height = self.height - 40 - self.scroll_pan_height
 

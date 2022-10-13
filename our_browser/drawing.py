@@ -776,13 +776,17 @@ class AbilityInput(AbilityBase, Scrollable):
 
     def draw(self, cr, rect):
 
+        scroll_area_height = self.calc_scroll_area_height()
+
         drawer = self.drawer
         _ps = lv_pos = getattr(drawer, 'pos', (0, 0))
         _sz = getattr(drawer, 'size_calced', (0, 0))
-        _sz = lv_size = self.draw_scroll(cr, _ps, _sz)
-        
-        _items_count = self.getItemsCount()
-        self.draw_scroll_pos(cr, lv_pos, lv_size, _items_count, drawer)
+
+        need_scroll = scroll_area_height > _sz[1]
+        if need_scroll:
+            _sz = lv_size = self.draw_scroll(cr, _ps, _sz)
+            _items_count = self.getItemsCount()
+            self.draw_scroll_pos(cr, lv_pos, lv_size, _items_count, drawer)
 
         if not self.cursor_visible:
             return

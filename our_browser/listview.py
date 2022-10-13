@@ -105,10 +105,14 @@ def draw_listview(drawer, listview, cr):
     template = listview.template.children[0]
     t_drawer = template.drawer
 
-    _ps = lv_pos = getattr(drawer, 'pos', (0, 0))
-    _sz = getattr(drawer, 'size_calced', (0, 0))
+    scroll_area_height = listview.calc_scroll_area_height()
 
-    _sz = lv_size = listview.draw_scroll(cr, _ps, _sz)
+    _ps = lv_pos = getattr(drawer, 'pos', (0, 0))
+    _sz = lv_size = getattr(drawer, 'size_calced', (0, 0))
+
+    need_scroll = scroll_area_height > _sz[1]
+    if need_scroll:
+        _sz = lv_size = listview.draw_scroll(cr, _ps, _sz)
 
     lv_top = lv_pos[1]
     lv_bottom = lv_pos[1] + lv_size[1]
@@ -156,5 +160,6 @@ def draw_listview(drawer, listview, cr):
     cr.rectangle(lv_pos[0], lv_pos[1], lv_size[0], lv_size[1])
     cr.fill()
 
-    listview.draw_scroll_pos(cr, lv_pos, lv_size, _items_count, drawer)
+    if need_scroll:
+        listview.draw_scroll_pos(cr, lv_pos, lv_size, _items_count, drawer)
 
