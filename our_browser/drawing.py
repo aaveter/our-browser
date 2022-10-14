@@ -802,7 +802,7 @@ class AbilityInput(AbilityBase, Scrollable):
         if need_scroll:
             _sz = lv_size = self.draw_scroll(cr, _ps, _sz)
             _items_count = self.getItemsCount()
-            self.draw_scroll_pos(cr, lv_pos, lv_size, _items_count, drawer)
+            self.draw_scroll_pos(cr, lv_pos, lv_size)
 
         if not self.cursor_visible:
             return

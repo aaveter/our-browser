@@ -162,7 +162,7 @@ def draw_listview(drawer, listview, cr):
         cr.fill()
 
         if need_scroll:
-            listview.draw_scroll_pos(cr, lv_pos, lv_size, _items_count, drawer)
+            listview.draw_scroll_pos(cr, lv_pos, lv_size)
     except Exception as e:
         print(e)
 

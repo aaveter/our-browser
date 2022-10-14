@@ -60,7 +60,7 @@ class Scrollable:
 
         return (area_width, height)
 
-    def draw_scroll_pos(self, cr, _ps, _sz, items_count, drawer):
+    def draw_scroll_pos(self, cr, _ps, _sz):
         #scroll_area_height = items_count * self.mean_h
 
         #self.scroll_pos_y = scroll_area_height * self.scroll_pos / drawer.size_calced[1]

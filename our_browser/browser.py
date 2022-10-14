@@ -9,7 +9,7 @@ from inspect import ismethod
 
 from our_browser.ext_depends import noder_parse_file, noder_parse_text, DATA_PATH
 from our_browser.drawing import make_drawable_tree, INPUT_CONTROL, _propagateEvent
-from our_browser.draw_commons import PRIOR_EVENT_HANDLERS
+from our_browser.draw_commons import PRIOR_EVENT_HANDLERS, Scrollable
 from our_browser.listview import ListviewControl, connect_listview
 from our_browser.os_help import fix_key_by_mode
 
@@ -345,23 +345,35 @@ class PopMenu(wx.Menu):
 
 from our_browser.drawing import cr_set_source_rgb_any_hex
 
-class DevTreeArea(wx.Panel):
+class DevTreeArea(wx.Panel, Scrollable):
     
     def __init__ (self , *args , **kw):
         super(DevTreeArea, self).__init__ (*args , **kw)
+        Scrollable.__init__(self)
 
         self.mainPanel = None
         self.ROOT_NODE = None
         self.current_y = -1
+
+        self.pos = (0, 0)
+        self.mean_h = 15
         
         self.SetDoubleBuffered(True)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_LEFT_UP, self.onClick)
+        self.Bind(wx.EVT_LEFT_DOWN, self.onDown)
+        self.Bind(wx.EVT_LEFT_UP, self.onClick)
+        self.Bind(wx.EVT_MOTION, self.onMoving)
+        self.Bind(wx.EVT_MOUSEWHEEL, self.onWheelWin)
 
     @property
     def ROOT(self):
         return self.mainPanel.ROOT
+
+    @property
+    def size_calced(self):
+        return self.GetSize()
     
     def OnSize(self, event):
         self.Refresh() # MUST have this, else the rectangle gets rendered corruptly when resizing the window!
@@ -372,12 +384,24 @@ class DevTreeArea(wx.Panel):
         cr = wx.lib.wxcairo.ContextFromDC(dc)
         # self.DoDrawing(cr, dc)
 
+        scroll_area_height = self.calc_scroll_area_height()
+
+        _ps = lv_pos = getattr(self, 'pos', (0, 0))
+        _sz = lv_size = getattr(self, 'size_calced', (0, 0))
+
+        need_scroll = scroll_area_height > _sz[1]
+        if need_scroll:
+            _sz = lv_size = self.draw_scroll(cr, _ps, _sz)
+
         if self.ROOT_NODE:
             self.draw_node(cr, self.ROOT_NODE, line_y=0, level=0)
 
+        if need_scroll:
+            self.draw_scroll_pos(cr, lv_pos, lv_size)
+
     def draw_node(self, cr, node, line_y, level):
         h = 11
-        rect = (10 + level*5, 10 + line_y*(h+2), 100, h)
+        rect = (10 + level*5, 10 + line_y*(h+2) - self.scroll_pos_y, 100, h)
         cr_set_source_rgb_any_hex(cr, '#333399' if line_y==self.current_y else '#333333')
         cr.set_line_width(1)
         rect = (rect[0]+0.5, rect[1]+0.5, rect[2]-1+1, rect[3]-1+1)
@@ -439,11 +463,11 @@ class DevTreeArea(wx.Panel):
                 cr_set_source_rgb_any_hex(cr, '#999933')
 
                 for a in ('size_calced',):
-                    v = getattr(drawer, a)
+                    cr.move_to(x, y + font_size)
+                    v = getattr(drawer, a, None)
                     text = "{}: {}".format(a, v)
                     cr.show_text(text)
                     y += font_size
-
 
         line_y += 1
         for ch in node.children:
@@ -451,9 +475,38 @@ class DevTreeArea(wx.Panel):
 
         return line_y
 
+    def onDown(self, event):
+        self.doEvent(event.Position, 'ondown')
+
     def onClick(self, event):
-        self.current_y = int((event.Position[1] - 10) / 13)
+        handled = self.doEventPrior(event.Position, 'onclick') if self in PRIOR_EVENT_HANDLERS else False
+        if not handled:
+            self.current_y = int((event.Position[1] - 10) / 13)
         self.Refresh()
+
+    def onMoving(self, event):
+        handled = self.doEventPrior(event.Position, 'onmoving') if self in PRIOR_EVENT_HANDLERS else False
+        if handled:
+            self.Refresh()
+
+    def onWheelWin(self, event):
+        self.on_wheel(event)
+        self.Refresh()
+
+    def getDrawer(self):
+        return self
+
+    def getItemsCount(self):
+        count = 0
+        if self.ROOT_NODE:
+            count += self._calc_count(self.ROOT_NODE)
+        return count
+
+    def _calc_count(self, node):
+        count = 1
+        for ch in node.children:
+            count += self._calc_count(ch)
+        return count
 
 
 if __name__ == '__main__':
