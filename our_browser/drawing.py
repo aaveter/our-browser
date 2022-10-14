@@ -512,7 +512,7 @@ class DrawerBlock(DrawerNode):
 
         return pos, size_calced
 
-    def draw(self, cr):
+    def draw(self, cr, absolutes=False):
 
         ps, size_calced = self.pos, self.size_calced
 
@@ -526,52 +526,45 @@ class DrawerBlock(DrawerNode):
 
         rect = (ps[0], ps[1], size_calced[0], size_calced[1])
 
-        if background_color:
-            self.draw_background(cr, background_color, rect, radius=border_radius)
+        if not absolutes or self.calced.position == 'absolute':
 
-        if image:
-            self.draw_image(cr, image, rect)
+            if background_color:
+                self.draw_background(cr, background_color, rect, radius=border_radius)
 
-        if border:
-            self.draw_border(cr, rect, 'full', border[0], border[1], border[2], radius=border_radius)
-        for nm in ('left', 'right', 'top', 'bottom'):
-            bd = getattr(self.calced, 'border_'+nm, None)
-            if bd:
-                self.draw_border(cr, rect, nm, bd[0], bd[1], bd[2])
+            if image:
+                self.draw_image(cr, image, rect)
 
-        if color:
-            cr_set_source_rgb_any_hex(cr, color)
-        else:
-            cr.set_source_rgb(0.1, 0.1, 0.1)
-        padding = self.calced.padding
-        self.draw_lines(cr, self.node.lines, (ps[0]+padding, ps[1]+padding), size_calced[0]-padding*2,
-            font_size, font_weight, self.calced.text_align)
+            if border:
+                self.draw_border(cr, rect, 'full', border[0], border[1], border[2], radius=border_radius)
+            for nm in ('left', 'right', 'top', 'bottom'):
+                bd = getattr(self.calced, 'border_'+nm, None)
+                if bd:
+                    self.draw_border(cr, rect, nm, bd[0], bd[1], bd[2])
 
-        if self.ability:
-            self.ability.draw(cr, rect)
+            if color:
+                cr_set_source_rgb_any_hex(cr, color)
+            else:
+                cr.set_source_rgb(0.1, 0.1, 0.1)
+            padding = self.calced.padding
+            self.draw_lines(cr, self.node.lines, (ps[0]+padding, ps[1]+padding), size_calced[0]-padding*2,
+                font_size, font_weight, self.calced.text_align)
 
-        image_button = None
+            if self.ability:
+                self.ability.draw(cr, rect)
 
-        tag = self.node.tag.text if self.node.tag else None
-        if tag == 'listview':
-            listview = self.node.attrs.get('data_model', None)
-            if listview and listview.template:
-                draw_listview(self, listview, cr)
-                return
-        # elif tag == 'ImageButton' or (self.node.attrs and 'classList' in self.node.attrs and 'image-button' in self.node.attrs['classList']):
-        #     print('< ImageButton >', self.__class__.__name__, self.node, 'POS:', self.pos, 'size_calced:', self.size_calced)
-        #     image_button = True
-        # elif hasattr(self, 'image_button_parent'):
-        #     print('< ImageChild >', self.__class__.__name__, self.node, 'POS:', self.pos, 'size_calced:', self.size_calced)
+            tag = self.node.tag.text if self.node.tag else None
+            if tag == 'listview':
+                listview = self.node.attrs.get('data_model', None)
+                if listview and listview.template:
+                    draw_listview(self, listview, cr)
+                    return
         
         for node in self.node.children:
             
             if not hasattr(node, 'drawer'):
                 continue
 
-            if image_button:
-                node.drawer.image_button_parent = True
-            node.drawer.draw(cr)
+            node.drawer.draw(cr, absolutes)
 
     def draw_background(self, cr, background_color, rect, radius=None):
         rect = (rect[0], rect[1], rect[2]+1, rect[3]+1)

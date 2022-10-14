@@ -141,6 +141,7 @@ class DrawingArea(wx.Panel):
         self.calc(size)
 
         self.ROOT.draw(cr)
+        self.ROOT.draw(cr, absolutes=True)
 
     def calc(self, size):
         self.ROOT.calc_size(size, (0, self.scroll_pos), (0, self.scroll_pos))

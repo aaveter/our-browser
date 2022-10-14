@@ -174,8 +174,8 @@ class ImageButton(React.Component):
         if onClickHandler:
             add = f'onclick={EVENT(onClickHandler)}'
         return f'''
-            <div class="{self.className}">
-                <image class="image-26 image-button-content" src="{self.src}" {add} />
+            <div class="{self.className}" {add}>
+                <image class="image-26 image-button-content" src="{self.src}" />
                 {inner}
             </div>
         '''
