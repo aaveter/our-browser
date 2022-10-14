@@ -165,18 +165,41 @@ class ImageButton(React.Component):
     def __init__(self, props) -> None:
         super().__init__()
         self.src = props['src']
-        self.onClickHandler = props.get('onClick', None)
+        self._onClickHandler = props.get('onClick', None)
         self.className = props.get('className', 'image-button button')
 
-    def render(self):
+    def render(self, inner=''):
         add = ''
-        if self.onClickHandler:
-            add = f'onclick={EVENT(self.onClickHandler)}'
+        onClickHandler = self._onClickHandler or getattr(self, 'onClickHandler', None)
+        if onClickHandler:
+            add = f'onclick={EVENT(onClickHandler)}'
         return f'''
             <div class="{self.className}">
                 <image class="image-26 image-button-content" src="{self.src}" {add} />
+                {inner}
             </div>
         '''
+
+
+class ChatMenuButton(ImageButton):
+
+    def __init__(self, props=None) -> None:
+        props = {'src': "our_browser/examples/htmls/three_dots.png"}
+        super().__init__(props)
+        self.state = {
+            'activated': False
+        }
+
+    def onClickHandler(self):
+        self.setState({'activated': not self.state['activated']})
+
+    def render(self):
+        inner = ''
+        if self.state['activated']:
+            inner = f'''
+            <div class="absolute top-100 left-0 width-50 height-50 white">
+            '''
+        return super().render(inner)
 
 
 class SearchButton(React.Component):

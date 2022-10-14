@@ -5,6 +5,7 @@ import wx.lib.wxcairo
 import cairo
 from os.path import abspath, join, dirname
 import sys
+from inspect import ismethod
 
 from our_browser.ext_depends import noder_parse_file, noder_parse_text, DATA_PATH
 from our_browser.drawing import make_drawable_tree, INPUT_CONTROL, _propagateEvent
@@ -417,6 +418,31 @@ class DevTreeArea(wx.Panel):
                         y += font_size
                 cr.rectangle(250, y, 100, 1)
                 cr.stroke()
+            
+            cr_set_source_rgb_any_hex(cr, '#339933')
+
+            drawer = getattr(node, 'drawer', None)
+            if drawer:
+                for a in dir(drawer.calced):
+                    if a.startswith('_'):
+                        continue
+                    cr.move_to(x, y + font_size)
+                    v = getattr(drawer.calced, a)
+                    if not ismethod(v):
+                        text = "{}: {}".format(a, v)
+                        cr.show_text(text)
+                        y += font_size
+
+                cr.rectangle(250, y, 100, 1)
+                cr.stroke()
+                cr_set_source_rgb_any_hex(cr, '#999933')
+
+                for a in ('size_calced',):
+                    v = getattr(drawer, a)
+                    text = "{}: {}".format(a, v)
+                    cr.show_text(text)
+                    y += font_size
+
 
         line_y += 1
         for ch in node.children:

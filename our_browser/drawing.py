@@ -128,6 +128,12 @@ class Rect:
         self.top = 0
         self.width = 0
         self.height = 0
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f'rect({self.left}, {self.top}, {self.width}, {self.height})'
         
 
 def get_size_prop_from_node_or_parent(node, name, parent_prop, default=0):

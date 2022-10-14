@@ -15,6 +15,9 @@ class _ReactDOM:
         for cls in _ReactComponent.get_subclasses():
             print('***', cls, cls.__name__)
             d[cls.__name__] = cls
+            for cls2 in cls.get_subclasses():
+                print('***2', cls2, cls2.__name__)
+                d[cls2.__name__] = cls2
 
         root_0 = noder_parse_text(html)
         root_src = root_0.children[0]
@@ -107,6 +110,9 @@ class _ReactComponent:
         if not first_start:
             self.node.app._connect_styles(self.node)
             self.node.app.update_drawers()
+
+    def render(self):
+        pass
 
 
 class React:
