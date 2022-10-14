@@ -72,6 +72,10 @@ class LeftTopPanel(React.Component):
             'search': False
         }
 
+    def onSettingsClick(self):
+        settings_panel_node = self.node.app.ROOT_NODE.getElementById("settings-panel")
+        settings_panel_node.react_component.setState({"show": True})
+
     def onSearchClick(self):
         print('click', self)
         self.setState({
@@ -88,7 +92,7 @@ class LeftTopPanel(React.Component):
             '''
         else:
             inner = f'''
-                <ImageButton src="our_browser/examples/htmls/settings.png" />
+                <ImageButton src="our_browser/examples/htmls/settings.png" onClick={EVENT(self.onSettingsClick)}  />
                 <ChatButton class="flex-1 top-panel-content-font">Chat App</ChatButton>
                 <SearchButton src="our_browser/examples/htmls/search.png" onClick={EVENT(self.onSearchClick)} />
             '''
@@ -186,6 +190,29 @@ class SearchButton(React.Component):
         return f'''
             <div class="image-button button" onclick={EVENT(self.onClickHandler)} >
                 <image class="image-26 image-button-content" src="{self.src}" />
+            </div>
+        '''
+
+class SettingsPanel(React.Component):
+
+    def __init__(self, props) -> None:
+        super().__init__()
+        self.state = {
+            'show': False
+        }
+
+    def onCloseClick(self):
+        self.setState({'show': False})
+
+    def render(self):
+        inner = ''
+        if self.state['show']:
+            inner = f'''<div class="height-100p width-100p white">
+                <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={EVENT(self.onCloseClick)} />
+            </div>'''
+        return f'''
+            <div class="height-100p width-100p absolute left-top-0" id="settings-panel">
+                {inner}
             </div>
         '''
 

@@ -142,7 +142,7 @@ class DrawingArea(wx.Panel):
         self.ROOT.draw(cr)
 
     def calc(self, size):
-        self.ROOT.calc_size(size, (0, self.scroll_pos))
+        self.ROOT.calc_size(size, (0, self.scroll_pos), (0, self.scroll_pos))
 
         if self.ROOT.size_calced[1] > size[1]:
             position = self.scroll.ThumbPosition

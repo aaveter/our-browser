@@ -193,6 +193,7 @@ class Calced:
         flex_direction = None
         align_items = None
         text_align = None
+        position = None
         if hasattr(node, 'style'):
             color = node.style.get('color', None)
             background_color = node.style.get('background-color', None)
@@ -208,7 +209,6 @@ class Calced:
             border_right = node.style.get('border-right', None)
             border_top = node.style.get('border-top', None)
             border_bottom = node.style.get('border-bottom', None)
-
             border_radius = int(node.style.get('border-radius', 0))
 
             display = node.style.get('display', None)
@@ -218,6 +218,8 @@ class Calced:
             text_align = node.style.get('text-align', None)
             _font_weight_default = 'bold' if node.tag and node.tag.text == 'b' else 'normal'
             self.font_weight = node.style.get('font-weight', _font_weight_default)
+
+            position = node.style.get('position', None)
 
         self.color = color
         self.background_color = background_color
@@ -235,6 +237,10 @@ class Calced:
         self.flex_direction = flex_direction
         self.align_items = align_items
         self.text_align = text_align
+
+        self.position = position
+        self.left = get_size_prop_from_node(node, 'left', 0)
+        self.top = get_size_prop_from_node(node, 'top', 0)
 
         self.padding = padding = get_size_prop_from_node_or_parent(node, 'padding', None)
         padding_2 = padding * 2
@@ -365,7 +371,7 @@ class DrawerBlock(DrawerNode):
             if parent_calced and getattr(parent_calced, 'display', None) == 'flex':
                 return parent
 
-    def calc_size(self, size, pos, debug=False):
+    def calc_size(self, size, pos, pos_parent, debug=False):
 
         self.calced.calc_params(self.node, size, debug=debug)
 
@@ -393,6 +399,9 @@ class DrawerBlock(DrawerNode):
                 if debug:
                     print('  --- check_parent_flex.align_items = center')
                 self.pos = (self.pos[0], parent.pos[1] + parent.size_my[1]/2 - size_my[1]/2) #size_calced[1]/2)
+
+        if self.calced.position == 'absolute':
+            self.pos = (pos_parent[0]+self.calced.left, pos_parent[1]+self.calced.top)
 
         pos_my = (self.pos[0], self.pos[1])
 
@@ -431,7 +440,10 @@ class DrawerBlock(DrawerNode):
             if image_button:
                 print('  >> ImageChild >', drawer.__class__.__name__, node, 'POS:', _ps, 'size_my:', size_my)
 
-            _size_my = drawer.calc_size(size_my, (_ps[0], _ps[1]))#, debug=image_button)
+            _size_my = drawer.calc_size(size_my, (_ps[0], _ps[1]), pos_my)#, debug=image_button)
+            
+            if drawer.calced.position == 'absolute':
+                continue
 
             if image_button:
                 print('  :: ImageChild >', drawer.__class__.__name__, node, 'POS:', drawer.pos, '_size_my:', _size_my, 'margin:', drawer.calced.margin)
@@ -635,15 +647,9 @@ class DrawerBlock(DrawerNode):
             cr.scale(1/wk, 1/hk)
 
     def propagateEvent(self, pos, event_name):
-        if not hasattr(self, 'pos'):
-            return False
-        
         changed = False
-        if (
-            hasattr(self, 'size_calced') and
-            self.pos[0] <= pos[0] < self.pos[0] + self.size_calced[0] and 
-            self.pos[1] <= pos[1] < self.pos[1] + self.size_calced[1]
-        ):
+
+        if self.checkPostIntoMe(pos):
             if not self.node.is_hovered:
                 self.node.is_hovered = True
                 changed = True
@@ -662,10 +668,6 @@ class DrawerBlock(DrawerNode):
                 if ret:
                     changed = True # return ret
 
-            # for ch in self.node.children:
-            #     ret = _propagateEvent(ch, pos, event_name)
-            #     if ret:
-            #         changed = True # return ret
         else:
             if self.node.is_hovered:
                 self.node.is_hovered = False
@@ -676,6 +678,16 @@ class DrawerBlock(DrawerNode):
                 listview.doEventOut(pos, event_name)
 
         return changed
+
+    def checkPostIntoMe(self, pos):
+        if not hasattr(self, 'pos'):
+            return False
+        
+        return (
+            hasattr(self, 'size_calced') and
+            self.pos[0] <= pos[0] < self.pos[0] + self.size_calced[0] and 
+            self.pos[1] <= pos[1] < self.pos[1] + self.size_calced[1]
+        )
 
     def find_node_by_pos_and_tags(self, x, y, tags):
         if self.node.tag and self.node.tag.text in tags:
@@ -722,7 +734,9 @@ class DrawerFlex(DrawerBlock):
         for node in self.node.children:
             if hasattr(node, 'drawer'):
                 drawer = node.drawer
-                drawer.calc_size(size_my, (_ps[0], _ps[1]))
+                drawer.calc_size(size_my, (_ps[0], _ps[1]), pos_my)
+                if drawer.calced.position == 'absolute':
+                    continue
                 flex = drawer.calced.flex
                 if flex:
                     flex_sum += flex
@@ -738,8 +752,10 @@ class DrawerFlex(DrawerBlock):
                 continue
             
             drawer = node.drawer
+            if drawer.calced.position == 'absolute':
+                continue
 
-            _size_my = drawer.calc_size(size_my, (_ps[0], _ps[1]))
+            _size_my = drawer.calc_size(size_my, (_ps[0], _ps[1]), pos_my)
 
             if hasattr(drawer, 'add_node_pos_size'):
                 _ps, _size_calced = drawer.add_node_pos_size(_ps, _size_calced, self.flex_point, flex_vertical)
@@ -966,6 +982,14 @@ class DrawerFlexItem(DrawerBlock):
 
              
 def _propagateEvent(node, pos, event_name):
+    absolutes = _findAbsolute(node, pos)
+    if absolutes:
+        ret = _propagateEventDo(absolutes[-1], pos, event_name)
+        if ret:
+            return ret
+    return _propagateEventDo(node, pos, event_name)
+
+def _propagateEventDo(node, pos, event_name):
     drawer = getattr(node, 'drawer', None)
     changed = False
     if drawer:
@@ -973,9 +997,20 @@ def _propagateEvent(node, pos, event_name):
             changed = True
     
     for ch in node.children:
-        ret = _propagateEvent(ch, pos, event_name)
+        ret = _propagateEventDo(ch, pos, event_name)
         if ret:
             changed = True #return ret
 
     return changed
 
+def _findAbsolute(node, pos):
+    absolutes = []
+    drawer = getattr(node, 'drawer', None)
+    if drawer and drawer.checkPostIntoMe(pos):
+        if drawer.calced.position == 'absolute':
+            absolutes.append(node)
+
+    for ch in node.children:
+        absolutes += _findAbsolute(ch, pos)
+    return absolutes
+        

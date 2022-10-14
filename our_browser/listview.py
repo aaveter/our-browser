@@ -100,66 +100,70 @@ def fill_template_texts(template, texts):
 
 
 def draw_listview(drawer, listview, cr):
-    _items_count = listview.getItemsCount()
-    
-    template = listview.template.children[0]
-    t_drawer = template.drawer
+    try:
+        _items_count = listview.getItemsCount()
+        
+        template = listview.template.children[0]
+        t_drawer = template.drawer
 
-    scroll_area_height = listview.calc_scroll_area_height()
+        scroll_area_height = listview.calc_scroll_area_height()
 
-    _ps = lv_pos = getattr(drawer, 'pos', (0, 0))
-    _sz = lv_size = getattr(drawer, 'size_calced', (0, 0))
+        _ps = lv_pos = getattr(drawer, 'pos', (0, 0))
+        _sz = lv_size = getattr(drawer, 'size_calced', (0, 0))
 
-    need_scroll = scroll_area_height > _sz[1]
-    if need_scroll:
-        _sz = lv_size = listview.draw_scroll(cr, _ps, _sz)
+        need_scroll = scroll_area_height > _sz[1]
+        if need_scroll:
+            _sz = lv_size = listview.draw_scroll(cr, _ps, _sz)
 
-    lv_top = lv_pos[1]
-    lv_bottom = lv_pos[1] + lv_size[1]
+        lv_top = lv_pos[1]
+        lv_bottom = lv_pos[1] + lv_size[1]
 
-    if not hasattr(listview, 'texts'):
-        listview.texts = {}
-        fill_template_texts(template, listview.texts)
-    texts = listview.texts
+        if not hasattr(listview, 'texts'):
+            listview.texts = {}
+            fill_template_texts(template, listview.texts)
+        texts = listview.texts
 
-    _ps = (_ps[0], _ps[1]-listview.scroll_pos_y)
+        _ps = _ps0 = (_ps[0], _ps[1]-listview.scroll_pos_y)
 
-    #t_drawer.calc_size(_sz, [_ps[0], _ps[1]]) - works into calc_size tree
+        #t_drawer.calc_size(_sz, [_ps[0], _ps[1]]) - works into calc_size tree
 
-    w, h = int(lv_pos[0] + lv_size[0] + 10), int(lv_pos[1] + lv_size[1] + 10)
-    temp_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
-    temp_cr = cairo.Context(temp_surface)
-    
-    hh = []
-    item_w = _sz[0]
-    for i in range(_items_count):
-        _sz = (item_w, _sz[1])
+        w, h = int(lv_pos[0] + lv_size[0] + 10), int(lv_pos[1] + lv_size[1] + 10)
+        temp_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        temp_cr = cairo.Context(temp_surface)
+        
+        hh = []
+        item_w = _sz[0]
+        for i in range(_items_count):
+            _sz = (item_w, _sz[1])
 
-        bottom = _ps[1] + _sz[1]
-        if bottom < lv_top:
+            bottom = _ps[1] + _sz[1]
+            if bottom < lv_top:
+                _ps, _sz = t_drawer.add_subnode_pos_size(template, _ps, _sz, margin=t_drawer.calced.margin)
+                #hh.append(_sz[1])
+                continue
+            
+            listview.format_template(i, template, texts)
+            
+            _sz = t_drawer.calc_size(_sz, (_ps[0], _ps[1]), _ps0)
+
             _ps, _sz = t_drawer.add_subnode_pos_size(template, _ps, _sz, margin=t_drawer.calced.margin)
-            #hh.append(_sz[1])
-            continue
-        
-        listview.format_template(i, template, texts)
-        
-        _sz = t_drawer.calc_size(_sz, (_ps[0], _ps[1]), debug=False)
+            hh.append(_sz[1])
 
-        _ps, _sz = t_drawer.add_subnode_pos_size(template, _ps, _sz, margin=t_drawer.calced.margin)
-        hh.append(_sz[1])
+            t_drawer.draw(temp_cr)
 
-        t_drawer.draw(temp_cr)
+            if _ps[1] > lv_bottom:
+                break
 
-        if _ps[1] > lv_bottom:
-            break
+        listview.mean_h = statistics.mean(hh) if len(hh) else listview.mean_h
+        #print('[ mean_h ] {}'.format(listview.mean_h))
 
-    listview.mean_h = statistics.mean(hh) if len(hh) else listview.mean_h
-    #print('[ mean_h ] {}'.format(listview.mean_h))
+        cr.set_source_surface(temp_surface, 0, 0) #, lv_pos[0], lv_pos[1])
+        cr.rectangle(lv_pos[0], lv_pos[1], lv_size[0], lv_size[1])
+        cr.fill()
 
-    cr.set_source_surface(temp_surface, 0, 0) #, lv_pos[0], lv_pos[1])
-    cr.rectangle(lv_pos[0], lv_pos[1], lv_size[0], lv_size[1])
-    cr.fill()
+        if need_scroll:
+            listview.draw_scroll_pos(cr, lv_pos, lv_size, _items_count, drawer)
+    except Exception as e:
+        print(e)
 
-    if need_scroll:
-        listview.draw_scroll_pos(cr, lv_pos, lv_size, _items_count, drawer)
 
