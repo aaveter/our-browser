@@ -526,7 +526,8 @@ class DrawerBlock(DrawerNode):
 
         rect = (ps[0], ps[1], size_calced[0], size_calced[1])
 
-        if not absolutes or self.calced.position == 'absolute':
+        is_absolute = self.calced.position == 'absolute'
+        if not absolutes or is_absolute:
 
             if background_color:
                 self.draw_background(cr, background_color, rect, radius=border_radius)
@@ -564,7 +565,7 @@ class DrawerBlock(DrawerNode):
             if not hasattr(node, 'drawer'):
                 continue
 
-            node.drawer.draw(cr, absolutes)
+            node.drawer.draw(cr, absolutes if not is_absolute else False)
 
     def draw_background(self, cr, background_color, rect, radius=None):
         rect = (rect[0], rect[1], rect[2]+1, rect[3]+1)

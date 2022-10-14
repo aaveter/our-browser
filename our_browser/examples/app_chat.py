@@ -193,11 +193,27 @@ class ChatMenuButton(ImageButton):
     def onClickHandler(self):
         self.setState({'activated': not self.state['activated']})
 
+    def onClickOption1(self):
+        print('option 1')
+        self.setState({'activated': False})
+
+    def onClickOption2(self):
+        print('option 2')
+        self.setState({'activated': False})
+
+    def onClickOption3(self):
+        print('option 3')
+        self.setState({'activated': False})
+
     def render(self):
         inner = ''
         if self.state['activated']:
             inner = f'''
-            <div class="absolute top-100 left-0 width-50 height-50 white">
+            <div class="absolute top-100 left-0 menu white">
+                <li class="menu-item" onclick="{EVENT(self.onClickOption1)}">Option 1</li>
+                <li class="menu-item" onclick="{EVENT(self.onClickOption2)}">Option 2</li>
+                <li class="menu-item" onclick="{EVENT(self.onClickOption2)}">Option 3</li>
+            </div>
             '''
         return super().render(inner)
 
