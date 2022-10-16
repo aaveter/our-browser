@@ -1,3 +1,4 @@
+from copy import copy
 import wx
 import cairo
 import statistics
@@ -48,6 +49,7 @@ class ListviewControl(Scrollable):
         #template.text = listview.format_template(t_drawer.text, i)
         #t_drawer = template.drawer
         text = texts['text']
+        classList = texts.get('classList', None)
         counter = str(i)
 
         if text:
@@ -68,6 +70,27 @@ class ListviewControl(Scrollable):
             text = ''
 
         template.text = text #text.replace('{{ counter }}', counter) if text else text
+
+        attrs = getattr(template, 'attrs', None)
+        if attrs and 'classList' in attrs:
+            if classList != None:
+                classList = copy(classList)
+                for j, s in enumerate(classList):
+                    if '{{' in s:
+                        lst = s.split('{{')
+                        for i, part in enumerate(lst):
+                            if i == 0:
+                                continue
+                            a, b = part.split('}}')
+                            a = a.strip()
+                            if a.startswith('item.'):
+                                attr_name = a[5:]
+                                a = getattr(item, attr_name, 'None')
+                            lst[i] = a + b
+                        classList[j] = ''.join(lst)
+
+            template.attrs['classList'] = classList
+
         children_texts = texts['children']
         for j, ch_template in enumerate(template.children):
             ch_texts = children_texts[j]
@@ -92,6 +115,9 @@ def connect_listview(node, listview_cls=ListviewControl):
 
 def fill_template_texts(template, texts):
     texts['text'] = template.text
+    attrs = getattr(template, 'attrs', None)
+    if attrs and 'classList' in attrs:
+        texts['classList'] = attrs['classList']
     children = texts['children'] = []
     for ch_template in template.children:
         child_texts = {}
@@ -143,6 +169,7 @@ def draw_listview(drawer, listview, cr):
                 continue
             
             listview.format_template(i, template, texts)
+            template.app._connect_styles(template)
             
             _sz = t_drawer.calc_size(_sz, (_ps[0], _ps[1]), _ps0)
 

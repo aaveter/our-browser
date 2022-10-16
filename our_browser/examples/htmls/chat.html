@@ -29,6 +29,7 @@
 
             .green2 {background-color: #e5ddd5;}
             .yellow {background-color: #ffe4c4;}
+            .blue {background-color: #e4e4ff;}
             .page {height: 100%;}
             .item {margin: 5px; border: 1px solid #cccccc; min-height: 20px;}
             .chat {margin: 0; padding: 5px; background-color: #ffffff; height: 70px;}
@@ -57,10 +58,12 @@
                         <listview class="page green" id="chats-listview" items-count="1000">
                             <template>
                                 <item class='item yellow flex-horizontal flex-align-center chat'>
-                                    <image class="image-26 top-panel-content-margin" src="our_browser/examples/htmls/user_black.png" />
+                                    <div class="image-button button {{item.color}}" >
+                                        <image class="image-26 image-button-content" src="our_browser/examples/htmls/user_black.png" />
+                                    </div>
                                     <div class="flex-1 height-50">
-                                        <div class="chat-name">Chat name {{ counter }}</div>
-                                        <div class="common-font">User {{ item.text }}</div>
+                                        <div class="chat-name">{{ item.name }}</div>
+                                        <div class="common-font">{{ item.text }}</div>
                                     </div>
                                 </item>
                             </template>

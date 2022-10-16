@@ -36,11 +36,9 @@ class BrowserApp:
         self.frame.mainPanel.ROOT = make_drawable_tree(self.ROOT_NODE)
         self.frame.mainPanel.ROOT.ROOT_NODE = self.ROOT_NODE
 
-    def run(self):
-        connect_listview(self.ROOT_NODE, listview_cls=self.listview_cls)
-
-        self.update_drawers()
-        self._connect_styles(self.ROOT_NODE)
+    def run(self, with_prepare=True):
+        if with_prepare:
+            self.prepare_run()
 
         INPUT_CONTROL.set_refresher(self.frame.mainPanel.Refresh)
 
@@ -48,6 +46,12 @@ class BrowserApp:
         self.app.MainLoop()
 
         INPUT_CONTROL.stop_timer()
+
+    def prepare_run(self):
+        connect_listview(self.ROOT_NODE, listview_cls=self.listview_cls)
+
+        self.update_drawers()
+        self._connect_styles(self.ROOT_NODE)
 
     def _connect_styles(self, node):
         styler = self.ROOT_NODE.styler
@@ -468,6 +472,18 @@ class DevTreeArea(wx.Panel, Scrollable):
                     text = "{}: {}".format(a, v)
                     cr.show_text(text)
                     y += font_size
+
+                cr.rectangle(250, y, 100, 1)
+                cr.stroke()
+
+            cr_set_source_rgb_any_hex(cr, '#cc9933')
+
+            for a in node.attrs:
+                cr.move_to(x, y + font_size)
+                v = node.attrs[a]
+                text = "{}: {}".format(a, v)
+                cr.show_text(text)
+                y += font_size
 
         line_y += 1
         for ch in node.children:

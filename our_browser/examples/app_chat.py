@@ -43,6 +43,25 @@ class Message(ItemBase):
 MESSAGES = [ Message(a['text'], a['sender'], a['time']) for a in MESSAGES ]
 
 
+COLORS = ['green', 'yellow', 'blue']
+class Chat(ItemBase):
+
+    _color_i = -1
+
+    def __init__(self, name, text, time) -> None:
+        super().__init__(text)
+        self.name = name
+        self.time = time
+
+        Chat._color_i += 1
+        if Chat._color_i >= 3:
+            Chat._color_i = 0
+
+        self.color = COLORS[Chat._color_i]
+
+
+CHATS = [ Chat(f'Chat {i+1}', 'Some message...', '10:20') for i in range(1000) ]
+
 class App(React.Component):
 
     def __init__(self, props) -> None:
@@ -140,8 +159,8 @@ class SendButton(React.Component):
         })
 
     def appendMessage(self):
-        chats_listview = self.node.app.ROOT_NODE.getElementById("messages-listview")
-        data_model = chats_listview.attrs['data_model']
+        messages_listview = self.node.app.ROOT_NODE.getElementById("messages-listview")
+        data_model = messages_listview.attrs['data_model']
         print('&& ??? data_model:', data_model)
         self.mes_k += 1
         if self.mes_k > 2:
@@ -260,14 +279,18 @@ def main():
     app = BrowserApp(html_text=HTML_TEXT)
 
     root = app.ROOT_NODE.getElementById("root")
-
     root.app = app
 
     ReactDOM.render("""
         <App count=2 />
     """, root)
+
+    app.prepare_run()
+
+    chats_listview = app.ROOT_NODE.getElementById("chats-listview")
+    chats_listview.attrs['data_model'].items = CHATS
     
-    app.run()
+    app.run(with_prepare=False)
 
 
 main()
