@@ -310,7 +310,7 @@ class Calced:
         font_size_w = self.calc_font_size_w(font_size)
         if text_width > font_size_w:
             self.calc_lines_etap += 'c'
-            width_ln = int(text_width / font_size_w)
+            width_ln = round(text_width / font_size_w)
             i = len(lines) - 1
             max_real_ln = 0
             while i >= 0:
@@ -323,7 +323,7 @@ class Calced:
                 i -= 1
             if max_real_ln != width_ln:
                 self.calc_lines_etap += 'r'
-                text_width = int(max_real_ln * font_size_w)
+                text_width = round(max_real_ln * font_size_w)
         return text_width
 
     def fix_lines_line_for_ln(self, lines, i, width_ln):
@@ -406,7 +406,7 @@ class DrawerBlock(DrawerNode):
         if parent:
             align_items = parent.calced.align_items
             if align_items == 'center':
-                self.pos = (self.pos[0], parent.pos[1] + parent.size_my[1]/2 - size_my[1]/2) #size_calced[1]/2)
+                self.pos = (self.pos[0], round(parent.pos[1] + parent.size_my[1]/2 - size_my[1]/2)) #size_calced[1]/2)
 
         if self.calced.position == 'absolute':
             self.pos = (pos_parent[0]+self.calced.left, pos_parent[1]+self.calced.top)
@@ -733,9 +733,9 @@ class DrawerFlex(DrawerBlock):
 
         if justify_content == 'center' and flex_sum == 0:
             if flex_vertical:
-                _ps = (_ps[0], int(_ps[1]+(size_calced[1]-static_sum)/2))
+                _ps = (_ps[0], round(_ps[1]+(size_calced[1]-static_sum)/2))
             else:
-                _ps = (int(_ps[0]+(size_calced[0]-static_sum)/2), _ps[1])
+                _ps = (round(_ps[0]+(size_calced[0]-static_sum)/2), _ps[1])
 
         _size_calced = size_calced
         for node in self.node.children:
@@ -949,9 +949,9 @@ class DrawerFlexItem(DrawerBlock):
             raise
 
         if flex_vertical:
-            size_my = (size_my[0], self.node.parent.drawer.flex_point * self.calced.flex)
+            size_my = (size_my[0], round(self.node.parent.drawer.flex_point * self.calced.flex))
         else:
-            size_my = (self.node.parent.drawer.flex_point * self.calced.flex, size_my[1])
+            size_my = (round(self.node.parent.drawer.flex_point * self.calced.flex), size_my[1])
 
         size_calced = super().calc_children(pos_my, size_my)
         
@@ -962,9 +962,9 @@ class DrawerFlexItem(DrawerBlock):
 
     def add_node_pos_size(self, pos_my, size_calced, flex_point, flex_vertical):
         pos = (
-            (pos_my[0], pos_my[1] + flex_point * self.calced.flex) 
+            (pos_my[0], round(pos_my[1] + flex_point * self.calced.flex)) 
             if flex_vertical else 
-            (pos_my[0] + flex_point * self.calced.flex, pos_my[1])
+            (round(pos_my[0] + flex_point * self.calced.flex), pos_my[1])
         )
         wh = self.size_calced
 
