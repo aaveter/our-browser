@@ -620,11 +620,31 @@ class DrawerBlock(DrawerNode):
                 if SELECT_CONTROL.start != None and SELECT_CONTROL.end != None:
                     if line_width == None:
                         line_width = fw_size_w * len(line)
+                    drawed = False
                     if (
-                        _x >= SELECT_CONTROL.start[0] and _x + line_width <= SELECT_CONTROL.end[0] and
-                        y >= SELECT_CONTROL.start[1] and y + font_size <= SELECT_CONTROL.end[1]
+                        #_x >= SELECT_CONTROL.start[0] and _x + line_width <= SELECT_CONTROL.end[0] and
+                        (y > SELECT_CONTROL.start[1] and y + font_size < SELECT_CONTROL.end[1])
                     ):
                         self.draw_background(cr, '#cccccc', (_x, y, line_width, font_size))
+                        drawed = True
+                    elif (y <= SELECT_CONTROL.start[1] <= y + font_size):
+                        dx = SELECT_CONTROL.start[0] - _x
+                        if dx > 0:
+                            dx_ln = round(dx / fw_size_w)
+                            if dx_ln > 0:
+                                dx_width = dx_ln * fw_size_w
+                                self.draw_background(cr, '#cccccc', (_x+dx_width, y, line_width-dx_width, font_size))
+                                drawed = True
+                    elif (y <= SELECT_CONTROL.end[1] <= y + font_size):
+                        _x_right = _x + line_width
+                        dx = _x_right - SELECT_CONTROL.end[0]
+                        if dx > 0:
+                            dx_ln = round(dx / fw_size_w)
+                            if dx_ln > 0:
+                                dx_width = dx_ln * fw_size_w
+                                self.draw_background(cr, '#cccccc', (_x, y, line_width-dx_width, font_size))
+                                drawed = True
+                    if drawed:
                         cr_set_source_rgb_any_hex_or_simple(cr, color, (0.1, 0.1, 0.1))
 
                 cr.move_to(_x, y + font_size*0.82) #+5
