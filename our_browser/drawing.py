@@ -3,7 +3,7 @@ from our_browser.listview import draw_listview
 import cairo, math
 import threading
 
-from our_browser.draw_commons import cr_set_source_rgb_any_hex, hex2color, Scrollable
+from our_browser.draw_commons import cr_set_source_rgb_any_hex, cr_set_source_rgb_any_hex_or_simple, hex2color, Scrollable
 
 
 check_is_drawable = lambda node: node.tag and node.tag.text not in ('style', 'script', 'head') and not node.tag.text.startswith('!')
@@ -66,6 +66,15 @@ class InputControl:
 
 
 INPUT_CONTROL = InputControl()
+
+class SelectControl:
+
+    def __init__(self) -> None:
+        self.started = False
+        self.start = None
+        self.end = None
+
+SELECT_CONTROL = SelectControl()
 
 
 def make_drawable_tree(parent, drawer=None, with_html=False):
@@ -525,14 +534,10 @@ class DrawerBlock(DrawerNode):
                 bd = getattr(self.calced, 'border_'+nm, None)
                 if bd:
                     self.draw_border(cr, rect, nm, bd[0], bd[1], bd[2])
-
-            if color:
-                cr_set_source_rgb_any_hex(cr, color)
-            else:
-                cr.set_source_rgb(0.1, 0.1, 0.1)
+            
             padding = self.calced.padding
             self.draw_lines(cr, self.node.lines, (ps[0]+padding, ps[1]+padding), size_calced[0]-padding*2,
-                font_size, font_weight, self.calced.text_align)
+                font_size, font_weight, self.calced.text_align, color)
 
             if self.ability:
                 self.ability.draw(cr, rect)
@@ -582,9 +587,11 @@ class DrawerBlock(DrawerNode):
             cr.line_to(x2, y2)
         cr.stroke()
 
-    def draw_lines(self, cr, lines, pos, width, font_size, font_weight, text_align):
+    def draw_lines(self, cr, lines, pos, width, font_size, font_weight, text_align, color):
         if not lines:
             return
+
+        cr_set_source_rgb_any_hex_or_simple(cr, color, (0.1, 0.1, 0.1))
 
         cr.set_font_size(font_size)
         ff_tmp = None
@@ -602,12 +609,25 @@ class DrawerBlock(DrawerNode):
         x0 = x
         is_right_aligned = text_align == 'right'
         
+        fw_size_w = self.calced.calc_font_size_w(font_size)
         for line in lines:
+            _x = x
+            line_width = None
             if is_right_aligned:
-                line_width = self.calced.calc_font_size_w(font_size) * len(line)
-                x = x + width - line_width
+                line_width = fw_size_w * len(line)
+                _x = x + width - line_width
             if y >= y0:
-                cr.move_to(x, y + font_size*0.82) #+5
+                if SELECT_CONTROL.start != None and SELECT_CONTROL.end != None:
+                    if line_width == None:
+                        line_width = fw_size_w * len(line)
+                    if (
+                        _x >= SELECT_CONTROL.start[0] and _x + line_width <= SELECT_CONTROL.end[0] and
+                        y >= SELECT_CONTROL.start[1] and y + font_size <= SELECT_CONTROL.end[1]
+                    ):
+                        self.draw_background(cr, '#cccccc', (_x, y, line_width, font_size))
+                        cr_set_source_rgb_any_hex_or_simple(cr, color, (0.1, 0.1, 0.1))
+
+                cr.move_to(_x, y + font_size*0.82) #+5
                 cr.show_text(line)
             y += font_size
 

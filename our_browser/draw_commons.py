@@ -5,6 +5,12 @@ class PriorEventHandlers(list):
 PRIOR_EVENT_HANDLERS = PriorEventHandlers()
 
 
+def cr_set_source_rgb_any_hex_or_simple(cr, color, simple):
+    if color:
+        cr_set_source_rgb_any_hex(cr, color)
+    else:
+        cr.set_source_rgb(*simple)
+
 def cr_set_source_rgb_any_hex(cr, color):
     col = hex2color(color)
     if len(col) == 3:

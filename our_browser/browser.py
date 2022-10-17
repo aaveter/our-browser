@@ -8,7 +8,7 @@ import sys
 from inspect import ismethod
 
 from our_browser.ext_depends import noder_parse_file, noder_parse_text, DATA_PATH
-from our_browser.drawing import make_drawable_tree, INPUT_CONTROL, _propagateEvent, Calced
+from our_browser.drawing import make_drawable_tree, INPUT_CONTROL, _propagateEvent, Calced, SELECT_CONTROL
 from our_browser.draw_commons import PRIOR_EVENT_HANDLERS, Scrollable
 from our_browser.listview import ListviewControl, connect_listview
 from our_browser.os_help import fix_key_by_mode
@@ -197,12 +197,16 @@ class DrawingArea(wx.Panel):
         self.Refresh()
 
     def onDown(self, event):
+        SELECT_CONTROL.started = True
+        SELECT_CONTROL.start = event.Position
         for pr in PRIOR_EVENT_HANDLERS:
             if pr.doEventPrior(event.Position, 'ondown'):
                 return
         _propagateEvent(self.ROOT.node, event.Position, 'ondown')
 
     def onClick(self, event):
+        SELECT_CONTROL.started = False
+        SELECT_CONTROL.end = event.Position
         handled = False
         for pr in PRIOR_EVENT_HANDLERS:
             handled = pr.doEventPrior(event.Position, 'onclick')
@@ -213,6 +217,8 @@ class DrawingArea(wx.Panel):
         self.Refresh()
 
     def onMoving(self, event):
+        if SELECT_CONTROL.started:
+            SELECT_CONTROL.end = event.Position
         handled = False
         for pr in PRIOR_EVENT_HANDLERS:
             handled = pr.doEventPrior(event.Position, 'onmoving')
