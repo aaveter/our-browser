@@ -168,21 +168,6 @@ def get_size_prop_from_prop(prop, parent_prop, default=0):
             prop = default
     return prop
 
-
-def fix_lines_line_for_ln(lines, i, width_ln):
-    line = lines[i]
-    if len(line) > width_ln:
-        ix = line[:width_ln].rfind(' ')
-        if ix < 0:
-            return -1
-        line_add = line[ix+1:]
-        line = line[:ix]
-        lines[i] = line
-        add_i = i+1
-        lines.insert(add_i, line_add)
-        return add_i
-    return -1
-
 class Calced:
 
     def __init__(self) -> None:
@@ -250,7 +235,7 @@ class Calced:
 
         self.padding = padding = get_size_prop_from_node_or_parent(node, 'padding', None)
         padding_2 = padding * 2
-        text_width = size[0] - padding_2
+        text_width_real = text_width = size[0] - padding_2
 
         tag = node.tag.text
 
@@ -262,26 +247,22 @@ class Calced:
 
         if not hasattr(node, 'lines'):
             node.lines = None
+        self.calc_lines_etap = ''
         if node.text:
             if max_width and text_width > max_width:
+                self.calc_lines_etap += 'm'
                 text_width = max_width
-            self.calc_lines(node, font_size, text_width)
+            text_width_real = self.calc_lines(node, font_size, text_width)
         else:
             if node.lines:
                 node.lines = None
 
-        if debug:
-            print('^^^^^ lines count:', len(node.lines) if node.lines != None else '-')
-
-        self.last_size_0 = text_width
+        self.text_width = text_width
+        self.text_width_real = text_width_real
 
         self.margin = margin = get_size_prop_from_node_or_parent(node, 'margin', None)
 
         width, height = self.calc_width_height(node, size, margin, padding_2, font_size, image)
-
-        if debug:
-            print('  --- width:', width, 'height:', height)
-            print('  --- calc_params.size:', size)
         
         self.calc_rect(node, size, width, height, margin)
 
@@ -320,20 +301,47 @@ class Calced:
         return width, height
 
     def calc_lines(self, node, font_size, text_width):
-        if node.lines == None or self.last_size_0 < text_width or True: # FIXME
-            node.lines = node.text.split('\n')
+        #if node.lines == None or self.last_size_0 < text_width or True: # FIXME
+        node.lines = node.text.split('\n')
         lines = node.lines
         font_size_w = self.calc_font_size_w(font_size)
         if text_width > font_size_w:
+            self.calc_lines_etap += 'c'
             width_ln = int(text_width / font_size_w)
             i = len(lines) - 1
+            max_real_ln = 0
             while i >= 0:
                 add_i = i
                 while add_i >= 0:
-                    add_i = fix_lines_line_for_ln(lines, add_i, width_ln)
+                    self.calc_lines_etap += 'f'
+                    add_i, real_ln = self.fix_lines_line_for_ln(lines, add_i, width_ln)
+                    if real_ln > max_real_ln:
+                        max_real_ln = real_ln
                 i -= 1
+            if max_real_ln != width_ln:
+                self.calc_lines_etap += 'r'
+                text_width = int(max_real_ln * font_size_w)
+        return text_width
 
-    def calc_font_size_w(self, font_size):
+    def fix_lines_line_for_ln(self, lines, i, width_ln):
+        line = lines[i]
+        ln = len(line)
+        if ln > width_ln:
+            self.calc_lines_etap += 's'
+            ix = line[:width_ln].rfind(' ')
+            if ix < 0:
+                self.calc_lines_etap += 'b'
+                return -1, ln
+            line_add = line[ix+1:]
+            line = line[:ix]
+            lines[i] = line
+            add_i = i+1
+            lines.insert(add_i, line_add)
+            return add_i, width_ln
+        return -1, ln
+
+    @classmethod
+    def calc_font_size_w(cls, font_size):
         return font_size * 0.46 #/2
 
     def calc_image(self, node):
@@ -388,22 +396,13 @@ class DrawerBlock(DrawerNode):
    
         self.pos = pos_my
         self.size_my = size_my
-        if debug:
-            print('  --- self.pos:', pos_my)
-            print('  --- self.size_my:', size_my)
 
         # size_calced = self.calc_children(pos_my, size_my)
-        # if debug:
-        #     print('  --- size_calced:', size_calced)
 
         parent = self.check_parent_flex()
         if parent:
-            if debug:
-                print('  --- check_parent_flex.parent')
             align_items = parent.calced.align_items
             if align_items == 'center':
-                if debug:
-                    print('  --- check_parent_flex.align_items = center')
                 self.pos = (self.pos[0], parent.pos[1] + parent.size_my[1]/2 - size_my[1]/2) #size_calced[1]/2)
 
         if self.calced.position == 'absolute':
@@ -412,17 +411,13 @@ class DrawerBlock(DrawerNode):
         pos_my = (self.pos[0], self.pos[1])
 
         size_calced = self.calc_children(pos_my, size_my)
-        if debug:
-            print('  --- size_calced:', size_calced)
         
         self.size_calced = size_calced if size_calced != None else size_my
 
-        if debug:
-            print('  --- self.size_calced:', self.size_calced)
-            print('  --- size_my:', size_my)
-
-        # if tag == 'image':
-        #     print('(image)', self.node.level, self.pos, self.size_calced, 'size_my:', size_my, self.node.style, self.calced.rect.width, self.calced.rect.height)
+        if self.calced.text_width_real != self.calced.text_width:
+            w_by_text = self.calced.text_width_real + self.calced.padding * 2
+            if w_by_text > self.size_calced[0]:
+                self.size_calced = (w_by_text, self.size_calced[1])
 
         return size_my
 
@@ -431,11 +426,6 @@ class DrawerBlock(DrawerNode):
         _ps = (pos_my[0], pos_my[1])
         size_calced = (size_my[0], size_my[1])
 
-        image_button = False
-        # if (self.node.attrs and 'classList' in self.node.attrs and 'image-button' in self.node.attrs['classList']):
-        #     print('|calc_children: ImageButton >', self.__class__.__name__, self.node, 'POS:', self.pos, 'size_calced:', size_calced)
-        #     image_button = True
-
         _size_calced = size_calced
         for node in self.node.children:
             if not hasattr(node, 'drawer'):
@@ -443,21 +433,12 @@ class DrawerBlock(DrawerNode):
             
             drawer = node.drawer
 
-            if image_button:
-                print('  >> ImageChild >', drawer.__class__.__name__, node, 'POS:', _ps, 'size_my:', size_my)
-
             _size_my = drawer.calc_size(size_my, (_ps[0], _ps[1]), pos_my)#, debug=image_button)
             
             if drawer.calced.position == 'absolute':
                 continue
 
-            if image_button:
-                print('  :: ImageChild >', drawer.__class__.__name__, node, 'POS:', drawer.pos, '_size_my:', _size_my, 'margin:', drawer.calced.margin)
-
             _ps, _size_calced = self.add_subnode_pos_size(node, _ps, _size_calced, self.calced.margin)
-
-            if image_button:
-                print('  -> ImageChild >', drawer.__class__.__name__, node, 'POS:', drawer.pos, 'size_calced:', drawer.size_calced)
 
         parent_drawer = getattr(self.node.parent, 'drawer', None)
         if parent_drawer and getattr(parent_drawer.calced, 'display', None) == 'flex':

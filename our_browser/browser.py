@@ -8,7 +8,7 @@ import sys
 from inspect import ismethod
 
 from our_browser.ext_depends import noder_parse_file, noder_parse_text, DATA_PATH
-from our_browser.drawing import make_drawable_tree, INPUT_CONTROL, _propagateEvent
+from our_browser.drawing import make_drawable_tree, INPUT_CONTROL, _propagateEvent, Calced
 from our_browser.draw_commons import PRIOR_EVENT_HANDLERS, Scrollable
 from our_browser.listview import ListviewControl, connect_listview
 from our_browser.os_help import fix_key_by_mode
@@ -450,6 +450,7 @@ class DevTreeArea(wx.Panel, Scrollable):
             
             cr_set_source_rgb_any_hex(cr, '#339933')
 
+            _found_font_size = 0
             drawer = getattr(node, 'drawer', None)
             if drawer:
                 for a in dir(drawer.calced):
@@ -457,6 +458,8 @@ class DevTreeArea(wx.Panel, Scrollable):
                         continue
                     cr.move_to(x, y + font_size)
                     v = getattr(drawer.calced, a)
+                    if a == 'font_size':
+                        _found_font_size = v
                     if not ismethod(v):
                         text = "{}: {}".format(a, v)
                         cr.show_text(text)
@@ -466,7 +469,7 @@ class DevTreeArea(wx.Panel, Scrollable):
                 cr.stroke()
                 cr_set_source_rgb_any_hex(cr, '#999933')
 
-                for a in ('size_calced',):
+                for a in ('size_my', 'size_calced',):
                     cr.move_to(x, y + font_size)
                     v = getattr(drawer, a, None)
                     text = "{}: {}".format(a, v)
@@ -485,6 +488,21 @@ class DevTreeArea(wx.Panel, Scrollable):
                 cr.show_text(text)
                 y += font_size
 
+            lines = getattr(node, 'lines', None)
+            if lines != None:
+                cr.rectangle(250, y, 100, 1)
+                cr.stroke()
+
+                cr_set_source_rgb_any_hex(cr, '#cc9933')
+
+                for li in lines:
+                    cr.move_to(x, y + font_size)
+                    ln = len(li)
+                    text_w = Calced.calc_font_size_w(_found_font_size) * ln
+                    text = "{} ({} / {})".format(li, ln, text_w)
+                    cr.show_text(text)
+                    y += font_size
+
         line_y += 1
         for ch in node.children:
             line_y = self.draw_node(cr, ch, line_y, level+1)
@@ -497,7 +515,7 @@ class DevTreeArea(wx.Panel, Scrollable):
     def onClick(self, event):
         handled = self.doEventPrior(event.Position, 'onclick') if self in PRIOR_EVENT_HANDLERS else False
         if not handled:
-            self.current_y = int((event.Position[1] - 10) / 13)
+            self.current_y = int((event.Position[1] + self.scroll_pos_y - 10) / 13)
         self.Refresh()
 
     def onMoving(self, event):
