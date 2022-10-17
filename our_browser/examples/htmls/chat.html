@@ -31,9 +31,10 @@
             .yellow {background-color: #ffe4c4;}
             .blue {background-color: #e4e4ff;}
             .page {height: 100%;}
-            .item {margin: 5px; border: 1px solid #cccccc; min-height: 20px;}
+            .item {margin: 5px; min-height: 20px;}
             .chat {margin: 0; padding: 5px; background-color: #ffffff; height: 70px;}
-            .message {padding: 5px; background-color: #ffffff; max-width: 496px; border-radius: 8px;}
+            .chat-right-part {border-bottom: 1px solid #cccccc; justify-content: center;}
+            .message {padding: 5px; background-color: #ffffff; max-width: 496px; border: 1px solid #cccccc; border-radius: 8px;}
             .message-time {font-size: 11; color: #999999; text-align: right;}
             .image-button {height:40px; width:40px; border-radius:20px; _display: flex; align-items: center; margin:5px; padding: 5px;}
             .image-button-content {margin:9px;}
@@ -57,13 +58,15 @@
                     <div class="flex-1 _white border-right common-padding common-font">
                         <listview class="page green" id="chats-listview" items-count="1000">
                             <template>
-                                <item class='item yellow flex-horizontal flex-align-center chat'>
+                                <item class='item yellow flex-horizontal flex-align-center chat chat-right-part'>
                                     <div class="image-button button {{item.color}}" >
                                         <image class="image-26 image-button-content" src="our_browser/examples/htmls/user_black.png" />
                                     </div>
-                                    <div class="flex-1 height-50">
-                                        <div class="chat-name">{{ item.name }}</div>
-                                        <div class="common-font">{{ item.text }}</div>
+                                    <div class="flex-1 height-100p">
+                                        <div class="height-100p width-100p flex-vertical chat-right-part">
+                                            <div class="chat-name">{{ item.name }}</div>
+                                            <div class="common-font">{{ item.text }}</div>
+                                        </div>
                                     </div>
                                 </item>
                             </template>

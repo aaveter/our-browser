@@ -183,6 +183,7 @@ class Calced:
         flex = None
         flex_direction = None
         align_items = None
+        justify_content = None
         text_align = None
         position = None
         if hasattr(node, 'style'):
@@ -206,6 +207,7 @@ class Calced:
             flex = node.style.get('flex', None)
             flex_direction = node.style.get('flex-direction', None)
             align_items = node.style.get('align-items', None)
+            justify_content = node.style.get('justify-content', None)
             text_align = node.style.get('text-align', None)
             _font_weight_default = 'bold' if node.tag and node.tag.text == 'b' else 'normal'
             self.font_weight = node.style.get('font-weight', _font_weight_default)
@@ -227,6 +229,7 @@ class Calced:
         self.flex = flex
         self.flex_direction = flex_direction
         self.align_items = align_items
+        self.justify_content = justify_content
         self.text_align = text_align
 
         self.position = position
@@ -711,6 +714,7 @@ class DrawerFlex(DrawerBlock):
 
         self.flex_point = 0
         flex_vertical = self.calced.flex_direction == 'column'
+        justify_content = self.calced.justify_content
 
         for node in self.node.children:
             if hasattr(node, 'drawer'):
@@ -726,6 +730,12 @@ class DrawerFlex(DrawerBlock):
                     static_sum += (drawer.calced.rect.height if flex_vertical else drawer.calced.rect.width) + mg*2
 
         self.flex_point = ((size_my[1 if flex_vertical else 0]-static_sum) / flex_sum) if flex_sum > 0 else 0
+
+        if justify_content == 'center' and flex_sum == 0:
+            if flex_vertical:
+                _ps = (_ps[0], int(_ps[1]+(size_calced[1]-static_sum)/2))
+            else:
+                _ps = (int(_ps[0]+(size_calced[0]-static_sum)/2), _ps[1])
 
         _size_calced = size_calced
         for node in self.node.children:
