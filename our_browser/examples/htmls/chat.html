@@ -34,7 +34,8 @@
             .item {margin: 5px; min-height: 20px;}
             .chat {margin: 0; padding: 5px; background-color: #ffffff; height: 70px;}
             .chat-right-part {border-bottom: 1px solid #cccccc; justify-content: center;}
-            .message {padding: 5px; background-color: #ffffff; max-width: 496px; border: 1px solid #cccccc; border-radius: 8px;}
+            .message {padding: 5px;}
+            .message-area {padding: 10px; background-color: #ffffff; max-width: 496px; border: 1px solid #cccccc; border-radius: 8px;}
             .message-time {font-size: 11; color: #999999; text-align: right;}
             .image-button {height:40px; width:40px; border-radius:20px; _display: flex; align-items: center; margin:5px; padding: 5px;}
             .image-button-content {margin:9px;}
@@ -52,13 +53,13 @@
     </head>
     <body class="width-100p height-100p" id="body">
         <div class="flex-horizontal height-100p" id="main">
-            <div class="flex-1 border height-100p green" id="left-flex-1">
+            <div class="flex-1 _border height-100p green" id="left-flex-1">
                 <div class="height-100p flex-vertical" id="left-flex">
                     <LeftTopPanel />
-                    <div class="flex-1 _white border-right common-padding common-font">
+                    <div class="flex-1 _white _border-right common-padding common-font">
                         <listview class="page green" id="chats-listview" items-count="1000">
                             <template>
-                                <item class='item yellow flex-horizontal flex-align-center chat chat-right-part'>
+                                <item class='item yellow flex-horizontal flex-align-center chat'>
                                     <div class="image-button button {{item.color}}" >
                                         <image class="image-26 image-button-content" src="our_browser/examples/htmls/user_black.png" />
                                     </div>
@@ -86,10 +87,15 @@
                     <div class="flex-1 white_ common-padding common-font">
                         <listview class="page green2" id="messages-listview">
                             <template>
-                                <item class='item common-font message'>
-                                    <b>{{ item.sender }}</b>
-                                    <div>{{ item.text }}</div>
-                                    <div class='message-time'>{{ item.time }}</div>
+                                <item class='item message flex-horizontal'>
+                                    <div class="image-button button green" >
+                                        <image class="image-26 image-button-content" src="our_browser/examples/htmls/user_black.png" />
+                                    </div>
+                                    <div class="flex-1 common-font">
+                                        <b>{{ item.sender }}</b>
+                                        <div class="message-area">{{ item.text }}</div>
+                                        <div class='message-time'>{{ item.time }}</div>
+                                    </div>
                                 </item>
                             </template>
                             <items/>

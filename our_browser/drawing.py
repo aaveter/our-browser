@@ -552,7 +552,7 @@ class DrawerBlock(DrawerNode):
             node.drawer.draw(cr, absolutes if not is_absolute else False)
 
     def draw_background(self, cr, background_color, rect, radius=None):
-        rect = (rect[0], rect[1], rect[2]+1, rect[3]+1)
+        rect = (rect[0], rect[1], rect[2]+1-1, rect[3]+1-1)
         cr_set_source_rgb_any_hex(cr, background_color)
         if radius:
             roundrect(cr, rect[0], rect[1], rect[2], rect[3], radius)
@@ -607,7 +607,7 @@ class DrawerBlock(DrawerNode):
                 line_width = self.calced.calc_font_size_w(font_size) * len(line)
                 x = x + width - line_width
             if y >= y0:
-                cr.move_to(x, y + font_size) #+5
+                cr.move_to(x, y + font_size*0.82) #+5
                 cr.show_text(line)
             y += font_size
 
@@ -752,6 +752,12 @@ class DrawerFlex(DrawerBlock):
                 _ps, _size_calced = drawer.add_node_pos_size(_ps, _size_calced, self.flex_point, flex_vertical)
             else:
                 _ps, _size_calced = self.add_subnode_pos_size(node, _ps, _size_calced, self.calced.margin, vertical=flex_vertical)
+
+        if flex_vertical:
+            pass
+        else:
+            if _size_calced[1] > size_calced[1]:
+                size_calced = (size_calced[0], _size_calced[1])
 
         return size_calced
 

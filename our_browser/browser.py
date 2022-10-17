@@ -469,7 +469,7 @@ class DevTreeArea(wx.Panel, Scrollable):
                 cr.stroke()
                 cr_set_source_rgb_any_hex(cr, '#999933')
 
-                for a in ('size_my', 'size_calced',):
+                for a in ('pos', 'size_my', 'size_calced',):
                     cr.move_to(x, y + font_size)
                     v = getattr(drawer, a, None)
                     text = "{}: {}".format(a, v)
@@ -479,14 +479,17 @@ class DevTreeArea(wx.Panel, Scrollable):
                 cr.rectangle(250, y, 100, 1)
                 cr.stroke()
 
-            cr_set_source_rgb_any_hex(cr, '#cc9933')
 
-            for a in node.attrs:
-                cr.move_to(x, y + font_size)
-                v = node.attrs[a]
-                text = "{}: {}".format(a, v)
-                cr.show_text(text)
-                y += font_size
+            attrs = getattr(node, 'attrs', None)
+            if attrs != None:
+                cr_set_source_rgb_any_hex(cr, '#cc9933')
+
+                for a in attrs:
+                    cr.move_to(x, y + font_size)
+                    v = attrs[a]
+                    text = "{}: {}".format(a, v)
+                    cr.show_text(text)
+                    y += font_size
 
             lines = getattr(node, 'lines', None)
             if lines != None:
