@@ -617,37 +617,50 @@ class DrawerBlock(DrawerNode):
                 line_width = fw_size_w * len(line)
                 _x = x + width - line_width
             if y >= y0:
+                dy = font_size*0.82
+                y_bottom = y + dy
                 if SELECT_CONTROL.start != None and SELECT_CONTROL.end != None:
                     if line_width == None:
                         line_width = fw_size_w * len(line)
                     drawed = False
+                    x_right = _x + line_width
                     if (
                         #_x >= SELECT_CONTROL.start[0] and _x + line_width <= SELECT_CONTROL.end[0] and
-                        (y > SELECT_CONTROL.start[1] and y + font_size < SELECT_CONTROL.end[1])
+                        (SELECT_CONTROL.start[1] < y and y_bottom < SELECT_CONTROL.end[1])
                     ):
-                        self.draw_background(cr, '#cccccc', (_x, y, line_width, font_size))
+                        self.draw_background(cr, '#cccccc', (_x, y, line_width, dy))
                         drawed = True
-                    elif (y <= SELECT_CONTROL.start[1] <= y + font_size):
+                    elif (y <= SELECT_CONTROL.start[1] <= y_bottom and y_bottom < SELECT_CONTROL.end[1]):
                         dx = SELECT_CONTROL.start[0] - _x
                         if dx > 0:
                             dx_ln = round(dx / fw_size_w)
                             if dx_ln > 0:
                                 dx_width = dx_ln * fw_size_w
-                                self.draw_background(cr, '#cccccc', (_x+dx_width, y, line_width-dx_width, font_size))
+                                self.draw_background(cr, '#cccccc', (_x+dx_width, y, line_width-dx_width, dy))
                                 drawed = True
-                    elif (y <= SELECT_CONTROL.end[1] <= y + font_size):
-                        _x_right = _x + line_width
-                        dx = _x_right - SELECT_CONTROL.end[0]
+                    elif (y <= SELECT_CONTROL.end[1] <= y_bottom and SELECT_CONTROL.start[1] < y):
+                        dx = x_right - SELECT_CONTROL.end[0]
                         if dx > 0:
                             dx_ln = round(dx / fw_size_w)
                             if dx_ln > 0:
                                 dx_width = dx_ln * fw_size_w
-                                self.draw_background(cr, '#cccccc', (_x, y, line_width-dx_width, font_size))
+                                self.draw_background(cr, '#cccccc', (_x, y, line_width-dx_width, dy))
                                 drawed = True
+                    elif (
+                        (y <= SELECT_CONTROL.start[1] <= SELECT_CONTROL.end[1] <= y_bottom) and 
+                        (_x <= SELECT_CONTROL.start[0] <= SELECT_CONTROL.end[0] <= x_right)
+                    ):
+                        dx1 = SELECT_CONTROL.start[0] - _x
+                        dx1 = round(dx1 / fw_size_w) * fw_size_w
+                        dx2 = x_right - SELECT_CONTROL.end[0]
+                        dx2 = round(dx2 / fw_size_w) * fw_size_w
+                        self.draw_background(cr, '#cccccc', (_x+dx1, y, line_width-dx1-dx2, dy))
+                        drawed = True
+
                     if drawed:
                         cr_set_source_rgb_any_hex_or_simple(cr, color, (0.1, 0.1, 0.1))
 
-                cr.move_to(_x, y + font_size*0.82) #+5
+                cr.move_to(_x, y_bottom) #+5
                 cr.show_text(line)
             y += font_size
 
