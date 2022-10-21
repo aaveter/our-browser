@@ -20,6 +20,7 @@ class ListviewControl(Scrollable):
         self.listview = listview
         self.mean_h = 50
         self.template = None
+        self.items_container = None
         items_count = int(listview.attrs.get('items-count', 0))
         self.items = [self.generateItem(i) for i in range(items_count)]
         listview.attrs['data_model'] = self
@@ -110,6 +111,9 @@ def connect_listview(node, listview_cls=ListviewControl):
             elif n.tag.text == 'template':
                 if node.tag and node.tag.text =='listview':
                     node.attrs['data_model'].template = n
+            elif n.tag.text == 'items':
+                if node.tag and node.tag.text =='listview':
+                    node.attrs['data_model'].items_container = n
         connect_listview(n)
 
 
@@ -129,8 +133,10 @@ def draw_listview(drawer, listview, cr):
     try:
         _items_count = listview.getItemsCount()
         
-        template = listview.template.children[0]
-        t_drawer = template.drawer
+        template = template_0 = listview.template.children[0]
+        items = listview.items_container.children
+
+        t_drawer = t_drawer_0 = template.drawer
 
         scroll_area_height = listview.calc_scroll_area_height()
 
@@ -159,6 +165,7 @@ def draw_listview(drawer, listview, cr):
         
         hh = []
         item_w = _sz[0]
+        k = 0
         for i in range(_items_count):
             _sz = (item_w, _sz[1])
 
@@ -167,6 +174,15 @@ def draw_listview(drawer, listview, cr):
                 _ps, _sz = t_drawer.add_subnode_pos_size(template, _ps, _sz, margin=t_drawer.calced.margin)
                 #hh.append(_sz[1])
                 continue
+
+            # if k >= len(items):
+            #     template = copy(template_0)
+            #     t_drawer = template.drawer = copy(template_0.drawer)
+            #     t_drawer.node = template
+            #     items.append(template)
+            # else:
+            #     template = items[k]
+            #     t_drawer = template.drawer
             
             listview.format_template(i, template, texts)
             template.app._connect_styles(template)
@@ -177,6 +193,8 @@ def draw_listview(drawer, listview, cr):
             hh.append(_sz[1])
 
             t_drawer.draw(temp_cr)
+
+            k += 1
 
             if _ps[1] > lv_bottom:
                 break
