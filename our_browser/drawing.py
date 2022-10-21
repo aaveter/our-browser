@@ -1044,7 +1044,7 @@ def _propagateEventDo(node, pos, event_name):
     changed = False
 
     tag = node.tag.text if node.tag else None
-    if tag == 'items':
+    if tag == 'template':
         return changed
 
     if drawer:

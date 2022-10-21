@@ -39,8 +39,8 @@ class Node(ReprLikeStr):
         self.text = None
         self.is_hovered = False
 
-    def cloneNode(self, with_drawer=False):
-        node = self.__class__(self.parent, self.tag, self.tag_end)
+    def cloneNode(self, with_drawer=False, new_parent=None):
+        node = self.__class__(self.parent if not new_parent else new_parent, self.tag, self.tag_end)
         node.level = self.level
         node.attrs = deepcopy(self.attrs)
         node.text = self.text
@@ -64,7 +64,7 @@ class Node(ReprLikeStr):
                     if rect:
                         node.drawer.calced.rect = rect.__class__() #copy(rect)
         for ch in self.children:
-            node.children.append(ch.cloneNode(with_drawer=with_drawer))
+            node.children.append(ch.cloneNode(with_drawer=with_drawer, new_parent=node))
         return node
 
     @property
