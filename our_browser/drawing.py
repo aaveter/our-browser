@@ -714,7 +714,7 @@ class DrawerBlock(DrawerNode):
             if self.node.is_hovered:
                 self.node.is_hovered = False
                 changed = True
-                if self.calced.cursor:
+                if getattr(self.calced, 'cursor', None):
                     self.node.app.mainPanel.changeCursor(None)
 
             if self.node.tag and self.node.tag.text =='listview':
