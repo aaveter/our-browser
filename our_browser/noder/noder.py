@@ -1,3 +1,4 @@
+from copy import copy, deepcopy
 
 from .styler import Styler
 
@@ -37,6 +38,34 @@ class Node(ReprLikeStr):
         self.attrs = None
         self.text = None
         self.is_hovered = False
+
+    def cloneNode(self, with_drawer=False):
+        node = self.__class__(self.parent, self.tag, self.tag_end)
+        node.level = self.level
+        node.attrs = deepcopy(self.attrs)
+        node.text = self.text
+        node.is_hovered = self.is_hovered
+        for a in ('style_simple', 'style_hover', 'style_hover_full'):
+            st = getattr(self, a, None)
+            if st != None:
+                setattr(node, a, deepcopy(st))
+        for a in ('app', ):
+            st = getattr(self, a, None)
+            if st != None:
+                setattr(node, a, st)
+        if with_drawer:
+            drawer = getattr(self, 'drawer', None)
+            if drawer:
+                node.drawer = drawer.__class__(node) #copy(drawer)
+                calced = getattr(drawer, 'calced', None)
+                if calced:
+                    node.drawer.calced = calced.__class__() #copy(calced)
+                    rect = getattr(calced, 'rect', None)
+                    if rect:
+                        node.drawer.calced.rect = rect.__class__() #copy(rect)
+        for ch in self.children:
+            node.children.append(ch.cloneNode(with_drawer=with_drawer))
+        return node
 
     @property
     def style(self):
@@ -125,7 +154,7 @@ class NodeParser:
             i, j, is_start, is_full = self.find_tag(text, pos)
             if i < 0:
                 break
-            
+
             pre_text = None
             if i > pos:
                 pre_text = text[pos:i]

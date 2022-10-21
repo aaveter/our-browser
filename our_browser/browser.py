@@ -17,7 +17,7 @@ from our_browser.os_help import fix_key_by_mode
 def main(listview_cls=ListviewControl, html_path=None):
     if html_path == None:
         html_path = sys.argv[1].replace('\\', '/')
-    
+
     app = BrowserApp(listview_cls=listview_cls, html_path=html_path)
     app.run()
 
@@ -63,16 +63,16 @@ class BrowserApp:
 class Frame(wx.Frame):
 
     def __init__(self, *args, **kwargs):
-        super(Frame, self).__init__(*args, **kwargs) 
-        
+        super(Frame, self).__init__(*args, **kwargs)
+
         self.InitUI()
 
     def InitUI(self):
         self.SetIcon(wx.Icon(join(DATA_PATH, "our_browser.ico")))
 
-        panel = wx.Panel(self)        
+        panel = wx.Panel(self)
         self.vbox = vbox = wx.BoxSizer(wx.HORIZONTAL)
-        panel.SetSizer(vbox)        
+        panel.SetSizer(vbox)
 
         self.mainPanel = mainPanel = DrawingArea(panel)
         mainPanel.mainFrame = self
@@ -98,7 +98,7 @@ class Frame(wx.Frame):
         self.Bind(wx.EVT_MOUSEWHEEL, mainPanel.onWheelWin)
 
 class DrawingArea(wx.Panel):
-    
+
     def __init__ (self , *args , **kw):
         super(DrawingArea, self).__init__ (*args , **kw)
 
@@ -109,14 +109,14 @@ class DrawingArea(wx.Panel):
         self.mainFrame = None
 
         self.ROOT = None
-        
+
         self.SetDoubleBuffered(True)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_LEFT_DOWN, self.onDown)
         self.Bind(wx.EVT_LEFT_UP, self.onClick)
         self.Bind(wx.EVT_MOTION, self.onMoving)
-        
+
         self.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
         self.Bind(wx.EVT_KEY_UP, self.onKeyUp)
         #self.Bind(wx.EVT_CHAR, self.onKeyChar)
@@ -125,16 +125,16 @@ class DrawingArea(wx.Panel):
         self.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
 
         #self.SetFocus()
-    
+
     def OnSize(self, event):
         self.Refresh() # MUST have this, else the rectangle gets rendered corruptly when resizing the window!
         event.Skip() # seems to reduce the ammount of OnSize and OnPaint events generated when resizing the window
-        
+
     def OnPaint(self, e):
         dc = wx.PaintDC(self)
         cr = wx.lib.wxcairo.ContextFromDC(dc)
         self.DoDrawing(cr, dc)
-        
+
     def DoDrawing(self, cr, dc):
         size = self.GetSize()
 
@@ -167,7 +167,7 @@ class DrawingArea(wx.Panel):
                 self.scroll_show = False
                 self.scroll.Hide()
                 self.vbox.Layout()
-    
+
     def onScrollWin1(self, event):
         self.scroll_pos = -event.Position
         self.Refresh()
@@ -249,11 +249,11 @@ class DrawingArea(wx.Panel):
         if cursor_way:
             self.onKey(event, 'down')
         event.Skip()
-    
+
     def onKey(self, event, name):
         keycode = event.GetUnicodeKey()
         keycode2 = event.GetKeyCode()
-        
+
         if keycode != wx.WXK_NONE:
 
             if keycode == wx.WXK_RETURN: #13:
@@ -342,13 +342,13 @@ class DrawingArea(wx.Panel):
             self.mainFrame.vbox.Layout()
 
 
-class PopMenu(wx.Menu): 
-  
+class PopMenu(wx.Menu):
+
     def __init__(self, parent, menuId):
         super(PopMenu, self).__init__()
-  
+
         self.parent = parent
-  
+
         popmenu = wx.MenuItem(self, menuId, 'Hide dev' if parent.mainFrame.dev.IsShown() else 'Show dev')
         self.Append(popmenu)
 
@@ -356,7 +356,7 @@ class PopMenu(wx.Menu):
 from our_browser.drawing import cr_set_source_rgb_any_hex
 
 class DevTreeArea(wx.Panel, Scrollable):
-    
+
     def __init__ (self , *args , **kw):
         super(DevTreeArea, self).__init__ (*args , **kw)
         Scrollable.__init__(self)
@@ -367,7 +367,7 @@ class DevTreeArea(wx.Panel, Scrollable):
 
         self.pos = (0, 0)
         self.mean_h = 15
-        
+
         self.SetDoubleBuffered(True)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -384,11 +384,11 @@ class DevTreeArea(wx.Panel, Scrollable):
     @property
     def size_calced(self):
         return self.GetSize()
-    
+
     def OnSize(self, event):
         self.Refresh() # MUST have this, else the rectangle gets rendered corruptly when resizing the window!
         event.Skip() # seems to reduce the ammount of OnSize and OnPaint events generated when resizing the window
-        
+
     def OnPaint(self, e):
         dc = wx.PaintDC(self)
         cr = wx.lib.wxcairo.ContextFromDC(dc)
@@ -453,7 +453,7 @@ class DevTreeArea(wx.Panel, Scrollable):
                         y += font_size
                 cr.rectangle(250, y, 100, 1)
                 cr.stroke()
-            
+
             cr_set_source_rgb_any_hex(cr, '#339933')
 
             _found_font_size = 0
@@ -501,8 +501,7 @@ class DevTreeArea(wx.Panel, Scrollable):
             if lines != None:
                 cr.rectangle(250, y, 100, 1)
                 cr.stroke()
-
-                cr_set_source_rgb_any_hex(cr, '#cc9933')
+                cr_set_source_rgb_any_hex(cr, '#cc9977')
 
                 for li in lines:
                     cr.move_to(x, y + font_size)
@@ -511,6 +510,26 @@ class DevTreeArea(wx.Panel, Scrollable):
                     text = "{} ({} / {})".format(li, ln, text_w)
                     cr.show_text(text)
                     y += font_size
+
+            cr.rectangle(250, y, 100, 1)
+            cr.stroke()
+            cr_set_source_rgb_any_hex(cr, '#cccc33')
+
+            lst = [('node', node)]
+            if drawer:
+                lst.append(('drawer', drawer))
+                calced = getattr(drawer, 'calced', None)
+                if calced:
+                    lst.append(('calced', calced))
+                    rect = getattr(calced, 'rect', None)
+                    if rect:
+                        lst.append(('rect', rect))
+
+            for nm, o in lst:
+                cr.move_to(x, y + font_size)
+                text = "{}: {}".format(nm, id(o))
+                cr.show_text(text)
+                y += font_size
 
         line_y += 1
         for ch in node.children:

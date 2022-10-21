@@ -6,7 +6,7 @@ import threading
 from our_browser.draw_commons import cr_set_source_rgb_any_hex, cr_set_source_rgb_any_hex_or_simple, hex2color, Scrollable
 
 
-check_is_drawable = lambda node: node.tag and node.tag.text not in ('style', 'script', 'head') and not node.tag.text.startswith('!')
+check_is_drawable = lambda node: node.tag and node.tag.text not in ('style', 'script', 'head', 'items') and not node.tag.text.startswith('!')
 
 DEFAULT_STYLES = {
     'html': {
@@ -143,7 +143,7 @@ class Rect:
 
     def __repr__(self) -> str:
         return f'rect({self.left}, {self.top}, {self.width}, {self.height})'
-        
+
 
 def get_size_prop_from_node_or_parent(node, name, parent_prop, default=0):
     _nodes = [node]
@@ -154,7 +154,7 @@ def get_size_prop_from_node_or_parent(node, name, parent_prop, default=0):
         if v != None:
             return v
     return default
-    
+
 
 def get_size_prop_from_node(node, name, parent_prop, default=0):
     if not hasattr(node, 'style'):
@@ -183,7 +183,7 @@ class Calced:
         self.rect = Rect()
         self.calced = False
         self.last_size_0 = -1
-    
+
     def calc_params(self, node, size, debug=False):
         background_color = color = border = border_radius = None
         border_left = border_right = border_top = border_bottom = None
@@ -204,7 +204,7 @@ class Calced:
             if not fs:
                 fs = 11
             font_size = int(fs)
-            
+
             border = node.style.get('border', None)
             border_left = node.style.get('border-left', None)
             border_right = node.style.get('border-right', None)
@@ -233,7 +233,7 @@ class Calced:
         self.border_right = border_right
         self.border_top = border_top
         self.border_bottom = border_bottom
-        
+
         self.display = display
         self.flex = flex
         self.flex_direction = flex_direction
@@ -275,7 +275,7 @@ class Calced:
         self.margin = margin = get_size_prop_from_node_or_parent(node, 'margin', None)
 
         width, height = self.calc_width_height(node, size, margin, padding_2, font_size, image)
-        
+
         self.calc_rect(node, size, width, height, margin)
 
     def calc_width_height(self, node, size, margin, padding_2, font_size, image):
@@ -286,13 +286,13 @@ class Calced:
             image_height = image.get_height()
             if image_height > height_default:
                 height_default = image_height + padding_2
-        
+
         self._width = width = get_size_prop_from_node(node, 'width', size[0], -1)
         self._height = height = get_size_prop_from_node(node, 'height', size[1], -1) #height_default)
-        
+
         if height < 0:
             height = height_default
-        
+
         min_height = get_size_prop_from_node(node, 'min-height', None)
         max_height = get_size_prop_from_node(node, 'max-height', None)
 
@@ -402,10 +402,10 @@ class DrawerBlock(DrawerNode):
         self.calced.calc_params(self.node, size, debug=debug)
 
         tag = self.node.tag.text if self.node.tag else None
-        
+
         pos_my = (pos[0] + self.calced.margin, pos[1] + self.calced.margin)
         size_my = (self.calced.rect.width, self.calced.rect.height)
-   
+
         self.pos = pos_my
         self.size_my = size_my
 
@@ -423,7 +423,7 @@ class DrawerBlock(DrawerNode):
         pos_my = (self.pos[0], self.pos[1])
 
         size_calced = self.calc_children(pos_my, size_my)
-        
+
         self.size_calced = size_calced if size_calced != None else size_my
 
         if self.calced.text_width_real != self.calced.text_width:
@@ -442,11 +442,11 @@ class DrawerBlock(DrawerNode):
         for node in self.node.children:
             if not hasattr(node, 'drawer'):
                 continue
-            
+
             drawer = node.drawer
 
             _size_my = drawer.calc_size(size_my, (_ps[0], _ps[1]), pos_my)#, debug=image_button)
-            
+
             if drawer.calced.position == 'absolute':
                 continue
 
@@ -480,7 +480,7 @@ class DrawerBlock(DrawerNode):
             static_i, change_i = 0, 1
         else:
             static_i, change_i = 1, 0
-            
+
         if vertical:
             if wh[1] > size_calced[1]:
                 size_calced = (size_calced[0], wh[1])
@@ -500,7 +500,7 @@ class DrawerBlock(DrawerNode):
 
             if pos[1] + wh[1] - pos_my[1] > size_calced[1]:
                 size_calced = (size_calced[0], pos[1] + wh[1] - pos_my[1])
-        
+
         pos[change_i] += wh[change_i] #+ mg #margin
 
         return pos, size_calced
@@ -534,7 +534,7 @@ class DrawerBlock(DrawerNode):
                 bd = getattr(self.calced, 'border_'+nm, None)
                 if bd:
                     self.draw_border(cr, rect, nm, bd[0], bd[1], bd[2])
-            
+
             padding = self.calced.padding
             self.draw_lines(cr, self.node.lines, (ps[0]+padding, ps[1]+padding), size_calced[0]-padding*2,
                 font_size, font_weight, self.calced.text_align, color)
@@ -548,9 +548,9 @@ class DrawerBlock(DrawerNode):
                 if listview and listview.template:
                     draw_listview(self, listview, cr)
                     return
-        
+
         for node in self.node.children:
-            
+
             if not hasattr(node, 'drawer'):
                 continue
 
@@ -573,7 +573,7 @@ class DrawerBlock(DrawerNode):
             if radius:
                 roundrect(cr, rect[0], rect[1], rect[2], rect[3], radius)
             else:
-                cr.rectangle(*rect)    
+                cr.rectangle(*rect)
         else:
             if nm == 'left':
                 x1, y1, x2, y2 = rect[0], rect[1], rect[0], rect[1]+rect[3]
@@ -597,7 +597,7 @@ class DrawerBlock(DrawerNode):
         ff_tmp = None
         if font_weight == 'bold':
             ff_tmp = cr.get_font_face()
-            cr.select_font_face(ff_tmp.get_family(), cairo.FONT_SLANT_NORMAL, 
+            cr.select_font_face(ff_tmp.get_family(), cairo.FONT_SLANT_NORMAL,
                 cairo.FONT_WEIGHT_BOLD)
         x, y = pos
         y0 = y
@@ -608,7 +608,7 @@ class DrawerBlock(DrawerNode):
         x += 0.5
         x0 = x
         is_right_aligned = text_align == 'right'
-        
+
         fw_size_w = self.calced.calc_font_size_w(font_size)
         for line in lines:
             _x = x
@@ -647,7 +647,7 @@ class DrawerBlock(DrawerNode):
                                 self.draw_background(cr, '#cccccc', (_x, y, line_width-dx_width, dy))
                                 drawed = True
                     elif (
-                        (y <= SELECT_CONTROL.start[1] <= SELECT_CONTROL.end[1] <= y_bottom) and 
+                        (y <= SELECT_CONTROL.start[1] <= SELECT_CONTROL.end[1] <= y_bottom) and
                         (_x <= SELECT_CONTROL.start[0] <= SELECT_CONTROL.end[0] <= x_right)
                     ):
                         dx1 = SELECT_CONTROL.start[0] - _x
@@ -671,7 +671,7 @@ class DrawerBlock(DrawerNode):
         r = (rect[0], rect[1], rect[2], rect[3])
         img_w, img_h = image.get_width(), image.get_height()
         wk, hk = (
-            1 if self.calced._width < 0 else rect[2]/img_w, 
+            1 if self.calced._width < 0 else rect[2]/img_w,
             1 if self.calced._height < 0 else rect[3]/img_h
         )
         boo = wk != 1 or hk != 1
@@ -719,10 +719,10 @@ class DrawerBlock(DrawerNode):
     def checkPostIntoMe(self, pos):
         if not hasattr(self, 'pos'):
             return False
-        
+
         return (
             hasattr(self, 'size_calced') and
-            self.pos[0] <= pos[0] < self.pos[0] + self.size_calced[0] and 
+            self.pos[0] <= pos[0] < self.pos[0] + self.size_calced[0] and
             self.pos[1] <= pos[1] < self.pos[1] + self.size_calced[1]
         )
 
@@ -733,7 +733,7 @@ class DrawerBlock(DrawerNode):
                 self.pos[1] <= y < self.pos[1] + self.size_calced[1]
             ):
                 return self
-        
+
         for node in self.node.children:
             if not hasattr(node, 'drawer'):
                 continue
@@ -757,7 +757,7 @@ def roundrect(context, x, y, width, height, r):
 
 
 class DrawerFlex(DrawerBlock):
-    
+
     def calc_children(self, pos_my, size_my):
         flex_sum = 0
         static_sum = 0
@@ -794,7 +794,7 @@ class DrawerFlex(DrawerBlock):
         for node in self.node.children:
             if not hasattr(node, 'drawer'):
                 continue
-            
+
             drawer = node.drawer
             if drawer.calced.position == 'absolute':
                 continue
@@ -829,13 +829,13 @@ class AbilityBase:
 
 
 class AbilityInput(AbilityBase, Scrollable):
-    
+
     def __init__(self, drawer) -> None:
         super().__init__(drawer)
         Scrollable.__init__(self)
         self.cursor_visible = False
         self.cursor_pos = 0
-        
+
     @property
     def mean_h(self):
         return 20
@@ -870,7 +870,7 @@ class AbilityInput(AbilityBase, Scrollable):
         x1, y1, x2, y2 = x0, y0, x0, y0 + cursor_height
 
         lines = self.drawer.node.lines
-        
+
         k = 0
         if lines:
             cutted_lines = []
@@ -909,7 +909,7 @@ class AbilityInput(AbilityBase, Scrollable):
             cr.move_to(x1+0.5, y1)
             cr.line_to(x2+0.5, y2)
             cr.stroke()
-    
+
     def moveCursor(self, way):
         if way == 'left':
             if self.cursor_pos > 0:
@@ -967,7 +967,7 @@ class AbilityInput(AbilityBase, Scrollable):
     def addText(self, text):
         if not self.drawer.node.text:
             self.drawer.node.text = ""
-        
+
         if self.cursor_pos < 0:
             self.cursor_pos = 0
         elif self.cursor_pos > len(self.drawer.node.text):
@@ -1007,7 +1007,7 @@ class DrawerFlexItem(DrawerBlock):
             size_my = (round(self.node.parent.drawer.flex_point * self.calced.flex), size_my[1])
 
         size_calced = super().calc_children(pos_my, size_my)
-        
+
         if flex_vertical:
             return (size_calced[0], self.node.parent.drawer.flex_point * self.calced.flex)
         else:
@@ -1015,8 +1015,8 @@ class DrawerFlexItem(DrawerBlock):
 
     def add_node_pos_size(self, pos_my, size_calced, flex_point, flex_vertical):
         pos = (
-            (pos_my[0], round(pos_my[1] + flex_point * self.calced.flex)) 
-            if flex_vertical else 
+            (pos_my[0], round(pos_my[1] + flex_point * self.calced.flex))
+            if flex_vertical else
             (round(pos_my[0] + flex_point * self.calced.flex), pos_my[1])
         )
         wh = self.size_calced
@@ -1030,7 +1030,7 @@ class DrawerFlexItem(DrawerBlock):
 
         return pos, size_calced
 
-             
+
 def _propagateEvent(node, pos, event_name):
     absolutes = _findAbsolute(node, pos)
     if absolutes:
@@ -1042,10 +1042,15 @@ def _propagateEvent(node, pos, event_name):
 def _propagateEventDo(node, pos, event_name):
     drawer = getattr(node, 'drawer', None)
     changed = False
+
+    tag = node.tag.text if node.tag else None
+    if tag == 'items':
+        return changed
+
     if drawer:
         if drawer.propagateEvent(pos, event_name):
             changed = True
-    
+
     for ch in node.children:
         ret = _propagateEventDo(ch, pos, event_name)
         if ret:
@@ -1055,6 +1060,11 @@ def _propagateEventDo(node, pos, event_name):
 
 def _findAbsolute(node, pos):
     absolutes = []
+
+    tag = node.tag.text if node.tag else None
+    if tag == 'items':
+        return absolutes
+
     drawer = getattr(node, 'drawer', None)
     if drawer and drawer.checkPostIntoMe(pos):
         if drawer.calced.position == 'absolute':
@@ -1063,4 +1073,4 @@ def _findAbsolute(node, pos):
     for ch in node.children:
         absolutes += _findAbsolute(ch, pos)
     return absolutes
-        
+

@@ -1,4 +1,4 @@
-from copy import copy
+from copy import copy, deepcopy
 import wx
 import cairo
 import statistics
@@ -98,7 +98,7 @@ class ListviewControl(Scrollable):
             self.format_template(i, ch_template, ch_texts, item)
 
     def getDrawer(self):
-        return self.listview.drawer        
+        return self.listview.drawer
 
 
 def connect_listview(node, listview_cls=ListviewControl):
@@ -111,9 +111,11 @@ def connect_listview(node, listview_cls=ListviewControl):
             elif n.tag.text == 'template':
                 if node.tag and node.tag.text =='listview':
                     node.attrs['data_model'].template = n
+                    continue
             elif n.tag.text == 'items':
                 if node.tag and node.tag.text =='listview':
                     node.attrs['data_model'].items_container = n
+                    continue
         connect_listview(n)
 
 
@@ -132,7 +134,7 @@ def fill_template_texts(template, texts):
 def draw_listview(drawer, listview, cr):
     try:
         _items_count = listview.getItemsCount()
-        
+
         template = template_0 = listview.template.children[0]
         items = listview.items_container.children
 
@@ -162,7 +164,7 @@ def draw_listview(drawer, listview, cr):
         w, h = int(lv_pos[0] + lv_size[0] + 10), int(lv_pos[1] + lv_size[1] + 10)
         temp_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
         temp_cr = cairo.Context(temp_surface)
-        
+
         hh = []
         item_w = _sz[0]
         k = 0
@@ -175,18 +177,17 @@ def draw_listview(drawer, listview, cr):
                 #hh.append(_sz[1])
                 continue
 
-            # if k >= len(items):
-            #     template = copy(template_0)
-            #     t_drawer = template.drawer = copy(template_0.drawer)
-            #     t_drawer.node = template
-            #     items.append(template)
-            # else:
-            #     template = items[k]
-            #     t_drawer = template.drawer
-            
+            if k >= len(items):
+                template = template.cloneNode(with_drawer=True)
+                items.append(template)
+            else:
+                template = items[k]
+
+            t_drawer = template.drawer
+
             listview.format_template(i, template, texts)
             template.app._connect_styles(template)
-            
+
             _sz = t_drawer.calc_size(_sz, (_ps[0], _ps[1]), _ps0)
 
             _ps, _sz = t_drawer.add_subnode_pos_size(template, _ps, _sz, margin=t_drawer.calced.margin)
