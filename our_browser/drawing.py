@@ -195,6 +195,7 @@ class Calced:
         justify_content = None
         text_align = None
         position = None
+        cursor = None
         if hasattr(node, 'style'):
             color = node.style.get('color', None)
             background_color = node.style.get('background-color', None)
@@ -222,6 +223,7 @@ class Calced:
             self.font_weight = node.style.get('font-weight', _font_weight_default)
 
             position = node.style.get('position', None)
+            cursor = node.style.get('cursor', None)
 
         self.color = color
         self.background_color = background_color
@@ -242,8 +244,9 @@ class Calced:
         self.text_align = text_align
 
         self.position = position
-        self.left = get_size_prop_from_node(node, 'left', 0)
-        self.top = get_size_prop_from_node(node, 'top', 0)
+        self.left = get_size_prop_from_node(node, 'left', size[0], 0)
+        self.top = get_size_prop_from_node(node, 'top', size[1], 0)
+        self.cursor = cursor
 
         self.padding = padding = get_size_prop_from_node_or_parent(node, 'padding', None)
         padding_2 = padding * 2
@@ -690,6 +693,8 @@ class DrawerBlock(DrawerNode):
             if not self.node.is_hovered:
                 self.node.is_hovered = True
                 changed = True
+                if self.calced.cursor:
+                    self.node.app.mainPanel.changeCursor(self.calced.cursor)
 
             if self.ability:
                 if self.ability.doEvent(pos, event_name):
@@ -709,6 +714,8 @@ class DrawerBlock(DrawerNode):
             if self.node.is_hovered:
                 self.node.is_hovered = False
                 changed = True
+                if self.calced.cursor:
+                    self.node.app.mainPanel.changeCursor(None)
 
             if self.node.tag and self.node.tag.text =='listview':
                 listview = self.node.attrs['data_model']

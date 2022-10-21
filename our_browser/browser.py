@@ -31,6 +31,7 @@ class BrowserApp:
 
         self.app = wx.App()
         self.frame = Frame(None)
+        self.mainPanel = self.frame.mainPanel
 
     def update_drawers(self):
         self.frame.mainPanel.ROOT = make_drawable_tree(self.ROOT_NODE)
@@ -125,6 +126,21 @@ class DrawingArea(wx.Panel):
         self.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
 
         #self.SetFocus()
+
+    def changeCursor(self, name):
+        if name == 'wait':
+            newCursor = wx.Cursor(wx.CURSOR_WAIT)
+        elif name == 'pointer':
+            newCursor = wx.Cursor(wx.CURSOR_HAND)
+        elif name == 'progress':
+            newCursor = wx.Cursor(wx.CURSOR_ARROWWAIT)
+        elif name == 'crosshair':
+            newCursor = wx.Cursor(wx.CURSOR_CROSS)
+        elif name == 'ew-resize':
+            newCursor = wx.Cursor(wx.CURSOR_SIZEWE)
+        else:
+            newCursor = wx.Cursor(wx.CURSOR_ARROW)
+        self.SetCursor(newCursor)
 
     def OnSize(self, event):
         self.Refresh() # MUST have this, else the rectangle gets rendered corruptly when resizing the window!
