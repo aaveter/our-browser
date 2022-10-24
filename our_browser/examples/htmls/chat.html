@@ -10,6 +10,7 @@
             .flex-1 {flex: 1;}
             .flex-3 {flex: 3;}
             .flex-align-center {align-items: center;}
+            .flex-justify-center {justify-content: center;}
             .top-panel-height {height: 57px;}
             .height-50 {height: 50px;}
             .width-50 {width: 50px;}
@@ -25,8 +26,9 @@
             .top-panel-content-margin, .common-margin {margin: 14px;}
             .common-padding {padding: 12px;}
             .common-font {font-size: 16;}
-            .chat-name {font-size: 18;}
             .top-panel-content-font {font-size: 20;}
+
+            .left-buttons {width: 100%; height: 70px;}
 
             .green2 {background-color: #e5ddd5;}
             .yellow {background-color: #ffe4c4;}
@@ -34,8 +36,13 @@
             .page {height: 100%;}
             .item {margin: 5px; min-height: 20px;}
             .chat {margin: 0; padding: 5px; background-color: #ffffff; height: 70px;}
+            .chat:hover {background-color: #efefef;}
             .chat-right-part {border-bottom: 1px solid #cccccc; justify-content: center;}
-            .chat-message {color: #777777;}
+            .chat-name {font-size: 15; font-weight: bold;}
+            .chat-div {width: 100%; height: 5px;}
+            .chat-message {color: #777777; font-size: 13;}
+            .chat-image {width: 50px; height: 50px; border-radius: 25px; padding: 10px;}
+            .image-button-content-chat {margin:14px;}
             .message {padding: 5px;}
             .message-area {padding: 10px; background-color: #ffffff; max-width: 496px; border: 1px solid #cccccc; border-radius: 8px;}
             .message-time {font-size: 11; color: #999999; text-align: right; max-width: 496px;}
@@ -54,6 +61,14 @@
 
             .hor-splitter {height: 100%; width: 4px; _background-color: #99999955; cursor: ew-resize; position: absolute; left: 25%;}
             .hor-splitter:hover {background-color: #99999955;}
+
+            .color-1 {background-color:#bbe7b9;} .color-1:hover {background-color:#86b383;}
+            .color-2 {background-color:#7eaae0;} .color-2:hover {background-color:#6587b1;}
+            .color-3 {background-color:#fbdaa0;} .color-3:hover {background-color:#c4a97c;}
+            .color-4 {background-color:#e7e6bc;} .color-4:hover {background-color:#c5c497;}
+            .color-5 {background-color:#f4bbb4;} .color-5:hover {background-color:#ca9891;}
+            .color-6 {background-color:#9cbdf4;} .color-6:hover {background-color:#819ecf;}
+            .color-7 {background-color:#a1b2b7;} .color-7:hover {background-color:#798c92;}
         </style>
     </head>
     <body class="width-100p height-100p" id="body">
@@ -61,17 +76,23 @@
             <div class="flex-1 _border height-100p green" id="left-flex-1">
                 <div class="height-100p flex-vertical" id="left-flex">
                     <LeftTopPanel />
+                    <div class="left-buttons orange flex-horizontal flex-align-center flex-justify-center">
+                        <div class="flex-1 common-font">All</div>
+                        <div class="flex-1 common-font">Groups</div>
+                        <div class="flex-1 common-font">Contacts</div>
+                    </div>
                     <div class="flex-1 _white _border-right common-padding common-font">
                         <listview class="page green" id="chats-listview" items-count="1000">
                             <template>
                                 <item class='item yellow flex-horizontal flex-align-center chat'>
-                                    <div class="image-button button {{item.color}} margin-10" >
-                                        <image class="image-26 image-button-content" src="our_browser/examples/htmls/user_black.png" />
+                                    <div class="image-button button {{item.color}} margin-10 chat-image" >
+                                        <image class="image-26 image-button-content-chat" src="our_browser/examples/htmls/user_black.png" />
                                     </div>
                                     <div class="flex-1 height-100p">
                                         <div class="height-100p width-100p flex-vertical chat-right-part">
                                             <div class="chat-name">{{ item.name }}</div>
-                                            <div class="common-font chat-message">{{ item.text }}</div>
+                                            <div class="chat-div"></div>
+                                            <div class="chat-message">{{ item.text }}</div>
                                         </div>
                                     </div>
                                 </item>
@@ -94,7 +115,7 @@
                         <listview class="page green2" id="messages-listview">
                             <template>
                                 <item class='item message flex-horizontal'>
-                                    <div class="image-button button green" >
+                                    <div class="image-button button color-1" >
                                         <image class="image-26 image-button-content" src="our_browser/examples/htmls/user_black.png" />
                                     </div>
                                     <div class="flex-1 common-font">

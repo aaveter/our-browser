@@ -43,7 +43,7 @@ class Message(ItemBase):
 MESSAGES = [ Message(a['text'], a['sender'], a['time']) for a in MESSAGES ]
 
 
-COLORS = ['green', 'yellow', 'blue']
+COLORS = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5', 'color-6', 'color-7']
 class Chat(ItemBase):
 
     _color_i = -1
@@ -54,7 +54,7 @@ class Chat(ItemBase):
         self.time = time
 
         Chat._color_i += 1
-        if Chat._color_i >= 3:
+        if Chat._color_i >= len(COLORS):
             Chat._color_i = 0
 
         self.color = COLORS[Chat._color_i]
