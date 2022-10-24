@@ -76,7 +76,7 @@ class App(React.Component):
         self.setState({
             'count': int(self.state['count']) + 1
         })
-    
+
     def render(self):
         count = self.state['count']
         print('count ----------', count)
@@ -91,11 +91,11 @@ class LeftTopPanel(React.Component):
             'search': False
         }
 
-    def onSettingsClick(self):
+    def onSettingsClick(self, event):
         settings_panel_node = self.node.app.ROOT_NODE.getElementById("settings-panel")
         settings_panel_node.react_component.setState({"show": True})
 
-    def onSearchClick(self):
+    def onSearchClick(self, event):
         print('click', self)
         self.setState({
             'search': not self.state['search']
@@ -121,6 +121,45 @@ class LeftTopPanel(React.Component):
         '''
 
 
+class HorSplitter(React.Component):
+
+    def __init__(self, props=None) -> None:
+        super().__init__(props)
+        self.started = None
+        self.started_left = 0
+
+    def onDownHandler(self, event):
+        print("...onDownHandler", event.pos, self.node.drawer.calced.left)
+        self.started_left = self.node.drawer.pos[0]
+        self.started = event.pos
+        return 'prior'
+
+    def onMovingHandler(self, event):
+        if self.started != None:
+            print("...onMovingHandler", event.pos, self.node.drawer.calced.left, self.node.style['left'], self.node.parent.drawer.calced.rect.width)
+            new_left = self.started_left + (event.pos[0] - self.started[0])
+            new_proc = 100.0 * new_left / self.node.parent.drawer.calced.rect.width
+            self.node.left = (new_proc, '%') ## !!!!
+            root = self.node.app.ROOT_NODE
+            left_panel = root.getElementById('left-flex-1')
+            right_panel = root.getElementById('right-flex-3')
+            left_panel.flex = new_proc
+            right_panel.flex = 100.0 - new_proc
+            return True
+
+    def onClickHandler(self, event):
+        if self.started != None:
+            self.started = None
+            print("...onClickHandler", event.pos, self.node.drawer.calced.left)
+            return 'out_prior'
+
+    def render(self):
+        return f'''
+            <div class="hor-splitter" onclick={EVENT(self.onClickHandler)}
+                ondown={EVENT(self.onDownHandler)} onmoving={EVENT(self.onMovingHandler)} />
+        '''
+
+
 class ChatButton(React.Component):
 
     def __init__(self, props) -> None:
@@ -129,7 +168,7 @@ class ChatButton(React.Component):
             'count': None
         }
 
-    def onClick(self):
+    def onClick(self, event):
         chats_listview = self.node.app.ROOT_NODE.getElementById("chats-listview")
         data_model = chats_listview.attrs['data_model']
         print('&& ??? data_model:', data_model)
@@ -137,7 +176,7 @@ class ChatButton(React.Component):
         self.setState({
             'count': data_model.items_count
         })
-    
+
     def render(self):
         count = self.state['count']
         print('count ----------', count)
@@ -153,7 +192,7 @@ class SendButton(React.Component):
             'messages': None
         }
 
-    def onClick(self):
+    def onClick(self, event):
         self.setState({
             'messages': self.appendMessage()
         })
@@ -209,18 +248,18 @@ class ChatMenuButton(ImageButton):
             'activated': False
         }
 
-    def onClickHandler(self):
+    def onClickHandler(self, event):
         self.setState({'activated': not self.state['activated']})
 
-    def onClickOption1(self):
+    def onClickOption1(self, event):
         print('option 1')
         self.setState({'activated': False})
 
-    def onClickOption2(self):
+    def onClickOption2(self, event):
         print('option 2')
         self.setState({'activated': False})
 
-    def onClickOption3(self):
+    def onClickOption3(self, event):
         print('option 3')
         self.setState({'activated': False})
 
@@ -259,7 +298,7 @@ class SettingsPanel(React.Component):
             'show': False
         }
 
-    def onCloseClick(self):
+    def onCloseClick(self, event):
         self.setState({'show': False})
 
     def render(self):
@@ -289,7 +328,7 @@ def main():
 
     chats_listview = app.ROOT_NODE.getElementById("chats-listview")
     chats_listview.attrs['data_model'].items = CHATS
-    
+
     app.run(with_prepare=False)
 
 

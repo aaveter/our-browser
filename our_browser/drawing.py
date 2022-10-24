@@ -3,7 +3,7 @@ from our_browser.listview import draw_listview
 import cairo, math
 import threading
 
-from our_browser.draw_commons import cr_set_source_rgb_any_hex, cr_set_source_rgb_any_hex_or_simple, hex2color, Scrollable
+from our_browser.draw_commons import cr_set_source_rgb_any_hex, cr_set_source_rgb_any_hex_or_simple, hex2color, Scrollable, PRIOR_EVENT_HANDLERS
 
 
 check_is_drawable = lambda node: node.tag and node.tag.text not in ('style', 'script', 'head', 'items') and not node.tag.text.startswith('!')
@@ -75,6 +75,11 @@ class SelectControl:
         self.end = None
 
 SELECT_CONTROL = SelectControl()
+
+class Event:
+
+    def __init__(self) -> None:
+        pass
 
 
 def make_drawable_tree(parent, drawer=None, with_html=False):
@@ -157,9 +162,13 @@ def get_size_prop_from_node_or_parent(node, name, parent_prop, default=0):
 
 
 def get_size_prop_from_node(node, name, parent_prop, default=0):
-    if not hasattr(node, 'style'):
-        return 0
-    prop = node.style.get(name, default)
+    prop = None
+    if hasattr(node, name):
+        prop = getattr(node, name)
+    else:
+        if not hasattr(node, 'style'):
+            return 0
+        prop = node.style.get(name, default)
     return get_size_prop_from_prop(prop, parent_prop, default)
 
 def get_size_prop_from_prop(prop, parent_prop, default=0):
@@ -176,6 +185,18 @@ def get_size_prop_from_prop(prop, parent_prop, default=0):
         else:
             prop = default
     return prop
+
+
+def get_int_prop_from_node(node, name, default=None):
+    prop = None
+    if hasattr(node, name):
+        prop = getattr(node, name)
+    else:
+        if not hasattr(node, 'style'):
+            return 0
+        prop = node.style.get(name, default)
+    return prop
+
 
 class Calced:
 
@@ -214,7 +235,8 @@ class Calced:
             border_radius = int(node.style.get('border-radius', 0))
 
             display = node.style.get('display', None)
-            flex = node.style.get('flex', None)
+            #flex = node.style.get('flex', None)
+            flex = get_int_prop_from_node(node, 'flex', default=None)
             flex_direction = node.style.get('flex-direction', None)
             align_items = node.style.get('align-items', None)
             justify_content = node.style.get('justify-content', None)
@@ -689,7 +711,7 @@ class DrawerBlock(DrawerNode):
     def propagateEvent(self, pos, event_name):
         changed = False
 
-        if self.checkPostIntoMe(pos):
+        if self.checkPostIntoMe(pos) or self in PRIOR_EVENT_HANDLERS:
             if not self.node.is_hovered:
                 self.node.is_hovered = True
                 changed = True
@@ -701,8 +723,17 @@ class DrawerBlock(DrawerNode):
                     changed = True # return True
 
             ev = self.node.attrs.get(event_name, None) if self.node.attrs else None
-            if ev and ev():
-                changed = True # return True
+            if ev:
+                _event = Event()
+                _event.pos = pos
+                _event.event_name = event_name
+                _ev_ret = ev(_event)
+                if _ev_ret:
+                    if _ev_ret == 'prior':
+                        PRIOR_EVENT_HANDLERS.insert(0, self)
+                    elif _ev_ret == 'out_prior':
+                        PRIOR_EVENT_HANDLERS.remove(self)
+                    changed = True # return True
 
             if self.node.tag and self.node.tag.text =='listview':
                 listview = self.node.attrs['data_model']

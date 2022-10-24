@@ -3,7 +3,6 @@ import wx
 import cairo
 import statistics
 
-#from our_browser.draw_commons import cr_set_source_rgb_any_hex, hex2color, PRIOR_EVENT_HANDLERS
 from our_browser.draw_commons import Scrollable
 
 

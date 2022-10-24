@@ -216,8 +216,12 @@ class DrawingArea(wx.Panel):
         SELECT_CONTROL.started = True
         SELECT_CONTROL.start = event.Position
         for pr in PRIOR_EVENT_HANDLERS:
-            if pr.doEventPrior(event.Position, 'ondown'):
-                return
+            if hasattr(pr, 'doEventPrior'):
+                if pr.doEventPrior(event.Position, 'ondown'):
+                    return
+            elif hasattr(pr, 'propagateEvent'):
+                if pr.propagateEvent(event.Position, 'ondown'):
+                    return
         _propagateEvent(self.ROOT.node, event.Position, 'ondown')
 
     def onClick(self, event):
@@ -225,9 +229,14 @@ class DrawingArea(wx.Panel):
         SELECT_CONTROL.end = event.Position
         handled = False
         for pr in PRIOR_EVENT_HANDLERS:
-            handled = pr.doEventPrior(event.Position, 'onclick')
-            if handled:
-                break
+            if hasattr(pr, 'doEventPrior'):
+                handled = pr.doEventPrior(event.Position, 'onclick')
+                if handled:
+                    break
+            elif hasattr(pr, 'propagateEvent'):
+                handled = pr.propagateEvent(event.Position, 'onclick')
+                if handled:
+                    break
         if not handled and not _propagateEvent(self.ROOT.node, event.Position, 'onclick'):
             INPUT_CONTROL.set_focus(None)
         self.Refresh()
@@ -237,9 +246,14 @@ class DrawingArea(wx.Panel):
             SELECT_CONTROL.end = event.Position
         handled = False
         for pr in PRIOR_EVENT_HANDLERS:
-            handled = pr.doEventPrior(event.Position, 'onmoving')
-            if handled:
-                break
+            if hasattr(pr, 'doEventPrior'):
+                handled = pr.doEventPrior(event.Position, 'onmoving')
+                if handled:
+                    break
+            elif hasattr(pr, 'propagateEvent'):
+                handled = pr.propagateEvent(event.Position, 'onmoving')
+                if handled:
+                    break
         if not handled and _propagateEvent(self.ROOT.node, event.Position, 'onmoving'):
             handled = True
         if handled:
