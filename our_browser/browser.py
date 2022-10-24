@@ -213,8 +213,10 @@ class DrawingArea(wx.Panel):
         self.Refresh()
 
     def onDown(self, event):
-        SELECT_CONTROL.started = True
+        SELECT_CONTROL.started = False
+        SELECT_CONTROL.listview = None
         SELECT_CONTROL.start = event.Position
+        SELECT_CONTROL.end = event.Position
         for pr in PRIOR_EVENT_HANDLERS:
             if hasattr(pr, 'doEventPrior'):
                 if pr.doEventPrior(event.Position, 'ondown'):
@@ -222,7 +224,9 @@ class DrawingArea(wx.Panel):
             elif hasattr(pr, 'propagateEvent'):
                 if pr.propagateEvent(event.Position, 'ondown'):
                     return
-        _propagateEvent(self.ROOT.node, event.Position, 'ondown')
+        if _propagateEvent(self.ROOT.node, event.Position, 'ondown'):
+            return
+        SELECT_CONTROL.started = True
 
     def onClick(self, event):
         SELECT_CONTROL.started = False
@@ -242,8 +246,6 @@ class DrawingArea(wx.Panel):
         self.Refresh()
 
     def onMoving(self, event):
-        if SELECT_CONTROL.started:
-            SELECT_CONTROL.end = event.Position
         handled = False
         for pr in PRIOR_EVENT_HANDLERS:
             if hasattr(pr, 'doEventPrior'):
@@ -256,6 +258,10 @@ class DrawingArea(wx.Panel):
                     break
         if not handled and _propagateEvent(self.ROOT.node, event.Position, 'onmoving'):
             handled = True
+        if not handled:
+            if SELECT_CONTROL.started:
+                SELECT_CONTROL.end = event.Position
+                handled = True
         if handled:
             self.Refresh()
 
