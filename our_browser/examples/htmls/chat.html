@@ -70,6 +70,9 @@
             .color-5 {background-color:#f4bbb4;} .color-5:hover {background-color:#ca9891;}
             .color-6 {background-color:#9cbdf4;} .color-6:hover {background-color:#819ecf;}
             .color-7 {background-color:#a1b2b7;} .color-7:hover {background-color:#798c92;}
+
+            .chat-status {position: absolute; left: 38px; top: 30px; width: 12px; height: 12px; border-radius: 6px;
+                background-color: #77ff77; border: 2px solid #ffffff;}
         </style>
     </head>
     <body class="width-100p height-100p" id="body">
@@ -85,18 +88,7 @@
                     <div class="flex-1 _white _border-right common-padding common-font">
                         <listview class="page green" id="chats-listview" items-count="1000">
                             <template>
-                                <item class='item yellow flex-horizontal flex-align-center chat'>
-                                    <div class="image-button button {{item.color}} margin-10 chat-image" >
-                                        <image class="image-26 image-button-content-chat" src="our_browser/examples/htmls/user_black.png" />
-                                    </div>
-                                    <div class="flex-1 height-100p">
-                                        <div class="height-100p width-100p flex-vertical chat-right-part">
-                                            <div class="chat-name">{{ item.name }}</div>
-                                            <div class="chat-div"></div>
-                                            <div class="chat-message">{{ item.text }}</div>
-                                        </div>
-                                    </div>
-                                </item>
+                                <ChatItem />
                             </template>
                             <items />
                         </listview>

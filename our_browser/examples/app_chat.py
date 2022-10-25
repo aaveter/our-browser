@@ -313,6 +313,25 @@ class SettingsPanel(React.Component):
             </div>
         '''
 
+class ChatItem(React.Component):
+
+    def render(self):
+        return '''
+            <item class='item yellow flex-horizontal flex-align-center chat'>
+                <div class="image-button button {{item.color}} margin-10 chat-image" >
+                    <image class="image-26 image-button-content-chat" src="our_browser/examples/htmls/user_black.png" />
+                    <div class="chat-status" />
+                </div>
+                <div class="flex-1 height-100p">
+                    <div class="height-100p width-100p flex-vertical chat-right-part">
+                        <div class="chat-name">{{ item.name }}</div>
+                        <div class="chat-div"></div>
+                        <div class="chat-message">{{ item.text }}</div>
+                    </div>
+                </div>
+            </item>
+        '''
+
 
 def main():
     app = BrowserApp(html_text=HTML_TEXT)

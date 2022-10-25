@@ -543,6 +543,7 @@ class DrawerBlock(DrawerNode):
 
         rect = (ps[0], ps[1], size_calced[0], size_calced[1])
 
+        tag = self.node.tag.text if self.node.tag else None
         is_absolute = self.calced.position == 'absolute'
         if not absolutes or is_absolute:
 
@@ -566,12 +567,14 @@ class DrawerBlock(DrawerNode):
             if self.ability:
                 self.ability.draw(cr, rect)
 
-            tag = self.node.tag.text if self.node.tag else None
             if tag == 'listview':
                 listview = self.node.attrs.get('data_model', None)
                 if listview and listview.template:
-                    draw_listview(self, listview, cr)
+                    draw_listview(self, listview, cr, absolutes=absolutes)
                     return
+
+        if tag in ('template', 'listview'):
+            return
 
         for node in self.node.children:
 
@@ -1132,7 +1135,7 @@ def _findAbsolute(node, pos):
     absolutes = []
 
     tag = node.tag.text if node.tag else None
-    if tag == 'items':
+    if tag == 'template':
         return absolutes
 
     drawer = getattr(node, 'drawer', None)

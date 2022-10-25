@@ -130,7 +130,9 @@ def fill_template_texts(template, texts):
         children.append(child_texts)
 
 
-def draw_listview(drawer, listview, cr):
+def draw_listview(drawer, listview, cr, absolutes=False):
+    if absolutes:
+        return
     try:
         _items_count = listview.getItemsCount()
 
@@ -192,7 +194,7 @@ def draw_listview(drawer, listview, cr):
             _ps, _sz = t_drawer.add_subnode_pos_size(template, _ps, _sz, margin=t_drawer.calced.margin)
             hh.append(_sz[1])
 
-            t_drawer.draw(temp_cr)
+            t_drawer.draw(temp_cr, absolutes=absolutes)
 
             k += 1
 
