@@ -65,7 +65,7 @@ CHATS = [ Chat(f'Chat {i+1}', 'Some message...', '10:20') for i in range(1000) ]
 class App(React.Component):
 
     def __init__(self, props) -> None:
-        super().__init__()
+        super().__init__(props)
 
         self.state = {
             'count': props['count']
@@ -86,7 +86,7 @@ class App(React.Component):
 class LeftTopPanel(React.Component):
 
     def __init__(self, props) -> None:
-        super().__init__()
+        super().__init__(props)
         self.state = {
             'search': False
         }
@@ -163,7 +163,7 @@ class HorSplitter(React.Component):
 class ChatButton(React.Component):
 
     def __init__(self, props) -> None:
-        super().__init__()
+        super().__init__(props)
         self.state = {
             'count': None
         }
@@ -186,7 +186,7 @@ class ChatButton(React.Component):
 class SendButton(React.Component):
 
     def __init__(self, props) -> None:
-        super().__init__()
+        super().__init__(props)
         self.mes_k = 0
         self.state = {
             'messages': None
@@ -221,7 +221,7 @@ class SendButton(React.Component):
 class ImageButton(React.Component):
 
     def __init__(self, props) -> None:
-        super().__init__()
+        super().__init__(props)
         self.src = props['src']
         self._onClickHandler = props.get('onClick', None)
         self.className = props.get('className', 'image-button button')
@@ -279,7 +279,7 @@ class ChatMenuButton(ImageButton):
 class SearchButton(React.Component):
 
     def __init__(self, props) -> None:
-        super().__init__()
+        super().__init__(props)
         self.src = props['src']
         self.onClickHandler = props['onClick']
 
@@ -305,7 +305,7 @@ class SettingsPanel(React.Component):
         inner = ''
         if self.state['show']:
             inner = f'''<div class="height-100p width-100p white">
-                <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={EVENT(self.onCloseClick)} />
+                <ImageButton src="our_browser/examples/htmls/cancel.png" onclick={EVENT(self.onCloseClick)} />
             </div>'''
         return f'''
             <div class="height-100p width-100p absolute left-top-0" id="settings-panel">
@@ -315,18 +315,21 @@ class SettingsPanel(React.Component):
 
 class ChatItem(React.Component):
 
+    def onClick(self, event):
+        print('...click', id(self))
+
     def render(self):
-        return '''
-            <item class='item yellow flex-horizontal flex-align-center chat'>
-                <div class="image-button button {{item.color}} margin-10 chat-image" >
+        return f'''
+            <item class='item yellow flex-horizontal flex-align-center chat' onclick={EVENT(self.onClick)} >
+                <div class="image-button button [[item.color]] margin-10 chat-image" >
                     <image class="image-26 image-button-content-chat" src="our_browser/examples/htmls/user_black.png" />
                     <div class="chat-status" />
                 </div>
                 <div class="flex-1 height-100p">
                     <div class="height-100p width-100p flex-vertical chat-right-part">
-                        <div class="chat-name">{{ item.name }}</div>
+                        <div class="chat-name">[[ item.name ]]</div>
                         <div class="chat-div"></div>
-                        <div class="chat-message">{{ item.text }}</div>
+                        <div class="chat-message">[[ item.text ]]</div>
                     </div>
                 </div>
             </item>

@@ -1,4 +1,5 @@
 from copy import copy, deepcopy
+from types import NoneType
 
 from .styler import Styler
 
@@ -42,7 +43,20 @@ class Node(ReprLikeStr):
     def cloneNode(self, with_drawer=False, new_parent=None):
         node = self.__class__(self.parent if not new_parent else new_parent, self.tag, self.tag_end)
         node.level = self.level
-        node.attrs = deepcopy(self.attrs)
+
+        _react_component = None
+        if hasattr(self, 'react_component'):
+            _react_component = self.react_component.__class__(self.react_component.props)
+            _react_component.connect(node)
+
+        _attrs = {}
+        for nm, vl in self.attrs.items():
+            if callable(vl):
+                _attrs[nm] = getattr(_react_component, vl.__name__)
+            else:
+                _attrs[nm] = deepcopy(vl)
+        node.attrs = _attrs
+
         node.text = self.text
         node.is_hovered = self.is_hovered
         for a in ('style_simple', 'style_hover', 'style_hover_full'):

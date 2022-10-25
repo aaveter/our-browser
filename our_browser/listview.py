@@ -53,12 +53,13 @@ class ListviewControl(Scrollable):
         counter = str(i)
 
         if text:
-            lst = text.split('{{')
+            _spl_1, _spl_2 = ('{{', '}}') if '{{' in text else ('[[', ']]')
+            lst = text.split(_spl_1)
             if len(lst) > 1:
                 for i, part in enumerate(lst):
                     if i == 0:
                         continue
-                    a, b = part.split('}}')
+                    a, b = part.split(_spl_2)
                     a = a.strip()
                     if a == 'counter':
                         a = counter
@@ -76,12 +77,13 @@ class ListviewControl(Scrollable):
             if classList != None:
                 classList = copy(classList)
                 for j, s in enumerate(classList):
-                    if '{{' in s:
-                        lst = s.split('{{')
+                    _spl_1, _spl_2 = ('{{', '}}') if '{{' in s else ('[[', ']]')
+                    if _spl_1 in s:
+                        lst = s.split(_spl_1)
                         for i, part in enumerate(lst):
                             if i == 0:
                                 continue
-                            a, b = part.split('}}')
+                            a, b = part.split(_spl_2)
                             a = a.strip()
                             if a.startswith('item.'):
                                 attr_name = a[5:]
@@ -212,5 +214,6 @@ def draw_listview(drawer, listview, cr, absolutes=False):
             listview.draw_scroll_pos(cr, lv_pos, lv_size)
     except Exception as e:
         print(e)
+        raise
 
 

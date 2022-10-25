@@ -80,12 +80,12 @@ class _ReactDOM:
 class _ReactComponent:
 
     def __init__(self, props=None) -> None:
-        pass
+        self.props = props
 
     def connect(self, node) -> None:
         self.node = node
         node.react_component = self
-    
+
     @classmethod
     def get_subclasses(cls):
         return cls.__subclasses__()
