@@ -1,5 +1,6 @@
 from os.path import abspath, dirname, join
 import sys
+from random import choice
 
 HERE = dirname(abspath(__file__))
 PROJ_PATH = dirname(dirname(HERE))
@@ -48,7 +49,7 @@ class Chat(ItemBase):
 
     _color_i = -1
 
-    def __init__(self, name, text, time) -> None:
+    def __init__(self, name, text, time, status) -> None:
         super().__init__(text)
         self.name = name
         self.time = time
@@ -58,9 +59,11 @@ class Chat(ItemBase):
             Chat._color_i = 0
 
         self.color = COLORS[Chat._color_i]
+        self.status = status
 
 
-CHATS = [ Chat(f'Chat {i+1}', 'Some message...', '10:20') for i in range(1000) ]
+STATUSES = ['active', 'sleep']
+CHATS = [ Chat(f'Chat {i+1}', 'Some message...', '10:20', choice(STATUSES)) for i in range(1000) ]
 
 class App(React.Component):
 
@@ -316,14 +319,14 @@ class SettingsPanel(React.Component):
 class ChatItem(React.Component):
 
     def onClick(self, event):
-        print('...click', id(self))
+        print('...click', id(self), self.item.status)
 
     def render(self):
         return f'''
             <item class='item yellow flex-horizontal flex-align-center chat' onclick={EVENT(self.onClick)} >
                 <div class="image-button button [[item.color]] margin-10 chat-image" >
                     <image class="image-26 image-button-content-chat" src="our_browser/examples/htmls/user_black.png" />
-                    <div class="chat-status" />
+                    <div class="chat-status chat-[[item.status]]" />
                 </div>
                 <div class="flex-1 height-100p">
                     <div class="height-100p width-100p flex-vertical chat-right-part">
