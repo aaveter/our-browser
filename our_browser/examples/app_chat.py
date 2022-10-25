@@ -49,7 +49,7 @@ class Chat(ItemBase):
 
     _color_i = -1
 
-    def __init__(self, name, text, time, status) -> None:
+    def __init__(self, name, text, time, chat_type, status) -> None:
         super().__init__(text)
         self.name = name
         self.time = time
@@ -59,11 +59,13 @@ class Chat(ItemBase):
             Chat._color_i = 0
 
         self.color = COLORS[Chat._color_i]
+        self.chat_type = chat_type
         self.status = status
 
 
 STATUSES = ['active', 'sleep']
-CHATS = [ Chat(f'Chat {i+1}', 'Some message...', '10:20', choice(STATUSES)) for i in range(1000) ]
+CHAT_TYPES = ['private', 'group']
+CHATS = [ Chat(f'Chat {i+1}', 'Some message...', '10:20', choice(CHAT_TYPES), choice(STATUSES)) for i in range(1000) ]
 
 class App(React.Component):
 
@@ -308,7 +310,7 @@ class SettingsPanel(React.Component):
         inner = ''
         if self.state['show']:
             inner = f'''<div class="height-100p width-100p white">
-                <ImageButton src="our_browser/examples/htmls/cancel.png" onclick={EVENT(self.onCloseClick)} />
+                <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={EVENT(self.onCloseClick)} />
             </div>'''
         return f'''
             <div class="height-100p width-100p absolute left-top-0" id="settings-panel">
@@ -319,14 +321,17 @@ class SettingsPanel(React.Component):
 class ChatItem(React.Component):
 
     def onClick(self, event):
-        print('...click', id(self), self.item.status)
+        print('...click', id(self), self.item.chat_type, self.item.status)
 
     def render(self):
+        add = ''
+        if not self.item or self.item.chat_type == 'private':
+            add = f'<div class="chat-status chat-[[item.status]]" />'
         return f'''
             <item class='item yellow flex-horizontal flex-align-center chat' onclick={EVENT(self.onClick)} >
                 <div class="image-button button [[item.color]] margin-10 chat-image" >
                     <image class="image-26 image-button-content-chat" src="our_browser/examples/htmls/user_black.png" />
-                    <div class="chat-status chat-[[item.status]]" />
+                    {add}
                 </div>
                 <div class="flex-1 height-100p">
                     <div class="height-100p width-100p flex-vertical chat-right-part">

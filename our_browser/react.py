@@ -81,6 +81,7 @@ class _ReactComponent:
 
     def __init__(self, props=None) -> None:
         self.props = props
+        self.item = None
 
     def connect(self, node) -> None:
         self.node = node
@@ -109,7 +110,8 @@ class _ReactComponent:
         ReactDOM._connect_methods(self.node, _methods)
         if not first_start:
             self.node.app._connect_styles(self.node)
-            self.node.app.update_drawers()
+            #self.node.app.update_drawers()
+            make_drawable_tree(self.node)
 
     def render(self):
         pass

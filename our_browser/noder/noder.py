@@ -50,11 +50,12 @@ class Node(ReprLikeStr):
             _react_component.connect(node)
 
         _attrs = {}
-        for nm, vl in self.attrs.items():
-            if callable(vl):
-                _attrs[nm] = getattr(_react_component, vl.__name__)
-            else:
-                _attrs[nm] = deepcopy(vl)
+        if self.attrs:
+            for nm, vl in self.attrs.items():
+                if callable(vl):
+                    _attrs[nm] = getattr(_react_component, vl.__name__)
+                else:
+                    _attrs[nm] = deepcopy(vl)
         node.attrs = _attrs
 
         node.text = self.text
