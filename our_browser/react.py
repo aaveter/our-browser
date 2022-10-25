@@ -13,10 +13,8 @@ class _ReactDOM:
         d = self.react_classes = {}
 
         for cls in _ReactComponent.get_subclasses():
-            print('***', cls, cls.__name__)
             d[cls.__name__] = cls
             for cls2 in cls.get_subclasses():
-                print('***2', cls2, cls2.__name__)
                 d[cls2.__name__] = cls2
 
         root_0 = noder_parse_text(html)
@@ -48,7 +46,6 @@ class _ReactDOM:
             return root
 
     def _render_node(self, root, cls, attrs_smart_update=False):
-        print('[ _render_node ]', cls)
         component = cls(root.attrs)
         component.connect(root)
         component._render(#first_start=True,
@@ -61,7 +58,6 @@ class _ReactDOM:
             for a, v in node.attrs.items():
                 if type(v)==str and v.startswith('METHOD-'):
                     pos = int(v[7:])
-                    print('COOOOOOOOONNECT method:', pos, id(_methods[pos]))
                     node.attrs[a] = _methods[pos]
         for ch in node.children:
             self._connect_methods(ch, _methods)
@@ -94,9 +90,6 @@ class _ReactComponent:
     def setState(self, d):
         self.state.update(d)
         self._render()
-        # print('CLEAR ({}):'.format(id(self.node)), self.node)
-        # self.node.children.clear()
-        # print('CLEARED:', self.node)
 
     def _render(self, first_start=False, attrs_smart_update=False):
         ReactDOM._methods_tmp.clear()
@@ -123,7 +116,6 @@ class React:
 
 
 def EVENT(method):
-    print('[ METHOD ] {} = {}'.format(method, id(method)))
     ln = len(ReactDOM._methods_tmp)
     ReactDOM._methods_tmp.append(method)
     return 'METHOD-{}'.format(ln)

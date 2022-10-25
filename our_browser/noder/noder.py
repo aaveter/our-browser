@@ -1,5 +1,4 @@
 from copy import copy, deepcopy
-from types import NoneType
 
 from .styler import Styler
 

@@ -186,8 +186,11 @@ def draw_listview(drawer, listview, cr, absolutes=False):
             else:
                 template = items[k]
             if hasattr(template, 'react_component'):
-                template.react_component.item = listview.items[i]
-                template.react_component._render()
+                _last_item = template.react_component.item
+                _new_item = listview.items[i]
+                if _new_item != _last_item:
+                    template.react_component.item = _new_item
+                    template.react_component._render()
 
             t_drawer = template.drawer
 

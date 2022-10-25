@@ -69,22 +69,7 @@ CHATS = [ Chat(f'Chat {i+1}', 'Some message...', '10:20', choice(CHAT_TYPES), ch
 
 class App(React.Component):
 
-    def __init__(self, props) -> None:
-        super().__init__(props)
-
-        self.state = {
-            'count': props['count']
-        }
-
-    def onClick(self):
-        print('>>>>>>>>> COMPONENT click:', id(self))
-        self.setState({
-            'count': int(self.state['count']) + 1
-        })
-
     def render(self):
-        count = self.state['count']
-        print('count ----------', count)
         return HTML_INNER
 
 
@@ -184,7 +169,6 @@ class ChatButton(React.Component):
 
     def render(self):
         count = self.state['count']
-        print('count ----------', count)
         return f'<button class="flex-1 top-panel-content-font" onclick={EVENT(self.onClick)} >Chat App</button>'
 
 
