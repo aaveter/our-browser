@@ -6,6 +6,7 @@ import cairo
 from os.path import abspath, join, dirname
 import sys
 from inspect import ismethod
+from datetime import datetime
 
 from our_browser.ext_depends import noder_parse_file, noder_parse_text, DATA_PATH
 from our_browser.drawing import make_drawable_tree, INPUT_CONTROL, _propagateEvent, Calced, SELECT_CONTROL
@@ -126,6 +127,7 @@ class DrawingArea(wx.Panel):
         self.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
 
         #self.SetFocus()
+        self.dts = tuple()
 
     def changeCursor(self, name):
         if name == 'wait':
@@ -158,10 +160,20 @@ class DrawingArea(wx.Panel):
         cr.rectangle(0, 0, size[0], size[1])
         cr.fill()
 
+        start = datetime.now()
         self.calc(size)
-
+        tm1 = datetime.now()
+        dt1 = (tm1 - start).total_seconds()
         self.ROOT.draw(cr)
+        tm2 = datetime.now()
+        dt2 = (tm2 - tm1).total_seconds()
         self.ROOT.draw(cr, absolutes=True)
+        tm3 = datetime.now()
+        dt3 = (tm3 - tm2).total_seconds()
+        self.dts = (dt1, dt2, dt3)
+
+        if self.mainFrame.dev.IsShown():
+            self.mainFrame.dev.Refresh()
 
     def calc(self, size):
         self.ROOT.calc_size(size, (0, self.scroll_pos), (0, self.scroll_pos))
@@ -477,8 +489,14 @@ class DevTreeArea(wx.Panel, Scrollable):
             text = '[ ROOT ] ' + text
         cr.show_text(text)
 
+        x, y = 250, 10
+        for dt in self.mainPanel.dts:
+            cr.move_to(x, y + font_size)
+            text = "{}".format(dt)
+            cr.show_text(text)
+            y += font_size
+
         if line_y==self.current_y:
-            x, y = 250, 10
             for add in ('simple', 'hover'):
                 _style = getattr(node, 'style_'+add, None)
                 if _style:

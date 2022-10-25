@@ -129,14 +129,14 @@ class HorSplitter(React.Component):
         self.started_left = 0
 
     def onDownHandler(self, event):
-        print("...onDownHandler", event.pos, self.node.drawer.calced.left)
+        #print("...onDownHandler", event.pos, self.node.drawer.calced.left)
         self.started_left = self.node.drawer.pos[0]
         self.started = event.pos
         return 'prior'
 
     def onMovingHandler(self, event):
         if self.started != None:
-            print("...onMovingHandler", event.pos, self.node.drawer.calced.left, self.node.style['left'], self.node.parent.drawer.calced.rect.width)
+            #print("...onMovingHandler", event.pos, self.node.drawer.calced.left, self.node.style['left'], self.node.parent.drawer.calced.rect.width)
             new_left = self.started_left + (event.pos[0] - self.started[0])
             new_proc = 100.0 * new_left / self.node.parent.drawer.calced.rect.width
             self.node.left = (new_proc, '%') ## !!!!
@@ -150,7 +150,7 @@ class HorSplitter(React.Component):
     def onClickHandler(self, event):
         if self.started != None:
             self.started = None
-            print("...onClickHandler", event.pos, self.node.drawer.calced.left)
+            #print("...onClickHandler", event.pos, self.node.drawer.calced.left)
             return 'out_prior'
 
     def render(self):
