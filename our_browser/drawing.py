@@ -435,8 +435,6 @@ class DrawerBlock(DrawerNode):
         self.pos = pos_my
         self.size_my = size_my
 
-        # size_calced = self.calc_children(pos_my, size_my)
-
         parent = self.check_parent_flex()
         if parent:
             align_items = parent.calced.align_items
@@ -634,6 +632,7 @@ class DrawerBlock(DrawerNode):
         x += 0.5
         x0 = x
         is_right_aligned = text_align == 'right'
+        is_center_aligned = text_align == 'center'
 
         fw_size_w = self.calced.calc_font_size_w(font_size)
         for line in lines:
@@ -642,6 +641,9 @@ class DrawerBlock(DrawerNode):
             if is_right_aligned:
                 line_width = fw_size_w * len(line)
                 _x = x + width - line_width
+            elif is_center_aligned:
+                line_width = fw_size_w * len(line)
+                _x = x + width/2 - line_width/2
             if y >= y0:
                 dy = font_size*0.82
                 y_bottom = y + dy
