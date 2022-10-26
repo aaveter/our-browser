@@ -348,9 +348,12 @@ class ChatMenuButton(ImageButton):
         if self.state['activated']:
             inner = f'''
             <div class="absolute top-100 left-0 menu white">
-                <li class="menu-item" onclick="{EVENT(self.onClickOption1)}">Option 1</li>
-                <li class="menu-item" onclick="{EVENT(self.onClickOption2)}">Option 2</li>
-                <li class="menu-item" onclick="{EVENT(self.onClickOption2)}">Option 3</li>
+                <li class="menu-item" onclick="{EVENT(self.onClickOption1)}">Create group</li>
+                <li class="menu-item" onclick="{EVENT(self.onClickOption2)}">Edit group</li>
+                <li class="menu-item" onclick="{EVENT(self.onClickOption2)}">Exit group</li>
+                <li class="menu-item" onclick="{EVENT(self.onClickOption2)}">Update</li>
+                <li class="menu-item" onclick="{EVENT(self.onClickOption2)}">Mute</li>
+                <li class="menu-item" onclick="{EVENT(self.onClickOption2)}">Pin</li>
             </div>
             '''
         return super().render(inner)
