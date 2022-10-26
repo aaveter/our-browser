@@ -73,6 +73,17 @@ class App(React.Component):
         return HTML_INNER
 
 
+from threading import Timer
+from time import sleep
+
+def timed(func):
+
+    def _new_func(*args, **kwargs):
+        sleep(0.300)
+        return func(*args, **kwargs)
+
+    return _new_func
+
 class LeftTopPanel(React.Component):
 
     def __init__(self, props) -> None:
@@ -82,11 +93,12 @@ class LeftTopPanel(React.Component):
         }
 
     def onSettingsClick(self, event):
+        print("[ LeftTopPanel ] onSettingsClick", id(self))
         settings_panel_node = self.node.app.ROOT_NODE.getElementById("settings-panel")
         settings_panel_node.react_component.setState({"show": True})
 
     def onSearchClick(self, event):
-        print('click', self)
+        print('[ LeftTopPanel ] onSearchClick', id(self))
         self.setState({
             'search': not self.state['search']
         })
@@ -288,7 +300,9 @@ class SettingsPanel(React.Component):
         }
 
     def onCloseClick(self, event):
+        print("[ SettingsPanel ] onCloseClick")
         self.setState({'show': False})
+        return True # TODO important because 2 buttons into one pos
 
     def render(self):
         inner = ''

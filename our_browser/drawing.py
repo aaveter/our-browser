@@ -776,6 +776,24 @@ class DrawerBlock(DrawerNode):
                 if ret:
                     changed = True # return ret
 
+        # else:
+        #     if self.node.is_hovered:
+        #         self.node.is_hovered = False
+        #         changed = True
+        #         if getattr(self.calced, 'cursor', None):
+        #             self.node.app.mainPanel.changeCursor(None)
+
+        #     if self.node.tag and self.node.tag.text =='listview':
+        #         listview = self.node.attrs['data_model']
+        #         listview.doEventOut(pos, event_name)
+
+        return changed
+
+    def propagateEventOut(self, pos, event_name):
+        changed = False
+
+        if self.checkPostIntoMe(pos) or self in PRIOR_EVENT_HANDLERS:
+            pass
         else:
             if self.node.is_hovered:
                 self.node.is_hovered = False
@@ -788,6 +806,7 @@ class DrawerBlock(DrawerNode):
                 listview.doEventOut(pos, event_name)
 
         return changed
+
 
     def checkPostIntoMe(self, pos):
         if not hasattr(self, 'pos'):
@@ -1104,13 +1123,28 @@ class DrawerFlexItem(DrawerBlock):
         return pos, size_calced
 
 
-def _propagateEvent(node, pos, event_name):
-    absolutes = _findAbsolute(node, pos)
-    if absolutes:
-        ret = _propagateEventDo(absolutes[-1], pos, event_name)
+def _propagateEvent(root_node, pos, event_name):
+    changed = _propagateEventOut(root_node, pos, event_name)
+    nodes = _findNodesInPos(root_node, pos)
+    for node in nodes[::-1]:
+        ret = _propagateEventDo(node, pos, event_name)
         if ret:
             return ret
-    return _propagateEventDo(node, pos, event_name)
+    return _propagateEventDo(root_node, pos, event_name) or changed
+
+def _propagateEventOut(node, pos, event_name):
+    changed = False
+
+    if node.tag and node.tag.text == 'template':
+        return changed
+
+    if hasattr(node, 'drawer'):
+        changed = node.drawer.propagateEventOut(pos, event_name)
+
+    for ch in node.children:
+        changed = changed or _propagateEventOut(ch, pos, event_name)
+
+    return changed
 
 def _propagateEventDo(node, pos, event_name):
     drawer = getattr(node, 'drawer', None)
@@ -1124,26 +1158,44 @@ def _propagateEventDo(node, pos, event_name):
         if drawer.propagateEvent(pos, event_name):
             changed = True
 
-    for ch in node.children:
-        ret = _propagateEventDo(ch, pos, event_name)
-        if ret:
-            changed = True #return ret
+    # for ch in node.children:
+    #     ret = _propagateEventDo(ch, pos, event_name)
+    #     if ret:
+    #         changed = True #return ret
 
     return changed
 
-def _findAbsolute(node, pos):
-    absolutes = []
+
+def _findNodesInPos(node, pos):
+    nodes = []
 
     tag = node.tag.text if node.tag else None
     if tag == 'template':
-        return absolutes
+        return nodes
 
     drawer = getattr(node, 'drawer', None)
     if drawer and drawer.checkPostIntoMe(pos):
-        if drawer.calced.position == 'absolute':
-            absolutes.append(node)
+        nodes.append(node)
 
     for ch in node.children:
-        absolutes += _findAbsolute(ch, pos)
-    return absolutes
+        nodes += _findNodesInPos(ch, pos)
+
+    return nodes
+
+
+# def _findAbsolute(node, pos):
+#     absolutes = []
+
+#     tag = node.tag.text if node.tag else None
+#     if tag == 'template':
+#         return absolutes
+
+#     drawer = getattr(node, 'drawer', None)
+#     if drawer and drawer.checkPostIntoMe(pos):
+#         if drawer.calced.position == 'absolute':
+#             absolutes.append(node)
+
+#     for ch in node.children:
+#         absolutes += _findAbsolute(ch, pos)
+#     return absolutes
 
