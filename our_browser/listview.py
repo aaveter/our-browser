@@ -198,7 +198,6 @@ def draw_listview(drawer, listview, cr, absolutes=False):
                 _last_item = template.react_component.item
                 _new_item = listview.items[i]
                 if _new_item != _last_item:
-                    print('..render', i)
                     template.react_component.item = _new_item
                     template.react_component.item_i = i
                     template.react_component._render()

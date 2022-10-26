@@ -1074,6 +1074,10 @@ class AbilityInput(AbilityBase, Scrollable):
             else:
                 self.drawer.node.text = self.drawer.node.text[:self.cursor_pos] + text + self.drawer.node.text[self.cursor_pos:]
 
+        _attrs = self.drawer.node.attrs
+        if _attrs and 'onchange' in _attrs:
+            _attrs['onchange'](self.drawer.node)
+
     def getDrawer(self):
         return self.drawer
 

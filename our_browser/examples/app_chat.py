@@ -62,9 +62,7 @@ class Chat(ItemBase):
         self.color = COLORS[Chat._color_i]
         self.chat_type = chat_type
         self.status = status
-        #self.is_selected = 0
 
-    # @property
     def is_selected(self):
         return 1 if self == Chat.selected else 0
 
@@ -72,6 +70,7 @@ class Chat(ItemBase):
 STATUSES = ['active', 'sleep']
 CHAT_TYPES = ['private', 'group']
 CHATS = [ Chat(f'Chat {i+1}', 'Some message...', '10:20', choice(CHAT_TYPES), choice(STATUSES)) for i in range(1000) ]
+CHATS_ALL = CHATS[:]
 
 class App(React.Component):
 
@@ -105,14 +104,24 @@ class LeftTopPanel(React.Component):
 
     def onSearchClick(self, event):
         print('[ LeftTopPanel ] onSearchClick', id(self))
+        CHATS[:] = CHATS_ALL
         self.setState({
             'search': not self.state['search']
         })
 
+    def onChange(self, node):
+        print('onchange...', node.text)
+        if len(node.text) > 0:
+            _txt = node.text.lower()
+            _chats = [ ch for ch in CHATS_ALL if _txt in ch.name.lower() or _txt in ch.text.lower() ]
+        else:
+            _chats = CHATS_ALL
+        CHATS[:] = _chats
+
     def render(self):
         if self.state['search']:
             inner =  f'''
-                <input class="flex-1 common-padding common-font height-100p white" />
+                <input class="flex-1 common-padding common-font height-100p white" onchange={EVENT(self.onChange)} />
                 <div class="width-50 height-100p white">
                     <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={EVENT(self.onSearchClick)} />
                 </div>
@@ -137,6 +146,7 @@ class RightPanel(React.Component):
         }
 
     def onCloseClick(self, event):
+        Chat.selected = None
         self.setState({'page': 'empty'})
 
     def render(self):
@@ -175,10 +185,15 @@ class RightPanel(React.Component):
                 </div>
             '''
         else:
-            _page_class = 'flex-align-center'
+            _page_class = '_flex-align-center'
             _page_inner = '''
-                <div class='text-align-center'>
-                    Please choose chat
+                <div class="top-panel-height orange flex-horizontal flex-align-center" />
+                <div class="flex-1">
+                    <div class="height-100p flex-vertical flex-align-center">
+                        <div class='text-align-center'>
+                            Please choose chat
+                        </div>
+                    </div>
                 </div>
             '''
         return f'''
