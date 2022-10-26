@@ -64,7 +64,7 @@ class ListviewControl(Scrollable):
                     if a == 'counter':
                         a = counter
                     elif a.startswith('item.'):
-                        a = getattr(item, a[5:], 'None')
+                        a = str(getattr(item, a[5:], 'None'))
                     lst[i] = a + b
                 text = ''.join(lst)
         else:
@@ -87,7 +87,14 @@ class ListviewControl(Scrollable):
                             a = a.strip()
                             if a.startswith('item.'):
                                 attr_name = a[5:]
+                                _callable = False
+                                if '(' in attr_name:
+                                    _callable = True
+                                    attr_name = attr_name.split('(')[0]
                                 a = getattr(item, attr_name, 'None')
+                                if _callable:
+                                    a = a()
+                                a = str(a)
                             lst[i] = a + b
                         classList[j] = ''.join(lst)
 
@@ -95,6 +102,8 @@ class ListviewControl(Scrollable):
 
         children_texts = texts['children']
         for j, ch_template in enumerate(template.children):
+            if j >= len(children_texts):
+                break
             ch_texts = children_texts[j]
             self.format_template(i, ch_template, ch_texts, item)
 
@@ -189,7 +198,9 @@ def draw_listview(drawer, listview, cr, absolutes=False):
                 _last_item = template.react_component.item
                 _new_item = listview.items[i]
                 if _new_item != _last_item:
+                    print('..render', i)
                     template.react_component.item = _new_item
+                    template.react_component.item_i = i
                     template.react_component._render()
 
             t_drawer = template.drawer

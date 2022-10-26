@@ -1,6 +1,7 @@
 
 from our_browser.ext_depends import noder_parse_text
 from our_browser.drawing import make_drawable_tree
+from our_browser.listview import connect_listview
 
 
 class _ReactDOM:
@@ -105,6 +106,7 @@ class _ReactComponent:
             self.node.app._connect_styles(self.node)
             #self.node.app.update_drawers()
             make_drawable_tree(self.node)
+            connect_listview(self.node)
 
     def render(self):
         pass

@@ -48,6 +48,7 @@ COLORS = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5', 'color-6', 'col
 class Chat(ItemBase):
 
     _color_i = -1
+    selected = None
 
     def __init__(self, name, text, time, chat_type, status) -> None:
         super().__init__(text)
@@ -61,6 +62,11 @@ class Chat(ItemBase):
         self.color = COLORS[Chat._color_i]
         self.chat_type = chat_type
         self.status = status
+        #self.is_selected = 0
+
+    # @property
+    def is_selected(self):
+        return 1 if self == Chat.selected else 0
 
 
 STATUSES = ['active', 'sleep']
@@ -122,6 +128,64 @@ class LeftTopPanel(React.Component):
         </div>
         '''
 
+class RightPanel(React.Component):
+
+    def __init__(self, props=None) -> None:
+        super().__init__(props)
+        self.state = {
+            'page': 'empty'
+        }
+
+    def onCloseClick(self, event):
+        self.setState({'page': 'empty'})
+
+    def render(self):
+        _page_class = ''
+        if self.state['page'] == 'chat':
+            _page_inner = f'''
+                <div class="top-panel-height orange flex-horizontal flex-align-center">
+                    <image class="image-26 top-panel-content-margin" src="our_browser/examples/htmls/user_black.png" />
+                    <div class="flex-1 top-panel-content-font">User name</div>
+                    <ChatMenuButton />
+                    <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={EVENT(self.onCloseClick)} />
+                </div>
+                <div class="flex-1 white_ common-padding common-font">
+                    <listview class="page green2" id="messages-listview">
+                        <template>
+                            <item class='item message flex-horizontal'>
+                                <div class="image-button button color-1" >
+                                    <image class="image-26 image-button-content" src="our_browser/examples/htmls/user_black.png" />
+                                </div>
+                                <div class="flex-1 common-font">
+                                    <b>[[ item.sender ]]</b>
+                                    <div class="message-area">[[ item.text ]]</div>
+                                    <div class='message-time'>[[ item.time ]]</div>
+                                </div>
+                            </item>
+                        </template>
+                        <items />
+                    </listview>
+                </div>
+                <div class="height-100 border-top flex-horizontal flex-align-center">
+                    <input class="flex-1 common-padding common-font height-100" />
+                    <SendButton>
+                        <image class="image-26 top-panel-content-margin button" src="our_browser/examples/htmls/send.png" />
+                    </SendButton>
+                    <ImageButton src="our_browser/examples/htmls/dropfile.png" />
+                </div>
+            '''
+        else:
+            _page_class = 'flex-align-center'
+            _page_inner = '''
+                <div class='text-align-center'>
+                    Please choose chat
+                </div>
+            '''
+        return f'''
+            <div class="height-100p flex-vertical {_page_class}" id="right-panel">
+                {_page_inner}
+            </div>
+        '''
 
 class HorSplitter(React.Component):
 
@@ -320,13 +384,21 @@ class ChatItem(React.Component):
 
     def onClick(self, event):
         print('...click', id(self), self.item.chat_type, self.item.status)
+        Chat.selected = self.item
+        right_panel = self.node.app.ROOT_NODE.getElementById('right-panel')
+        right_panel.react_component.setState({'page': 'chat'})
 
     def render(self):
-        add = ''
+        main_cls, add = '', ''
         if not self.item or self.item.chat_type == 'private':
             add = f'<div class="chat-status chat-[[item.status]]" />'
+        if Chat.selected == self.item:
+            print('[Chat.selected] {} ? {}'.format(id(Chat.selected) if Chat.selected else Chat.selected, id(self.item) if self.item else self.item))
+            if Chat.selected:
+                print('  -> selected')
+                main_cls = 'chat-selected'
         return f'''
-            <item class='item yellow flex-horizontal flex-align-center chat' onclick={EVENT(self.onClick)} >
+            <item class='item yellow flex-horizontal flex-align-center chat chat-selected-[[item.is_selected()]]' onclick={EVENT(self.onClick)} >
                 <div class="image-button button [[item.color]] margin-10 chat-image" >
                     <image class="image-26 image-button-content-chat" src="our_browser/examples/htmls/user_black.png" />
                     {add}
