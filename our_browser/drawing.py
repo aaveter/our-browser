@@ -216,6 +216,7 @@ class Calced:
         align_items = None
         justify_content = None
         text_align = None
+        vertical_align = None
         position = None
         cursor = None
         if hasattr(node, 'style'):
@@ -242,6 +243,7 @@ class Calced:
             align_items = node.style.get('align-items', None)
             justify_content = node.style.get('justify-content', None)
             text_align = node.style.get('text-align', None)
+            vertical_align = node.style.get('vertical-align', None)
             _font_weight_default = 'bold' if node.tag and node.tag.text == 'b' else 'normal'
             self.font_weight = node.style.get('font-weight', _font_weight_default)
 
@@ -265,6 +267,7 @@ class Calced:
         self.align_items = align_items
         self.justify_content = justify_content
         self.text_align = text_align
+        self.vertical_align = vertical_align
 
         self.position = position
         self.left = get_size_prop_from_node(node, 'left', size[0], 0)
@@ -562,7 +565,7 @@ class DrawerBlock(DrawerNode):
 
             padding = self.calced.padding
             self.draw_lines(cr, self.node.lines, (ps[0]+padding, ps[1]+padding), size_calced[0]-padding*2,
-                font_size, font_weight, self.calced.text_align, color)
+                font_size, font_weight, self.calced.text_align, self.calced.vertical_align, color)
 
             if self.ability:
                 self.ability.draw(cr, rect)
@@ -614,7 +617,7 @@ class DrawerBlock(DrawerNode):
             cr.line_to(x2, y2)
         cr.stroke()
 
-    def draw_lines(self, cr, lines, pos, width, font_size, font_weight, text_align, color):
+    def draw_lines(self, cr, lines, pos, width, font_size, font_weight, text_align, vertical_align, color):
         if not lines:
             return
 
@@ -633,9 +636,13 @@ class DrawerBlock(DrawerNode):
             if scroll_pos_y:
                 y -= scroll_pos_y
         x += 0.5
+        dy = font_size*0.82
         x0 = x
         is_right_aligned = text_align == 'right'
         is_center_aligned = text_align == 'center'
+        is_vert_middle_aligned = vertical_align in ('middle', 'center')
+        if is_vert_middle_aligned:
+            y = y + (self.size_calced[1] / 2) - dy/2
 
         fw_size_w = self.calced.calc_font_size_w(font_size)
         for line in lines:
@@ -648,7 +655,6 @@ class DrawerBlock(DrawerNode):
                 line_width = fw_size_w * len(line)
                 _x = x + width/2 - line_width/2
             if y >= y0:
-                dy = font_size*0.82
                 y_bottom = y + dy
                 if SELECT_CONTROL.start != None and SELECT_CONTROL.end != None:
                     _start, _end = SELECT_CONTROL.start, SELECT_CONTROL.end
