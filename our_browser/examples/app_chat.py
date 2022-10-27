@@ -24,10 +24,15 @@ HTML_INNER = '>'.join(HTML_LST[1].split('>')[1:]).split('</body')[0].strip()
 MESSAGES = [
     {
         'sender': 'Sam', 'time': '12:00',
-        'text': "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+        'text': "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+        'quote': {
+            'text': 'Some other message',
+            'sender': 'Neo',
+        },
     }, {
         'sender': 'Neo', 'time': '12:05',
         'text': "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?",
+        'file': 'Some_file.png',
     }, {
         'sender': 'Griffin', 'time': '14:20',
         'text': "But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes, or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful. Nor again is there anyone who loves or pursues or desires to obtain pain of itself, because it is pain, but because occasionally circumstances occur in which toil and pain can procure him some great pleasure. To take a trivial example, which of us ever undertakes laborious physical exercise, except to obtain some advantage from it? But who has any right to find fault with a man who chooses to enjoy a pleasure that has no annoying consequences, or one who avoids a pain that produces no resultant pleasure?",
@@ -36,12 +41,13 @@ MESSAGES = [
 
 class Message(ItemBase):
 
-    def __init__(self, text, sender, time) -> None:
+    def __init__(self, text, sender, time, file) -> None:
         super().__init__(text)
         self.sender = sender
         self.time = time
+        self.file = file
 
-MESSAGES = [ Message(a['text'], a['sender'], a['time']) for a in MESSAGES ]
+MESSAGES = [ Message(a['text'], a['sender'], a['time'], a.get('file', None)) for a in MESSAGES ]
 
 
 COLORS = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5', 'color-6', 'color-7']
@@ -62,6 +68,7 @@ class Chat(ItemBase):
         self.color = COLORS[Chat._color_i]
         self.chat_type = chat_type
         self.status = status
+        self.messages = []
 
     def is_selected(self):
         return 1 if self == Chat.selected else 0
@@ -137,17 +144,51 @@ class LeftTopPanel(React.Component):
         </div>
         '''
 
+class FilterButtons(React.Component):
+
+    def __init__(self, props=None) -> None:
+        super().__init__(props)
+        self.state = {'filter': 'all'}
+
+    def onClickAll(self, event):
+        self.setState({'filter': 'all'})
+
+    def onClickGroups(self, event):
+        self.setState({'filter': 'groups'})
+
+    def onClickContacts(self, event):
+        self.setState({'filter': 'contacts'})
+
+    def render(self):
+        d = {
+            'all': '',
+            'groups': '',
+            'contacts': '',
+        }
+        d[self.state['filter']] = 'current-filter'
+        return f'''
+            <div class="filter-buttons orange flex-horizontal flex-align-center">
+                <div class="flex-1 common-font filter-button height-100p {d['all']}" onclick={EVENT(self.onClickAll)}>All</div>
+                <div class="flex-1 common-font filter-button height-100p {d['groups']}" onclick={EVENT(self.onClickGroups)}>Groups</div>
+                <div class="flex-1 common-font filter-button height-100p {d['contacts']}" onclick={EVENT(self.onClickContacts)}>Contacts</div>
+            </div>
+        '''
+
 class RightPanel(React.Component):
 
     def __init__(self, props=None) -> None:
         super().__init__(props)
         self.state = {
-            'page': 'empty'
+            'page': 'empty',
+            'chat-name': '',
         }
 
     def onCloseClick(self, event):
         Chat.selected = None
         self.setState({'page': 'empty'})
+
+    def initItems(self):
+        return Chat.selected.messages
 
     def render(self):
         _page_class = ''
@@ -155,23 +196,14 @@ class RightPanel(React.Component):
             _page_inner = f'''
                 <div class="top-panel-height orange flex-horizontal flex-align-center">
                     <image class="image-26 top-panel-content-margin" src="our_browser/examples/htmls/user_black.png" />
-                    <div class="flex-1 top-panel-content-font">User name</div>
+                    <div class="flex-1 top-panel-content-font">{self.state['chat-name']}</div>
                     <ChatMenuButton />
                     <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={EVENT(self.onCloseClick)} />
                 </div>
                 <div class="flex-1 white_ common-padding common-font">
-                    <listview class="page green2" id="messages-listview">
+                    <listview class="page green2" id="messages-listview" data-items={EVENT(self.initItems)} >
                         <template>
-                            <item class='item message flex-horizontal'>
-                                <div class="image-button button color-1" >
-                                    <image class="image-26 image-button-content" src="our_browser/examples/htmls/user_black.png" />
-                                </div>
-                                <div class="flex-1 common-font">
-                                    <b>[[ item.sender ]]</b>
-                                    <div class="message-area">[[ item.text ]]</div>
-                                    <div class='message-time'>[[ item.time ]]</div>
-                                </div>
-                            </item>
+                            <MessageItem />
                         </template>
                         <items />
                     </listview>
@@ -210,14 +242,12 @@ class HorSplitter(React.Component):
         self.started_left = 0
 
     def onDownHandler(self, event):
-        #print("...onDownHandler", event.pos, self.node.drawer.calced.left)
         self.started_left = self.node.drawer.pos[0]
         self.started = event.pos
         return 'prior'
 
     def onMovingHandler(self, event):
         if self.started != None:
-            #print("...onMovingHandler", event.pos, self.node.drawer.calced.left, self.node.style['left'], self.node.parent.drawer.calced.rect.width)
             new_left = self.started_left + (event.pos[0] - self.started[0])
             new_proc = 100.0 * new_left / self.node.parent.drawer.calced.rect.width
             self.node.left = (new_proc, '%') ## !!!!
@@ -231,7 +261,6 @@ class HorSplitter(React.Component):
     def onClickHandler(self, event):
         if self.started != None:
             self.started = None
-            #print("...onClickHandler", event.pos, self.node.drawer.calced.left)
             return 'out_prior'
 
     def render(self):
@@ -384,16 +413,42 @@ class SettingsPanel(React.Component):
     def onCloseClick(self, event):
         print("[ SettingsPanel ] onCloseClick")
         self.setState({'show': False})
-        return True # TODO important because 2 buttons into one pos
+        return 'grab' # TODO important because 2 buttons into one pos
+
+    def onCreateGroupClick(self, event):
+        print('onCreateGroupClick')
+
+    def onDisconnectClick(self, event):
+        print('onDisconnectClick')
+
+    def onLogoffClick(self, event):
+        print('onLogoffClick')
+
+    def onClick(self, event):
+        if self.state['show']:
+            return 'grab'
 
     def render(self):
         inner = ''
         if self.state['show']:
-            inner = f'''<div class="height-100p width-100p white">
-                <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={EVENT(self.onCloseClick)} />
-            </div>'''
+            inner = f'''
+                <div class="height-100p width-30p orange">
+                    <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={EVENT(self.onCloseClick)} />
+                    <ImageButton src="our_browser/examples/htmls/user_black.png" />
+                    <div class="common-font">
+                        User name
+                    </div>
+                    <div class="menu-buttons">
+                        <div class="menu-button" onclick={EVENT(self.onCreateGroupClick)}>Create group</div>
+                        <div class="menu-button" onclick={EVENT(self.onDisconnectClick)}>Disconnet</div>
+                        <div class="menu-button" onclick={EVENT(self.onLogoffClick)}>Log off</div>
+                    </div>
+                </div>
+                <div class="height-100p width-70p pol-grey">
+                </div>
+            '''
         return f'''
-            <div class="height-100p width-100p absolute left-top-0" id="settings-panel">
+            <div class="height-100p width-100p absolute left-top-0 flex-horizontal" id="settings-panel" onclick={EVENT(self.onClick)}>
                 {inner}
             </div>
         '''
@@ -404,7 +459,7 @@ class ChatItem(React.Component):
         print('...click', id(self), self.item.chat_type, self.item.status)
         Chat.selected = self.item
         right_panel = self.node.app.ROOT_NODE.getElementById('right-panel')
-        right_panel.react_component.setState({'page': 'chat'})
+        right_panel.react_component.setState({'page': 'chat', 'chat-name': self.item.name})
 
     def render(self):
         main_cls, add = '', ''
@@ -431,6 +486,28 @@ class ChatItem(React.Component):
             </item>
         '''
 
+class MessageItem(React.Component):
+
+    def onClick(self, event):
+        pass
+
+    def render(self):
+        add = ''
+        if self.item and self.item.file:
+            add = f'<div class="file common-font">{self.item.file}</div>'
+        return f'''
+            <item class='item message flex-horizontal'>
+                <div class="image-button button color-1" >
+                    <image class="image-26 image-button-content" src="our_browser/examples/htmls/user_black.png" />
+                </div>
+                <div class="flex-1 common-font">
+                    <b>[[ item.sender ]]</b>
+                    {add}
+                    <div class="message-area">[[ item.text ]]</div>
+                    <div class='message-time'>[[ item.time ]]</div>
+                </div>
+            </item>
+        '''
 
 def main():
     app = BrowserApp(html_text=HTML_TEXT)

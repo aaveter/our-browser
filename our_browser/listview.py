@@ -145,6 +145,10 @@ def draw_listview(drawer, listview, cr, absolutes=False):
     if absolutes:
         return
     try:
+        _data_items = listview.listview.attrs.get('data-items', None)
+        if callable(_data_items):
+            listview.items = _data_items()
+
         _items_count = listview.getItemsCount()
 
         template = template_0 = listview.template.children[0]

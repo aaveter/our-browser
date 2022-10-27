@@ -53,7 +53,6 @@ class InputControl:
     def stop_timer(self):
         if not self.timer:
             return
-        print('[ TIMER ] stop')
         self.ending = True
         if self.timer:
             self.timer.cancel()
@@ -772,7 +771,7 @@ class DrawerBlock(DrawerNode):
                         PRIOR_EVENT_HANDLERS.insert(0, self)
                     elif _ev_ret == 'out_prior':
                         PRIOR_EVENT_HANDLERS.remove(self)
-                    changed = True # return True
+                    changed = _ev_ret # return True
 
             if self.node.tag and self.node.tag.text =='listview':
                 listview = self.node.attrs['data_model']
@@ -798,7 +797,7 @@ class DrawerBlock(DrawerNode):
     def propagateEventOut(self, pos, event_name):
         changed = False
 
-        if self.checkPostIntoMe(pos) or self in PRIOR_EVENT_HANDLERS:
+        if self.checkPostIntoMe(pos):# or self in PRIOR_EVENT_HANDLERS:
             pass
         else:
             if self.node.is_hovered:
@@ -959,8 +958,6 @@ class AbilityInput(AbilityBase, Scrollable):
         cr.set_line_width(1)
 
         fascent, fdescent, fheight, fxadvance, fyadvance = cr.font_extents()
-        # print(fascent, fdescent, fheight, fxadvance, fyadvance)
-        # print(fascent / fheight)
 
         y00 = rect[1]+padding
         x0, y0 = rect[0]+padding, y00 - self.scroll_pos_y
@@ -1043,7 +1040,6 @@ class AbilityInput(AbilityBase, Scrollable):
 
     def doEvent(self, pos, event_name):
         if event_name == 'onclick':
-            print('@@@')
             INPUT_CONTROL.set_focus(self)
             return self
         return Scrollable.doEvent(self, pos, event_name)
@@ -1138,8 +1134,10 @@ def _propagateEvent(root_node, pos, event_name):
     nodes = _findNodesInPos(root_node, pos)
     for node in nodes[::-1]:
         ret = _propagateEventDo(node, pos, event_name)
-        if ret:
+        #print('propagate', id(node), node.tag.text, '->', ret, '=', ret == 'grab')
+        if ret == 'grab':
             return ret
+        changed = changed or ret
     return _propagateEventDo(root_node, pos, event_name) or changed
 
 def _propagateEventOut(node, pos, event_name):
@@ -1165,13 +1163,9 @@ def _propagateEventDo(node, pos, event_name):
         return changed
 
     if drawer:
-        if drawer.propagateEvent(pos, event_name):
-            changed = True
+        changed = drawer.propagateEvent(pos, event_name) or changed
 
-    # for ch in node.children:
-    #     ret = _propagateEventDo(ch, pos, event_name)
-    #     if ret:
-    #         changed = True #return ret
+    #print('propagateDo', id(node), node.tag.text, '->', changed, '=', changed == 'grab')
 
     return changed
 

@@ -270,6 +270,8 @@ class DrawingArea(wx.Panel):
                 handled = pr.propagateEvent(event.Position, 'onmoving')
                 if handled:
                     break
+        if handled:
+            print('handled onMoving...')
         if not handled and _propagateEvent(self.ROOT.node, event.Position, 'onmoving'):
             handled = True
         if not handled:
