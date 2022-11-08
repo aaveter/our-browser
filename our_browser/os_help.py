@@ -1,7 +1,10 @@
-import win32api, win32con
-import ctypes
+import sys
+is_windows = sys.platform.startswith('win')
+if is_windows:
+    import win32api, win32con
+    import ctypes
 
-user32 = ctypes.WinDLL('user32', use_last_error=True)
+    user32 = ctypes.WinDLL('user32', use_last_error=True)
 
 
 def fix_key_by_mode(ch, has_shift):
