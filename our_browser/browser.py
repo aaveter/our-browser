@@ -38,7 +38,7 @@ class BrowserApp:
         self.frame.mainPanel.ROOT = make_drawable_tree(self.ROOT_NODE)
         self.frame.mainPanel.ROOT.ROOT_NODE = self.ROOT_NODE
 
-    def run(self, with_prepare=True):
+    def run(self, with_prepare=True, onCloseCallback=None):
         if with_prepare:
             self.prepare_run()
 
@@ -48,6 +48,9 @@ class BrowserApp:
         self.app.MainLoop()
 
         INPUT_CONTROL.stop_timer()
+
+        if onCloseCallback:
+            onCloseCallback()
 
     def prepare_run(self):
         connect_listview(self.ROOT_NODE, listview_cls=self.listview_cls)

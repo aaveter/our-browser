@@ -765,6 +765,7 @@ class DrawerBlock(DrawerNode):
                 _event = Event()
                 _event.pos = pos
                 _event.event_name = event_name
+                _event.node = self.node
                 _ev_ret = ev(_event)
                 if _ev_ret:
                     if _ev_ret == 'prior':

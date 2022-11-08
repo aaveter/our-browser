@@ -88,9 +88,11 @@ class _ReactComponent:
     def get_subclasses(cls):
         return cls.__subclasses__()
 
-    def setState(self, d):
+    def setState(self, d, refresh=False):
         self.state.update(d)
         self._render()
+        if refresh:
+            self.node.app.mainPanel.Refresh()
 
     def _render(self, first_start=False, attrs_smart_update=False):
         ReactDOM._methods_tmp.clear()
