@@ -39,10 +39,13 @@ if is_windows:
             return str(language_id_hex)
 
 else:
-    import keyboard
-    def callback(event):
-        print('---', event, event.name, event.scan_code)
-    keyboard.on_press(callback, suppress=False)
+    if True: #try:
+        import keyboard
+        def callback(event):
+            print('---', event, event.name, event.scan_code)
+        keyboard.on_press(callback, suppress=False)
+    # except OSError as e:
+    #     print(e)
 
     def check_capslock():
         return False
