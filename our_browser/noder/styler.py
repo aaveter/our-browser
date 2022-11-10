@@ -127,8 +127,9 @@ def try_style(name):
                 part = part[:-1]
                 _add = '%'
             if part.isnumeric():
+                part = int(part)
                 if _add:
-                    part = (int(part), _add)
+                    part = (part, _add)
                 ret = {_SMART_NUM_CLASSES[c]: part}
                 return ret
     return None
