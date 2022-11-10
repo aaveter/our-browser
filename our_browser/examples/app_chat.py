@@ -470,8 +470,8 @@ class ChatItem(React.Component):
                 print('  -> selected')
                 main_cls = 'chat-selected'
         return f'''
-            <item class='item yellow flex-horizontal flex-align-center chat chat-selected-[[item.is_selected()]]' onclick={EVENT(self.onClick)} >
-                <div class="image-button button [[item.color]] margin-10 chat-image" >
+            <item class='item yellow flex-horizontal flex-align-center chat chat-selected-[[ item.is_selected() ]]' onclick={EVENT(self.onClick)} >
+                <div class="image-button button [[ item.color ]] margin-10 chat-image" >
                     <image class="image-26 image-button-content-chat" src="our_browser/examples/htmls/user_black.png" />
                     {add}
                 </div>

@@ -255,6 +255,7 @@ class AttrsParser:
             value = ' '.join(bb).strip()
             if value.startswith('"') or value.startswith("'"):
                 value = value[1:-1]
+            value = fix_class(value)
             if key == 'class':
                 attrs['classList'] = [a for a in value.split(' ') if len(a) > 0]
             else:
@@ -262,6 +263,14 @@ class AttrsParser:
 
         if attrs:
             node.attrs = attrs
+
+
+def fix_class(value):
+    while '[[ ' in value:
+        value = value.replace('[[ ', '[[')
+    while ' ]]' in value:
+        value = value.replace(' ]]', ']]')
+    return value
 
 
 def noder_parse_file(path):
