@@ -7,7 +7,7 @@ PROJ_PATH = dirname(dirname(HERE))
 
 sys.path.append(PROJ_PATH)
 
-from our_browser.browser import BrowserApp
+from our_browser.browser import BrowserApp, document
 from our_browser.react import ReactDOM, React, EVENT
 from our_browser.listview import ItemBase
 
@@ -106,7 +106,7 @@ class LeftTopPanel(React.Component):
 
     def onSettingsClick(self, event):
         print("[ LeftTopPanel ] onSettingsClick", id(self))
-        settings_panel_node = self.node.app.ROOT_NODE.getElementById("settings-panel")
+        settings_panel_node = document.getElementById("settings-panel")
         settings_panel_node.react_component.setState({"show": True})
 
     def onSearchClick(self, event):
@@ -251,9 +251,8 @@ class HorSplitter(React.Component):
             new_left = self.started_left + (event.pos[0] - self.started[0])
             new_proc = 100.0 * new_left / self.node.parent.drawer.calced.rect.width
             self.node.left = (new_proc, '%') ## !!!!
-            root = self.node.app.ROOT_NODE
-            left_panel = root.getElementById('left-flex-1')
-            right_panel = root.getElementById('right-flex-3')
+            left_panel = document.getElementById('left-flex-1')
+            right_panel = document.getElementById('right-flex-3')
             left_panel.flex = new_proc
             right_panel.flex = 100.0 - new_proc
             return True
@@ -279,7 +278,7 @@ class ChatButton(React.Component):
         }
 
     def onClick(self, event):
-        chats_listview = self.node.app.ROOT_NODE.getElementById("chats-listview")
+        chats_listview = document.getElementById("chats-listview")
         data_model = chats_listview.attrs['data_model']
         print('&& ??? data_model:', data_model)
         data_model.items_count += 1
@@ -307,7 +306,7 @@ class SendButton(React.Component):
         })
 
     def appendMessage(self):
-        messages_listview = self.node.app.ROOT_NODE.getElementById("messages-listview")
+        messages_listview = document.getElementById("messages-listview")
         data_model = messages_listview.attrs['data_model']
         print('&& ??? data_model:', data_model)
         self.mes_k += 1
@@ -458,7 +457,7 @@ class ChatItem(React.Component):
     def onClick(self, event):
         print('...click', id(self), self.item.chat_type, self.item.status)
         Chat.selected = self.item
-        right_panel = self.node.app.ROOT_NODE.getElementById('right-panel')
+        right_panel = document.getElementById('right-panel')
         right_panel.react_component.setState({'page': 'chat', 'chat-name': self.item.name})
 
     def render(self):
@@ -512,7 +511,7 @@ class MessageItem(React.Component):
 def main():
     app = BrowserApp(html_text=HTML_TEXT)
 
-    root = app.ROOT_NODE.getElementById("root")
+    root = document.getElementById("root")
     root.app = app
 
     ReactDOM.render("""
@@ -521,7 +520,7 @@ def main():
 
     app.prepare_run()
 
-    chats_listview = app.ROOT_NODE.getElementById("chats-listview")
+    chats_listview = document.getElementById("chats-listview")
     chats_listview.attrs['data_model'].items = CHATS
 
     app.run(with_prepare=False)

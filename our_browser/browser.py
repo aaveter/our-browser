@@ -23,6 +23,22 @@ def main(listview_cls=ListviewControl, html_path=None):
     app.run()
 
 
+class _ObjectHandler:
+
+    def __init__(self) -> None:
+        self._object = None
+
+    def set_object(self, document):
+        self._object = document
+
+    def __getattr__(self, name):
+        return getattr(self._object, name)
+
+
+app = _ObjectHandler()
+document = _ObjectHandler()
+
+
 class BrowserApp:
 
     def __init__(self, html_path=None, html_text='', listview_cls=ListviewControl) -> None:
@@ -33,6 +49,9 @@ class BrowserApp:
         self.app = wx.App()
         self.frame = Frame(None)
         self.mainPanel = self.frame.mainPanel
+
+        app.set_object(self)
+        document.set_object(self.ROOT_NODE)
 
     def update_drawers(self):
         self.frame.mainPanel.ROOT = make_drawable_tree(self.ROOT_NODE)
