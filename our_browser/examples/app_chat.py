@@ -8,7 +8,7 @@ PROJ_PATH = dirname(dirname(HERE))
 sys.path.append(PROJ_PATH)
 
 from our_browser.browser import BrowserApp, document
-from our_browser.react import ReactDOM, React, EVENT, react
+from our_browser.react import ReactDOM, React, obj, react
 from our_browser.listview import ItemBase
 
 
@@ -128,16 +128,16 @@ class LeftTopPanel(React.Component):
     def render(self):
         if self.state['search']:
             inner =  f'''
-                <input class="flex-1 common-padding common-font height-100p white" onchange={EVENT(self.onChange)} />
+                <input class="flex-1 common-padding common-font height-100p white" onchange={obj(self.onChange)} />
                 <div class="width-50 height-100p white">
-                    <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={EVENT(self.onSearchClick)} />
+                    <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={obj(self.onSearchClick)} />
                 </div>
             '''
         else:
             inner = f'''
-                <ImageButton src="our_browser/examples/htmls/settings.png" onClick={EVENT(self.onSettingsClick)}  />
+                <ImageButton src="our_browser/examples/htmls/settings.png" onClick={obj(self.onSettingsClick)}  />
                 <ChatButton class="flex-1 top-panel-content-font">Chat App</ChatButton>
-                <SearchButton src="our_browser/examples/htmls/search.png" onClick={EVENT(self.onSearchClick)} />
+                <SearchButton src="our_browser/examples/htmls/search.png" onClick={obj(self.onSearchClick)} />
             '''
         return f'''<div class="top-panel-height orange flex-horizontal border flex-align-center" id="left-top-flex">
             {inner}
@@ -168,9 +168,9 @@ class FilterButtons(React.Component):
         d[self.state['filter']] = 'current-filter'
         return f'''
             <div class="filter-buttons orange flex-horizontal flex-align-center">
-                <div class="flex-1 common-font filter-button height-100p {d['all']}" onclick={EVENT(self.onClickAll)}>All</div>
-                <div class="flex-1 common-font filter-button height-100p {d['groups']}" onclick={EVENT(self.onClickGroups)}>Groups</div>
-                <div class="flex-1 common-font filter-button height-100p {d['contacts']}" onclick={EVENT(self.onClickContacts)}>Contacts</div>
+                <div class="flex-1 common-font filter-button height-100p {d['all']}" onclick={obj(self.onClickAll)}>All</div>
+                <div class="flex-1 common-font filter-button height-100p {d['groups']}" onclick={obj(self.onClickGroups)}>Groups</div>
+                <div class="flex-1 common-font filter-button height-100p {d['contacts']}" onclick={obj(self.onClickContacts)}>Contacts</div>
             </div>
         '''
 
@@ -198,10 +198,10 @@ class RightPanel(React.Component):
                     <image class="image-26 top-panel-content-margin" src="our_browser/examples/htmls/user_black.png" />
                     <div class="flex-1 top-panel-content-font">{self.state['chat-name']}</div>
                     <ChatMenuButton />
-                    <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={EVENT(self.onCloseClick)} />
+                    <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={obj(self.onCloseClick)} />
                 </div>
                 <div class="flex-1 white_ common-padding common-font">
-                    <listview class="page green2" id="messages-listview" data-items={EVENT(self.initItems)} >
+                    <listview class="page green2" id="messages-listview" data-items={obj(self.initItems)} >
                         <template>
                             <MessageItem />
                         </template>
@@ -264,8 +264,8 @@ class HorSplitter(React.Component):
 
     def render(self):
         return f'''
-            <div class="hor-splitter" onclick={EVENT(self.onClickHandler)}
-                ondown={EVENT(self.onDownHandler)} onmoving={EVENT(self.onMovingHandler)} />
+            <div class="hor-splitter" onclick={obj(self.onClickHandler)}
+                ondown={obj(self.onDownHandler)} onmoving={obj(self.onMovingHandler)} />
         '''
 
 
@@ -288,7 +288,7 @@ class ChatButton(React.Component):
 
     def render(self):
         count = self.state['count']
-        return f'<button class="flex-1 top-panel-content-font" onclick={EVENT(self.onClick)} >Chat App</button>'
+        return f'<button class="flex-1 top-panel-content-font" onclick={obj(self.onClick)} >Chat App</button>'
 
 
 class SendButton(React.Component):
@@ -321,7 +321,7 @@ class SendButton(React.Component):
         # if self.state['messages'] == None:
         #     self.state['messages'] = self.appendMessage()
         return f'''
-            <div class="image-button button" onclick={EVENT(self.onClick)} >
+            <div class="image-button button" onclick={obj(self.onClick)} >
                 <image class="image-26 image-button-content" src="our_browser/examples/htmls/send.png" />
             </div>
         '''
@@ -338,7 +338,7 @@ class ImageButton(React.Component):
         add = ''
         onClickHandler = self._onClickHandler or getattr(self, 'onClickHandler', None)
         if onClickHandler:
-            add = f'onclick={EVENT(onClickHandler)}'
+            add = f'onclick={obj(onClickHandler)}'
         return f'''
             <div class="{self.className}" {add}>
                 <image class="image-26 image-button-content" src="{self.src}" />
@@ -376,12 +376,12 @@ class ChatMenuButton(ImageButton):
         if self.state['activated']:
             inner = f'''
             <div class="absolute top-100 left-0 menu white">
-                <li class="menu-item" onclick="{EVENT(self.onClickOption1)}">Create group</li>
-                <li class="menu-item" onclick="{EVENT(self.onClickOption2)}">Edit group</li>
-                <li class="menu-item" onclick="{EVENT(self.onClickOption2)}">Exit group</li>
-                <li class="menu-item" onclick="{EVENT(self.onClickOption2)}">Update</li>
-                <li class="menu-item" onclick="{EVENT(self.onClickOption2)}">Mute</li>
-                <li class="menu-item" onclick="{EVENT(self.onClickOption2)}">Pin</li>
+                <li class="menu-item" onclick="{obj(self.onClickOption1)}">Create group</li>
+                <li class="menu-item" onclick="{obj(self.onClickOption2)}">Edit group</li>
+                <li class="menu-item" onclick="{obj(self.onClickOption2)}">Exit group</li>
+                <li class="menu-item" onclick="{obj(self.onClickOption2)}">Update</li>
+                <li class="menu-item" onclick="{obj(self.onClickOption2)}">Mute</li>
+                <li class="menu-item" onclick="{obj(self.onClickOption2)}">Pin</li>
             </div>
             '''
         return super().render(inner)
@@ -396,7 +396,7 @@ class SearchButton(React.Component):
 
     def render(self):
         return f'''
-            <div class="image-button button" onclick={EVENT(self.onClickHandler)} >
+            <div class="image-button button" onclick={obj(self.onClickHandler)} >
                 <image class="image-26 image-button-content" src="{self.src}" />
             </div>
         '''
@@ -432,22 +432,22 @@ class SettingsPanel(React.Component):
         if self.state['show']:
             inner = f'''
                 <div class="height-100p width-30p orange">
-                    <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={EVENT(self.onCloseClick)} />
+                    <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={obj(self.onCloseClick)} />
                     <ImageButton src="our_browser/examples/htmls/user_black.png" />
                     <div class="common-font">
                         User name
                     </div>
                     <div class="menu-buttons">
-                        <div class="menu-button" onclick={EVENT(self.onCreateGroupClick)}>Create group</div>
-                        <div class="menu-button" onclick={EVENT(self.onDisconnectClick)}>Disconnet</div>
-                        <div class="menu-button" onclick={EVENT(self.onLogoffClick)}>Log off</div>
+                        <div class="menu-button" onclick={obj(self.onCreateGroupClick)}>Create group</div>
+                        <div class="menu-button" onclick={obj(self.onDisconnectClick)}>Disconnet</div>
+                        <div class="menu-button" onclick={obj(self.onLogoffClick)}>Log off</div>
                     </div>
                 </div>
                 <div class="height-100p width-70p pol-grey">
                 </div>
             '''
         return f'''
-            <div class="height-100p width-100p absolute left-top-0 flex-horizontal" id="settings-panel" onclick={EVENT(self.onClick)}>
+            <div class="height-100p width-100p absolute left-top-0 flex-horizontal" id="settings-panel" onclick={obj(self.onClick)}>
                 {inner}
             </div>
         '''
@@ -470,7 +470,7 @@ class ChatItem(React.Component):
                 print('  -> selected')
                 main_cls = 'chat-selected'
         return f'''
-            <item class='item yellow flex-horizontal flex-align-center chat chat-selected-[[ item.is_selected() ]]' onclick={EVENT(self.onClick)} >
+            <item class='item yellow flex-horizontal flex-align-center chat chat-selected-[[ item.is_selected() ]]' onclick={obj(self.onClick)} >
                 <div class="image-button button [[ item.color ]] margin-10 chat-image" >
                     <image class="image-26 image-button-content-chat" src="our_browser/examples/htmls/user_black.png" />
                     {add}

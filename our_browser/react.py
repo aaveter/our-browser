@@ -119,10 +119,14 @@ class React:
     Component = _ReactComponent
 
 
-def EVENT(method):
+def obj(method):
     ln = len(ReactDOM._methods_tmp)
     ReactDOM._methods_tmp.append(method)
     return 'METHOD-{}'.format(ln)
+
+
+# will be deprecated:
+EVENT = obj
 
 
 ReactDOM = _ReactDOM()
