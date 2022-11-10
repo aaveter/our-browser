@@ -8,7 +8,7 @@ PROJ_PATH = dirname(dirname(HERE))
 sys.path.append(PROJ_PATH)
 
 from our_browser.browser import BrowserApp, document
-from our_browser.react import ReactDOM, React, EVENT
+from our_browser.react import ReactDOM, React, EVENT, react
 from our_browser.listview import ItemBase
 
 
@@ -107,7 +107,7 @@ class LeftTopPanel(React.Component):
     def onSettingsClick(self, event):
         print("[ LeftTopPanel ] onSettingsClick", id(self))
         settings_panel_node = document.getElementById("settings-panel")
-        settings_panel_node.react_component.setState({"show": True})
+        react(settings_panel_node).setState({"show": True})
 
     def onSearchClick(self, event):
         print('[ LeftTopPanel ] onSearchClick', id(self))
@@ -458,7 +458,7 @@ class ChatItem(React.Component):
         print('...click', id(self), self.item.chat_type, self.item.status)
         Chat.selected = self.item
         right_panel = document.getElementById('right-panel')
-        right_panel.react_component.setState({'page': 'chat', 'chat-name': self.item.name})
+        react(right_panel).setState({'page': 'chat', 'chat-name': self.item.name})
 
     def render(self):
         main_cls, add = '', ''

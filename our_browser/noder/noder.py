@@ -39,6 +39,9 @@ class Node(ReprLikeStr):
         self.text = None
         self.is_hovered = False
 
+    def parentNode(self):
+        return self.parent
+
     def cloneNode(self, with_drawer=False, new_parent=None):
         node = self.__class__(self.parent if not new_parent else new_parent, self.tag, self.tag_end)
         node.level = self.level

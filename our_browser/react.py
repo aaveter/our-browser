@@ -126,3 +126,12 @@ def EVENT(method):
 
 
 ReactDOM = _ReactDOM()
+
+
+def react(node):
+    while True:
+        if not node:
+            return None
+        if hasattr(node, 'react_component'):
+            return node.react_component
+        node = node.parent
