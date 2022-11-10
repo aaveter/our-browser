@@ -64,7 +64,16 @@ class ListviewControl(Scrollable):
                     if a == 'counter':
                         a = counter
                     elif a.startswith('item.'):
-                        a = str(getattr(item, a[5:], 'None'))
+                        #a = str(getattr(item, a[5:], 'None'))
+                        attr_name = a[5:]
+                        _callable = False
+                        if '(' in attr_name:
+                            _callable = True
+                            attr_name = attr_name.split('(')[0]
+                        a = getattr(item, attr_name, 'None')
+                        if _callable:
+                            a = a()
+                        a = str(a)
                     lst[i] = a + b
                 text = ''.join(lst)
         else:
