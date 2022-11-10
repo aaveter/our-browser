@@ -31,7 +31,7 @@ class Styler:
 
     def parse_style(self, text):
         _style = {}
-        
+
         lst = text.split(';')
         for a in lst:
             if ':' not in a:
@@ -50,7 +50,7 @@ class Styler:
                 _lst = value.split(' ')
                 if len(_lst) != 3:
                     value = None
-                else: 
+                else:
                     if _lst[0].endswith('px'):
                         _lst[0] = _lst[0][:-2]
                     if _lst[0].isnumeric():
@@ -77,16 +77,61 @@ class Styler:
                 style['font-size'] = 24
 
         names = ([tag] if tag else []) + ([('.' + _cl) for _cl in classes] if classes else [])
-        
-        for add in (None, 'hover'):
+
+        for j, add in enumerate((None, 'hover')):
             style_cur, style_name = ({}, add) if add else (style, 'simple')
             for n in names:
                 nn = (n + ':' + add) if add else n
                 _style = self.styles.get(nn, None)
-                if _style:
+                # if n.startswith('.width-'):
+                #     print('!!!')
+                if _style != None:
                     style_cur.update(_style)
+                elif j==0 and nn.startswith('.'):
+                    _style = try_style(nn[1:])
+                    if _style:
+                        style_cur.update(_style)
 
             setattr(node, 'style_'+style_name, style_cur)
+
+
+_SMART_NUM_CLASSES = {
+    'width-': 'width',
+    'w-': 'width',
+    'w': 'width',
+    'height-': 'height',
+    'h-': 'height',
+    'h': 'height',
+    'flex-': 'flex',
+    'top-': 'top',
+    'left-': 'left',
+}
+
+def try_style(name):
+    # _is_debug = False #name.startswith('width-')
+    # if _is_debug:
+    #     print('TRY:', name)
+    if len(name) == 0:
+        return None
+    #n = name[0]
+    c = None
+    for n in _SMART_NUM_CLASSES:
+        if name.startswith(n):
+            c = n
+            break
+    if c != None:
+        part = name[len(c):]
+        if len(part) > 0:
+            _add = ''
+            if part[-1] == 'p':
+                part = part[:-1]
+                _add = '%'
+            if part.isnumeric():
+                if _add:
+                    part = (int(part), _add)
+                ret = {_SMART_NUM_CLASSES[c]: part}
+                return ret
+    return None
 
 
 def str2int(value):
