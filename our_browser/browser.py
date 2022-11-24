@@ -250,8 +250,8 @@ class DrawingArea(wx.Panel):
         SELECT_CONTROL.started = False
         SELECT_CONTROL.listview = None
         SELECT_CONTROL.start = event.Position
-        SELECT_CONTROL.end = event.Position
         print('[ onDown ]', len(PRIOR_EVENT_HANDLERS))
+        SELECT_CONTROL.started = True
         for pr in PRIOR_EVENT_HANDLERS:
             if hasattr(pr, 'doEventPrior'):
                 if pr.doEventPrior(event.Position, 'ondown'):
@@ -261,11 +261,14 @@ class DrawingArea(wx.Panel):
                     return
         if _propagateEvent(self.ROOT.node, event.Position, 'ondown'):
             return
-        SELECT_CONTROL.started = True
+        if SELECT_CONTROL.started:
+            SELECT_CONTROL.end = event.Position
+        #SELECT_CONTROL.started = True
 
     def onClick(self, event):
-        SELECT_CONTROL.started = False
-        SELECT_CONTROL.end = event.Position
+        if SELECT_CONTROL.started:
+            SELECT_CONTROL.started = False
+            SELECT_CONTROL.end = event.Position
         handled = False
         print('[ onClick ]', len(PRIOR_EVENT_HANDLERS))
         for pr in PRIOR_EVENT_HANDLERS:
@@ -296,6 +299,8 @@ class DrawingArea(wx.Panel):
             print('handled onMoving...')
         if not handled and _propagateEvent(self.ROOT.node, event.Position, 'onmoving'):
             handled = True
+        if SELECT_CONTROL.started:
+            SELECT_CONTROL.end = event.Position
         if not handled:
             if SELECT_CONTROL.started:
                 SELECT_CONTROL.end = event.Position

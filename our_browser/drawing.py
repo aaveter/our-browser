@@ -3,8 +3,10 @@ from our_browser.listview import draw_listview
 import cairo, math
 import threading
 
-from our_browser.draw_commons import cr_set_source_rgb_any_hex, cr_set_source_rgb_any_hex_or_simple, hex2color, Scrollable, PRIOR_EVENT_HANDLERS
-
+from our_browser.draw_commons import (
+    cr_set_source_rgb_any_hex, cr_set_source_rgb_any_hex_or_simple, hex2color, Scrollable, PRIOR_EVENT_HANDLERS,
+    SELECT_CONTROL
+)
 
 check_is_drawable = lambda node: node.tag and node.tag.text not in ('style', 'script', 'head', 'items') and not node.tag.text.startswith('!')
 
@@ -65,16 +67,6 @@ class InputControl:
 
 
 INPUT_CONTROL = InputControl()
-
-class SelectControl:
-
-    def __init__(self) -> None:
-        self.started = False
-        self.start = None
-        self.end = None
-        self.listview = None
-
-SELECT_CONTROL = SelectControl()
 
 class Event:
 

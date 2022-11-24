@@ -142,6 +142,8 @@ class Scrollable:
             if self.isIntoScroll(pos):
                 self.scroll_started = pos
                 PRIOR_EVENT_HANDLERS.insert(0, self)
+                SELECT_CONTROL.started = False
+                #SELECT_CONTROL.start = None
 
     def doEventPrior(self, pos, event_name):
         if event_name == 'onclick':
@@ -169,3 +171,14 @@ class Scrollable:
 
     def getDrawer(self):
         return None
+
+
+class SelectControl:
+
+    def __init__(self) -> None:
+        self.started = False
+        self.start = None
+        self.end = None
+        self.listview = None
+
+SELECT_CONTROL = SelectControl()
