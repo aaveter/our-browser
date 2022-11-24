@@ -5,7 +5,7 @@ import threading
 
 from our_browser.draw_commons import (
     cr_set_source_rgb_any_hex, cr_set_source_rgb_any_hex_or_simple, hex2color, Scrollable, PRIOR_EVENT_HANDLERS,
-    SELECT_CONTROL
+    SELECT_CONTROL, HOVERED_NODES
 )
 
 check_is_drawable = lambda node: node.tag and node.tag.text not in ('style', 'script', 'head', 'items') and not node.tag.text.startswith('!')
@@ -742,6 +742,8 @@ class DrawerBlock(DrawerNode):
         changed = False
 
         if self.checkPostIntoMe(pos) or self in PRIOR_EVENT_HANDLERS:
+            # if self.node not in HOVERED_NODES:
+            #     HOVERED_NODES.add(self.node)
             if not self.node.is_hovered:
                 self.node.is_hovered = True
                 changed = True
@@ -793,6 +795,8 @@ class DrawerBlock(DrawerNode):
         if self.checkPostIntoMe(pos):# or self in PRIOR_EVENT_HANDLERS:
             pass
         else:
+            # if self.node in HOVERED_NODES:
+            #     HOVERED_NODES.remove(self.node)
             if self.node.is_hovered:
                 self.node.is_hovered = False
                 changed = True
@@ -1123,6 +1127,9 @@ class DrawerFlexItem(DrawerBlock):
 
 
 def _propagateEvent(root_node, pos, event_name):
+    # changed = False
+    # for node in HOVERED_NODES:
+    #     changed = _propagateEventOut(root_node, pos, event_name) or changed
     changed = _propagateEventOut(root_node, pos, event_name)
     nodes = _findNodesInPos(root_node, pos)
     for node in nodes[::-1]:
@@ -1143,7 +1150,7 @@ def _propagateEventOut(node, pos, event_name):
         changed = node.drawer.propagateEventOut(pos, event_name)
 
     for ch in node.children:
-        changed = changed or _propagateEventOut(ch, pos, event_name)
+        changed = _propagateEventOut(ch, pos, event_name) or changed
 
     return changed
 

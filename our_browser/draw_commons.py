@@ -4,6 +4,11 @@ class PriorEventHandlers(list):
 
 PRIOR_EVENT_HANDLERS = PriorEventHandlers()
 
+class HoveredNodes(set):
+    pass
+
+HOVERED_NODES = HoveredNodes()
+
 
 def cr_set_source_rgb_any_hex_or_simple(cr, color, simple):
     if color:
