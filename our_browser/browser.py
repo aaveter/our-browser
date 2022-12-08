@@ -126,6 +126,10 @@ class DrawingArea(wx.Panel):
     def __init__ (self , *args , **kw):
         super(DrawingArea, self).__init__ (*args , **kw)
 
+        self.input = wx.TextCtrl(self, style=wx.TE_MULTILINE)
+        self.input.SetPosition([-100, -100])
+        self.input.Hide() # FIXME some steps to good work with text
+
         self.scroll_pos = 0
         self.scroll_show = False
         self.scroll = None
@@ -150,6 +154,13 @@ class DrawingArea(wx.Panel):
 
         #self.SetFocus()
         self.dts = tuple()
+
+        self.input.Bind(wx.EVT_TEXT, self.onTextChanged)
+
+    def onTextChanged(self, e):
+        e.Skip()
+        #print(":::", e.String)
+        self.setText(e.String)
 
     def changeCursor(self, name):
         if name == 'wait':
@@ -391,6 +402,12 @@ class DrawingArea(wx.Panel):
                         self.Refresh()
 
         event.Skip()
+
+    def setText(self, text):
+        ability = INPUT_CONTROL.focus_into
+        if ability:
+            ability.setText(text)
+            self.Refresh()
 
     def addText(self, text):
         ability = INPUT_CONTROL.focus_into

@@ -1055,6 +1055,13 @@ class AbilityInput(AbilityBase, Scrollable):
     def on_focus_lost(self):
         self.cursor_visible = False
 
+    def setText(self, text):
+        self.drawer.node.text = text
+        
+        _attrs = self.drawer.node.attrs
+        if _attrs and 'onchange' in _attrs:
+            _attrs['onchange'](self.drawer.node)
+
     def addText(self, text):
         if not self.drawer.node.text:
             self.drawer.node.text = ""
