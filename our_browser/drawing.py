@@ -23,19 +23,30 @@ class InputControl:
     timer = None
     ending = False
     refresher = None
+    text_syncer = None
 
     def set_refresher(self, func):
         self.refresher = func
+
+    def set_text_syncer(self, func):
+        self.text_syncer = func
 
     def set_focus(self, elem):
         if self.focus_into and self.focus_into != elem:
             self.focus_into.on_focus_lost()
         if not elem:
             self.focus_into = None
+            if self.text_syncer:
+                self.text_syncer("")
         elif hasattr(elem, 'on_timer'):
             if self.focus_into == elem:
                 return
             self.focus_into = elem
+            if self.text_syncer:
+                text = elem.drawer.node.text
+                if text == None:
+                    text = ""
+                self.text_syncer(text)
 
         if self.focus_into:
             self.focus_into.on_focus_got()
@@ -1003,33 +1014,36 @@ class AbilityInput(AbilityBase, Scrollable):
             cr.stroke()
 
     def moveCursor(self, way):
-        if way == 'left':
-            if self.cursor_pos > 0:
-                self.cursor_pos -= 1
-        elif way == 'right':
-            self.cursor_pos += 1
-        elif way == 'home':
-            self.cursor_pos = 0
-        elif way == 'end':
-            self.cursor_pos = len(self.drawer.node.text)
-        elif way == 'up':
-            lst = self.drawer.node.text[:self.cursor_pos].split('\n')
-            if len(lst) > 1:
-                lst[:], last_deleted_ln = lst[:-1], len(lst[-1])
-                last_ln = len(lst[-1])
-                if last_deleted_ln > last_ln:
-                    last_deleted_ln = last_ln
-                self.cursor_pos = len('\n'.join(lst)) - last_ln + last_deleted_ln
-        elif way == 'down':
-            lst1 = self.drawer.node.text[:self.cursor_pos].split('\n')
-            lst2 = self.drawer.node.text[self.cursor_pos:].split('\n')
-            if len(lst2) > 1:
-                last_ln = len(lst1[-1])
-                ln_0 = len(lst2[0])
-                ln_1 = len(lst2[1])
-                if last_ln > ln_1:
-                    last_ln = ln_1
-                self.cursor_pos = len('\n'.join(lst1)) + ln_0 + 1 + last_ln
+        if type(way) == int:
+            self.cursor_pos = way
+        else:
+            if way == 'left':
+                if self.cursor_pos > 0:
+                    self.cursor_pos -= 1
+            elif way == 'right':
+                self.cursor_pos += 1
+            elif way == 'home':
+                self.cursor_pos = 0
+            elif way == 'end':
+                self.cursor_pos = len(self.drawer.node.text)
+            elif way == 'up':
+                lst = self.drawer.node.text[:self.cursor_pos].split('\n')
+                if len(lst) > 1:
+                    lst[:], last_deleted_ln = lst[:-1], len(lst[-1])
+                    last_ln = len(lst[-1])
+                    if last_deleted_ln > last_ln:
+                        last_deleted_ln = last_ln
+                    self.cursor_pos = len('\n'.join(lst)) - last_ln + last_deleted_ln
+            elif way == 'down':
+                lst1 = self.drawer.node.text[:self.cursor_pos].split('\n')
+                lst2 = self.drawer.node.text[self.cursor_pos:].split('\n')
+                if len(lst2) > 1:
+                    last_ln = len(lst1[-1])
+                    ln_0 = len(lst2[0])
+                    ln_1 = len(lst2[1])
+                    if last_ln > ln_1:
+                        last_ln = ln_1
+                    self.cursor_pos = len('\n'.join(lst1)) + ln_0 + 1 + last_ln
 
         self.cursor_visible = True
         INPUT_CONTROL.start_timer()

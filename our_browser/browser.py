@@ -12,7 +12,7 @@ from our_browser.ext_depends import noder_parse_file, noder_parse_text, DATA_PAT
 from our_browser.drawing import make_drawable_tree, INPUT_CONTROL, _propagateEvent, Calced, SELECT_CONTROL
 from our_browser.draw_commons import PRIOR_EVENT_HANDLERS, Scrollable
 from our_browser.listview import ListviewControl, connect_listview
-from our_browser.os_help import fix_key_by_mode
+#from our_browser.os_help import fix_key_by_mode
 
 
 def main(listview_cls=ListviewControl, html_path=None):
@@ -62,6 +62,7 @@ class BrowserApp:
             self.prepare_run()
 
         INPUT_CONTROL.set_refresher(self.frame.mainPanel.Refresh)
+        INPUT_CONTROL.set_text_syncer(self.frame.mainPanel.text_syncer)
 
         self.frame.Show(True)
         self.app.MainLoop()
@@ -128,7 +129,7 @@ class DrawingArea(wx.Panel):
 
         self.input = wx.TextCtrl(self, style=wx.TE_MULTILINE)
         self.input.SetPosition([-100, -100])
-        self.input.Hide() # FIXME some steps to good work with text
+        #self.input.Hide() # FIXME some steps to good work with text
 
         self.scroll_pos = 0
         self.scroll_show = False
@@ -145,10 +146,10 @@ class DrawingArea(wx.Panel):
         self.Bind(wx.EVT_LEFT_UP, self.onClick)
         self.Bind(wx.EVT_MOTION, self.onMoving)
 
-        self.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
+        """self.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
         self.Bind(wx.EVT_KEY_UP, self.onKeyUp)
         #self.Bind(wx.EVT_CHAR, self.onKeyChar)
-        self.Bind(wx.EVT_CHAR_HOOK, self.onKeyChar)
+        self.Bind(wx.EVT_CHAR_HOOK, self.onKeyChar)"""
 
         self.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
 
@@ -156,11 +157,16 @@ class DrawingArea(wx.Panel):
         self.dts = tuple()
 
         self.input.Bind(wx.EVT_TEXT, self.onTextChanged)
+        self.input.Bind(wx.EVT_KEY_DOWN, self.onInputKeyDown)
 
     def onTextChanged(self, e):
         e.Skip()
-        #print(":::", e.String)
-        self.setText(e.String)
+        new_pos = self.input.GetInsertionPoint()
+        #print(":::", e.String, "new_pos:", new_pos)
+        self.setText(e.String, new_pos)
+
+    def text_syncer(self, text):
+        self.input.SetValue(text)
 
     def changeCursor(self, name):
         if name == 'wait':
@@ -319,13 +325,7 @@ class DrawingArea(wx.Panel):
         if handled:
             self.Refresh()
 
-    def onKeyDown(self, event):
-        self.onKey(event, 'down')
-
-    def onKeyUp(self, event):
-        self.onKey(event, 'up')
-
-    def onKeyChar(self, event):
+    def onInputKeyDown(self, event):
         keycode2 = event.GetKeyCode()
         cursor_way = None
         if keycode2 == wx.WXK_LEFT:
@@ -336,77 +336,109 @@ class DrawingArea(wx.Panel):
             cursor_way = 'up'
         elif keycode2 == wx.WXK_DOWN:
             cursor_way = 'down'
+        elif keycode2 == wx.WXK_HOME:
+            cursor_way = 'home'
+        elif keycode2 == wx.WXK_END:
+            cursor_way = 'end'
         if cursor_way:
-            self.onKey(event, 'down')
-        event.Skip()
-
-    def onKey(self, event, name):
-        keycode = event.GetUnicodeKey()
-        keycode2 = event.GetKeyCode()
-
-        if keycode != wx.WXK_NONE:
-
-            if keycode == wx.WXK_RETURN: #13:
-                print('-- enter --')
-                if name == 'up':
-                    self.addText('\n')
-
-            elif keycode == wx.WXK_BACK: #8:
-                print('-- backspace --')
-                if name == 'down':
-                    self.addText(None) # for remove
-
-            elif keycode == wx.WXK_TAB:
-                if name == 'down':
-                    print('-- tab --')
-
-            elif keycode == wx.WXK_DELETE:
-                if name == 'down':
-                    print('-- delete --')
-
-            else:
-                has_shift = event.ShiftDown()
-                keycode3 = event.GetRawKeyCode()
-
-                ch = chr(keycode)
-                ch = fix_key_by_mode(ch, has_shift)
-
-                print(name, "You pressed: ", keycode, ch, keycode3, chr(keycode3), 'has_shift:', has_shift)
-                if name == 'down':
-                    self.addText(ch)
-
-        else:
-            cursor_way = None
-            if keycode2 == wx.WXK_LEFT:
-                cursor_way = 'left'
-            elif keycode2 == wx.WXK_RIGHT:
-                cursor_way = 'right'
-            elif keycode2 == wx.WXK_UP:
-                cursor_way = 'up'
-            elif keycode2 == wx.WXK_DOWN:
-                cursor_way = 'down'
-            elif keycode2 == wx.WXK_HOME:
-                cursor_way = 'home'
-            elif keycode2 == wx.WXK_END:
-                cursor_way = 'end'
-            else:
-                print('-- no key --')
-                if keycode2 == wx.WXK_F1:
-                    pass
-
-            if cursor_way and name == 'down':
-                print('-- curwor_way: {} -- ({})'.format(cursor_way, name))
-                ability = INPUT_CONTROL.focus_into
-                if ability:
-                    if ability.moveCursor(cursor_way):
-                        self.Refresh()
+            print('..way:', cursor_way)
+            ability = INPUT_CONTROL.focus_into
+            if ability:
+                if ability.moveCursor(cursor_way):
+                    self.Refresh()
 
         event.Skip()
 
-    def setText(self, text):
+    # def onKeyDown(self, event):
+    #     self.onKey(event, 'down')
+
+    # def onKeyUp(self, event):
+    #     self.onKey(event, 'up')
+
+    # def onKeyChar(self, event):
+    #     keycode2 = event.GetKeyCode()
+    #     cursor_way = None
+    #     if keycode2 == wx.WXK_LEFT:
+    #         cursor_way = 'left'
+    #     elif keycode2 == wx.WXK_RIGHT:
+    #         cursor_way = 'right'
+    #     elif keycode2 == wx.WXK_UP:
+    #         cursor_way = 'up'
+    #     elif keycode2 == wx.WXK_DOWN:
+    #         cursor_way = 'down'
+    #     if cursor_way:
+    #         self.onKey(event, 'down')
+    #     event.Skip()
+
+    # def onKey(self, event, name):
+    #     keycode = event.GetUnicodeKey()
+    #     keycode2 = event.GetKeyCode()
+
+    #     if keycode != wx.WXK_NONE:
+
+    #         if keycode == wx.WXK_RETURN: #13:
+    #             print('-- enter --')
+    #             if name == 'up':
+    #                 self.addText('\n')
+
+    #         elif keycode == wx.WXK_BACK: #8:
+    #             print('-- backspace --')
+    #             if name == 'down':
+    #                 self.addText(None) # for remove
+
+    #         elif keycode == wx.WXK_TAB:
+    #             if name == 'down':
+    #                 print('-- tab --')
+
+    #         elif keycode == wx.WXK_DELETE:
+    #             if name == 'down':
+    #                 print('-- delete --')
+
+    #         else:
+    #             has_shift = event.ShiftDown()
+    #             keycode3 = event.GetRawKeyCode()
+
+    #             ch = chr(keycode)
+    #             ch = fix_key_by_mode(ch, has_shift)
+
+    #             print(name, "You pressed: ", keycode, ch, keycode3, chr(keycode3), 'has_shift:', has_shift)
+    #             if name == 'down':
+    #                 self.addText(ch)
+
+    #     else:
+    #         cursor_way = None
+    #         if keycode2 == wx.WXK_LEFT:
+    #             cursor_way = 'left'
+    #         elif keycode2 == wx.WXK_RIGHT:
+    #             cursor_way = 'right'
+    #         elif keycode2 == wx.WXK_UP:
+    #             cursor_way = 'up'
+    #         elif keycode2 == wx.WXK_DOWN:
+    #             cursor_way = 'down'
+    #         elif keycode2 == wx.WXK_HOME:
+    #             cursor_way = 'home'
+    #         elif keycode2 == wx.WXK_END:
+    #             cursor_way = 'end'
+    #         else:
+    #             print('-- no key --')
+    #             if keycode2 == wx.WXK_F1:
+    #                 pass
+
+    #         if cursor_way and name == 'down':
+    #             print('-- curwor_way: {} -- ({})'.format(cursor_way, name))
+    #             ability = INPUT_CONTROL.focus_into
+    #             if ability:
+    #                 if ability.moveCursor(cursor_way):
+    #                     self.Refresh()
+
+    #     event.Skip()
+
+    def setText(self, text, new_pos=None):
         ability = INPUT_CONTROL.focus_into
         if ability:
             ability.setText(text)
+            if new_pos != None:
+                ability.moveCursor(new_pos)
             self.Refresh()
 
     def addText(self, text):
