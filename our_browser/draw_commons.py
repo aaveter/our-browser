@@ -101,12 +101,17 @@ class Scrollable:
 
     def on_wheel(self, event):
         d = event.GetWheelRotation()/4
-        self.append_scroll(d)
+        self.append_scroll(d > 0)
 
     def append_scroll(self, d):
         drawer = self.getDrawer()
         _, self.height = getattr(drawer, 'size_calced', (0, 0))
         scroll_area_height = self.calc_scroll_area_height()
+
+        if type(d) == bool:
+            d = 1 if d else -1
+            d = 112 * d * self.height / scroll_area_height
+            print("????", d)
 
         scroll_height = self.height - 40 - self.scroll_pan_height
 
