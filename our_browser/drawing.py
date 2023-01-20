@@ -989,10 +989,10 @@ class AbilityInput(AbilityBase, Scrollable):
 
         fascent, fdescent, fheight, fxadvance, fyadvance = cr.font_extents()
 
-        y00 = rect[1]+padding
+        y00 = rect[1]+padding-fdescent
         x0, y0 = rect[0]+padding, y00 - self.scroll_pos_y
         cursor_height = fheight #14 #20
-        x1, y1, x2, y2 = x0, y0, x0, y0 + cursor_height
+        x1, y1, x2, y2 = x0, y0, x0, y0 + cursor_height + fdescent
 
         lines = self.drawer.node.lines
 
@@ -1024,7 +1024,7 @@ class AbilityInput(AbilityBase, Scrollable):
                 xoff, yoff, textWidth, textHeight = cr.text_extents(line)[:4]
                 wadd = textWidth - fdescent
 
-                x1, y1, x2, y2 = x0+wadd, y0+hadd, x0+wadd, y0+hadd + cursor_height
+                x1, y1, x2, y2 = x0+wadd, y0+hadd-fdescent, x0+wadd, y0+hadd + cursor_height
 
         if self.drawer.node.text:
             if self.cursor_pos > len(self.drawer.node.text):
