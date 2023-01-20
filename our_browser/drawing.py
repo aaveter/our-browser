@@ -137,6 +137,10 @@ class DrawerNode:
     def __repr__(self) -> str:
         return self.__str__()
 
+    def focus(self):
+        if self.node and hasattr(self, 'ability') and type(self.ability) == AbilityInput:
+            INPUT_CONTROL.set_focus(self.ability)
+
 
 class Rect:
 
@@ -851,6 +855,24 @@ class DrawerBlock(DrawerNode):
     def find_listview_by_pos(self, x, y):
         return self.find_node_by_pos_and_tags(x, y, ('listview',))
 
+    def find_nodes_in_pos(self, x, y, lst=None):
+        if lst == None:
+            lst = []
+        if (
+            self.pos[0] <= x < self.pos[0] + self.size_calced[0] and
+            self.pos[1] <= y < self.pos[1] + self.size_calced[1]
+        ):
+            lst.append(self)
+        else:
+            return lst
+
+        for node in self.node.children:
+            if not hasattr(node, 'drawer'):
+                continue
+            lst += node.drawer.find_nodes_in_pos(x, y, lst)
+
+        return lst
+
 
 def roundrect(context, x, y, width, height, r):
     context.new_sub_path()
@@ -1071,7 +1093,7 @@ class AbilityInput(AbilityBase, Scrollable):
 
     def setText(self, text):
         self.drawer.node.text = text
-        
+
         _attrs = self.drawer.node.attrs
         if _attrs and 'onchange' in _attrs:
             _attrs['onchange'](self.drawer.node)

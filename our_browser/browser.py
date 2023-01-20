@@ -453,7 +453,10 @@ class DrawingArea(wx.Panel):
         if not hasattr(self, "popupID1"):
             self.popupID1 = wx.NewId()
             self.Bind(wx.EVT_MENU, self.onPopup, id=self.popupID1)
-        self._popupMenu = PopMenu(self, self.popupID1)
+            self.popupID2 = wx.NewId()
+            self.Bind(wx.EVT_MENU, self.onPopup, id=self.popupID2)
+        self._popupMenu = PopMenu(self, self.popupID1, self.popupID2)
+        self._popupMenuPos = e.GetPosition()
         self.PopupMenu(self._popupMenu, e.GetPosition())
 
     def onPopup(self, event):
@@ -461,23 +464,39 @@ class DrawingArea(wx.Panel):
         menu = event.GetEventObject()
         menuItem = menu.FindItemById(itemId)
         txt = menuItem.GetItemLabel()
-        if txt.lower() == 'show dev':
-            self.mainFrame.dev.ROOT_NODE = self.ROOT.ROOT_NODE if self.ROOT else None
-            self.mainFrame.dev.Show()
-            self.mainFrame.vbox.Layout()
-        elif txt.lower() == 'hide dev':
-            self.mainFrame.dev.Hide()
-            self.mainFrame.vbox.Layout()
+        if itemId == self.popupID1:
+            if txt.lower() == 'show dev':
+                self._show_dev()
+            elif txt.lower() == 'hide dev':
+                self.mainFrame.dev.Hide()
+                self.mainFrame.vbox.Layout()
+        elif itemId == self.popupID2:
+            is_shown = self.mainFrame.dev.IsShown()
+            if not is_shown:
+                self._show_dev()
+            _nodes = self.ROOT.find_nodes_in_pos(*self._popupMenuPos)
+            class _e:
+                Position = self._popupMenuPos
+                WasShownBefore = is_shown
+                Drawer = _nodes[-1] if len(_nodes) > 0 else None
+            self.mainFrame.dev.onClick(_e)
+
+    def _show_dev(self):
+        self.mainFrame.dev.ROOT_NODE = self.ROOT.ROOT_NODE if self.ROOT else None
+        self.mainFrame.dev.Show()
+        self.mainFrame.vbox.Layout()
 
 
 class PopMenu(wx.Menu):
 
-    def __init__(self, parent, menuId):
+    def __init__(self, parent, menuId, menuId2):
         super(PopMenu, self).__init__()
 
         self.parent = parent
 
         popmenu = wx.MenuItem(self, menuId, 'Hide dev' if parent.mainFrame.dev.IsShown() else 'Show dev')
+        self.Append(popmenu)
+        popmenu = wx.MenuItem(self, menuId2, 'Show dev on element')
         self.Append(popmenu)
 
 
@@ -540,7 +559,9 @@ class DevTreeArea(wx.Panel, Scrollable):
     def draw_node(self, cr, node, line_y, level):
         h = 11
         rect = (10 + level*5, 10 + line_y*(h+2) - self.scroll_pos_y, 100, h)
-        cr_set_source_rgb_any_hex(cr, '#333399' if line_y==self.current_y else '#333333')
+        if line_y==self.current_y:
+            self.current_y = node
+        cr_set_source_rgb_any_hex(cr, '#333399' if self.current_y==node else '#333333')
         cr.set_line_width(1)
         rect = (rect[0]+0.5, rect[1]+0.5, rect[2]-1+1, rect[3]-1+1)
         cr.rectangle(*rect)
@@ -576,7 +597,7 @@ class DevTreeArea(wx.Panel, Scrollable):
             cr.show_text(text)
             y += font_size
 
-        if line_y==self.current_y:
+        if self.current_y==node:
             for add in ('simple', 'hover'):
                 _style = getattr(node, 'style_'+add, None)
                 if _style:
@@ -675,9 +696,14 @@ class DevTreeArea(wx.Panel, Scrollable):
         self.doEvent(event.Position, 'ondown')
 
     def onClick(self, event):
-        handled = self.doEventPrior(event.Position, 'onclick') if self in PRIOR_EVENT_HANDLERS else False
-        if not handled:
-            self.current_y = int((event.Position[1] + self.scroll_pos_y - 10) / 13)
+        drawer = getattr(event, "Drawer", None)
+        if drawer:
+            print('::: drawer:', drawer)
+            self.current_y = drawer.node
+        else:
+            handled = self.doEventPrior(event.Position, 'onclick') if self in PRIOR_EVENT_HANDLERS else False
+            if not handled:
+                self.current_y = int((event.Position[1] + self.scroll_pos_y - 10) / 13)
         self.Refresh()
 
     def onMoving(self, event):

@@ -115,9 +115,14 @@ class LeftTopPanel(React.Component):
     def onSearchClick(self, event):
         print('[ LeftTopPanel ] onSearchClick', id(self))
         CHATS[:] = CHATS_ALL
+        _was_search = self.state['search']
         self.setState({
-            'search': not self.state['search']
+            'search': not _was_search
         })
+        if not _was_search:
+            input_node = self.node.getElementById("chat-search-input")
+            input_node.drawer.focus()
+            return True
 
     def onChange(self, node):
         print('onchange...', node.text)
@@ -131,7 +136,7 @@ class LeftTopPanel(React.Component):
     def render(self):
         if self.state['search']:
             inner =  f'''
-                <input class="flex-1 common-padding common-font height-100p white" onchange={obj(self.onChange)} />
+                <input id="chat-search-input" class="flex-1 common-padding common-font height-100p white" onchange={obj(self.onChange)} />
                 <div class="width-50 height-100p white">
                     <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={obj(self.onSearchClick)} />
                 </div>
