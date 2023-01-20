@@ -118,10 +118,28 @@ class Scrollable:
         dy = d * scroll_area_height / self.height
         
         scroll_pos_y = self.scroll_pos_y
+        max_scroll_y = scroll_area_height - self.height
+
+
+        dy = int(dy)
+        _maybe_scroll_pos_y = scroll_pos_y - dy
+        if _maybe_scroll_pos_y < 0:
+            dy += _maybe_scroll_pos_y
+        elif _maybe_scroll_pos_y > max_scroll_y:
+            dy += _maybe_scroll_pos_y - max_scroll_y
+
+
         scroll_pos_y -= dy
+        _node = getattr(self, 'listview', None)
+        if SELECT_CONTROL.listview == _node:
+            if not SELECT_CONTROL.started and SELECT_CONTROL.start != None and SELECT_CONTROL.end != None:
+                SELECT_CONTROL.start[1] += dy
+                SELECT_CONTROL.end[1] += dy
+        else:
+            print('>>>>>', type(SELECT_CONTROL.listview), id(SELECT_CONTROL.listview), '?', type(_node), id(_node), '=', SELECT_CONTROL.listview == _node)
         self.scroll_pos_y = int(scroll_pos_y)
 
-        max_scroll_y = scroll_area_height - self.height
+        
         if max_scroll_y < 0:
             max_scroll_y = 0
         self.max_scroll_y = max_scroll_y
