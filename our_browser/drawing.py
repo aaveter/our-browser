@@ -683,16 +683,27 @@ class DrawerBlock(DrawerNode):
                         (_start[1] < y and y_bottom < _end[1])
                     ):
                         #self.draw_background(cr, '#cccccc', (_x, y, line_width, dy))
-                        drawed = (_x, y, line_width, dy)
+                        _, _, line_width_2, _ = cr.text_extents(line)[:4]
+                        drawed = (_x, y, line_width_2, dy)
                     elif (y <= _start[1] <= y_bottom and y_bottom < _end[1]):
                         dx = _start[0] - _x
                         if dx > 0:
-                            dx_ln = round(dx / fw_size_w)
+                            dx_ln = round(dx / fw_size_w) - 3
                             if dx_ln > 0:
+                                dx_2 = dx - 10
+                                while dx_2 < dx:
+                                    textWidth = dx_2
+                                    dline = line[:dx_ln]
+                                    _, _, dx_2, _ = cr.text_extents(dline)[:4]
+                                    dx_ln += 1
+                                    if len(dline) == len(line):
+                                        textWidth = dx_2
+                                        break
+                                _, _, line_width_2, _ = cr.text_extents(line[len(dline)-1:])[:4]
                                 b_color = '#ffcccc'
-                                dx_width = dx_ln * fw_size_w
+                                dx_width = textWidth #dx_width = dx_ln * fw_size_w
                                 #self.draw_background(cr, '#cccccc', (_x+dx_width, y, line_width-dx_width, dy))
-                                drawed = (_x+dx_width, y, line_width-dx_width, dy)
+                                drawed = (_x+dx_width, y, line_width_2, dy)#line_width-dx_width, dy)
                     elif (y <= _end[1] <= y_bottom and _start[1] < y):
                         dx = x_right - _end[0]
                         if dx > 0:
