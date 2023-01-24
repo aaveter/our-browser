@@ -208,5 +208,6 @@ class SelectControl:
         self.start = None
         self.end = None
         self.listview = None
+        self._double_clicked = False
 
 SELECT_CONTROL = SelectControl()

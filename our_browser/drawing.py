@@ -662,6 +662,24 @@ class DrawerBlock(DrawerNode):
                 _x = x + width/2 - line_width/2
             if y >= y0:
                 y_bottom = y + dy
+                if SELECT_CONTROL._double_clicked and SELECT_CONTROL.start != None:
+                    if (
+                        (y < SELECT_CONTROL.start[1] < y_bottom) and ( _x < SELECT_CONTROL.start[0] < x + width )
+                    ):
+                        dln = 0
+                        line_width_2 = 0
+                        dline = ''
+                        while _x + line_width_2 < SELECT_CONTROL.start[0]:
+                            dline = line[:dln]
+                            _, _, line_width_2, _ = cr.text_extents(dline)[:4]
+                            if len(dline) == len(line):
+                                break
+                            dln += 1
+                        dline = ' '.join(dline.split(' ')[:-1])
+                        _, _, line_width_2, _ = cr.text_extents(dline)[:4]
+                        SELECT_CONTROL.start[0] = _x + line_width_2 + 1
+                        _, _, line_width_3, _ = cr.text_extents(line[len(dline)+1:].split(' ')[0])[:4]
+                        SELECT_CONTROL.end = [SELECT_CONTROL.start[0]+line_width_3, SELECT_CONTROL.start[1]]
                 if SELECT_CONTROL.start != None and SELECT_CONTROL.end != None:
                     _start, _end = SELECT_CONTROL.start, SELECT_CONTROL.end
                     if _start[1] > _end[1]+5:
@@ -707,14 +725,23 @@ class DrawerBlock(DrawerNode):
                                 #self.draw_background(cr, '#cccccc', (_x+dx_width, y, line_width-dx_width, dy))
                                 drawed = (_x+dx_width, y, line_width_2, dy)#line_width-dx_width, dy)
                     elif (y <= _end[1] <= y_bottom and _start[1] < y):
-                        dx = x_right - _end[0]
+                        dx = line_width - (x_right - _end[0])
                         if dx > 0:
-                            dx_ln = round(dx / fw_size_w)
+                            dx_ln = round(dx / fw_size_w) - 3
                             if dx_ln > 0:
-                                b_color = '#ccffcc'
-                                dx_width = dx_ln * fw_size_w
+                                dx_2 = dx - 10
+                                while dx_2 < dx:
+                                    textWidth = dx_2
+                                    dline = line[:dx_ln]
+                                    _, _, dx_2, _ = cr.text_extents(dline)[:4]
+                                    dx_ln += 1
+                                    if len(dline) == len(line):
+                                        textWidth = dx_2
+                                        break
+                                dx_width = textWidth #dx_width = dx_ln * fw_size_w
                                 #self.draw_background(cr, '#cccccc', (_x, y, line_width-dx_width, dy))
-                                drawed = (_x, y, line_width-dx_width, dy)
+                                b_color = '#ccffcc'
+                                drawed = (_x, y, dx_width, dy)
                     elif (
                         (y <= _start[1] <= _end[1] <= y_bottom) and
                         (_x <= _start[0] <= _end[0] <= x_right)

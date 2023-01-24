@@ -145,6 +145,7 @@ class DrawingArea(wx.Panel):
         self.Bind(wx.EVT_LEFT_DOWN, self.onDown)
         self.Bind(wx.EVT_LEFT_UP, self.onClick)
         self.Bind(wx.EVT_MOTION, self.onMoving)
+        self.Bind(wx.EVT_LEFT_DCLICK, self.onDbClick)
 
         """self.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
         self.Bind(wx.EVT_KEY_UP, self.onKeyUp)
@@ -282,12 +283,15 @@ class DrawingArea(wx.Panel):
             SELECT_CONTROL.end = event.Position
         #SELECT_CONTROL.started = True
 
+    def onDbClick(self, event):
+        SELECT_CONTROL._double_clicked = True
+
     def onClick(self, event):
         if SELECT_CONTROL.started:
             SELECT_CONTROL.started = False
             SELECT_CONTROL.end = event.Position
         handled = False
-        print('[ onClick ]', len(PRIOR_EVENT_HANDLERS))
+        print('[ onClick ]', len(PRIOR_EVENT_HANDLERS), "DBL:", SELECT_CONTROL._double_clicked)
         for pr in PRIOR_EVENT_HANDLERS:
             if hasattr(pr, 'doEventPrior'):
                 handled = pr.doEventPrior(event.Position, 'onclick')
@@ -300,6 +304,7 @@ class DrawingArea(wx.Panel):
         if not handled and not _propagateEvent(self.ROOT.node, event.Position, 'onclick'):
             INPUT_CONTROL.set_focus(None)
         self.Refresh()
+        #SELECT_CONTROL._double_clicked = False
 
     def onMoving(self, event):
         handled = False
@@ -324,6 +329,7 @@ class DrawingArea(wx.Panel):
                 handled = True
         if handled:
             self.Refresh()
+        SELECT_CONTROL._double_clicked = False
 
     def onInputKeyDown(self, event):
         keycode2 = event.GetKeyCode()
