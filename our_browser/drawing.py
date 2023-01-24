@@ -664,6 +664,8 @@ class DrawerBlock(DrawerNode):
                 y_bottom = y + dy
                 if SELECT_CONTROL.start != None and SELECT_CONTROL.end != None:
                     _start, _end = SELECT_CONTROL.start, SELECT_CONTROL.end
+                    if _start[1] > _end[1]+5:
+                        _start, _end = _end, _start
                     _ramki_x = None
                     if SELECT_CONTROL.listview:
                         #_start, _end = [_start[0], _start[1]], [_end[0], _end[1]]
