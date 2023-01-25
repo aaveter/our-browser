@@ -677,7 +677,7 @@ class DrawerBlock(DrawerNode):
                             dln += 1
                         dline = ' '.join(dline.split(' ')[:-1])
                         _, _, line_width_2, _ = cr.text_extents(dline)[:4]
-                        SELECT_CONTROL.start[0] = _x + line_width_2 + 1
+                        SELECT_CONTROL.start[0] = int(_x + line_width_2 + 1)
                         _, _, line_width_3, _ = cr.text_extents(line[len(dline)+1:].split(' ')[0])[:4]
                         SELECT_CONTROL.end = [SELECT_CONTROL.start[0]+line_width_3, SELECT_CONTROL.start[1]]
                 if SELECT_CONTROL.start != None and SELECT_CONTROL.end != None:
