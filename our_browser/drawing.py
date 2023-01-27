@@ -684,6 +684,8 @@ class DrawerBlock(DrawerNode):
                     _start, _end = SELECT_CONTROL.start, SELECT_CONTROL.end
                     if _start[1] > _end[1]+5:
                         _start, _end = _end, _start
+                    elif y <= _start[1] <= _end[1] <= y_bottom and _start[0] > _end[0]:
+                        _start, _end = _end, _start
                     _ramki_x = None
                     if SELECT_CONTROL.listview:
                         #_start, _end = [_start[0], _start[1]], [_end[0], _end[1]]
@@ -695,7 +697,8 @@ class DrawerBlock(DrawerNode):
                         #     _end[0] = _lv_pos[0] + _lv_size[0]
                         _ramki_x = (_lv_pos[0], _lv_pos[0] + _lv_size[0])
                     if line_width == None:
-                        line_width = fw_size_w * len(line)
+                        #line_width = fw_size_w * len(line)
+                        _, _, line_width, _ = cr.text_extents(line)[:4]
                     drawed = None
                     x_right = _x + line_width
                     b_color = '#cccccc'
@@ -706,8 +709,11 @@ class DrawerBlock(DrawerNode):
                         _, _, line_width_2, _ = cr.text_extents(line)[:4]
                         drawed = (_x, y, line_width_2, dy)
                     elif (y <= _start[1] <= y_bottom and y_bottom < _end[1]):
-                        dx = _start[0] - _x
-                        if dx > 0:
+                        b_color = '#ffcccc'
+                        if _start[0] <= _x:
+                            drawed = (_x, y, line_width, dy)
+                        else:
+                            dx = _start[0] - _x
                             dx_ln = round(dx / fw_size_w) - 3
                             if dx_ln > 0:
                                 dx_2 = dx - 10
@@ -744,13 +750,19 @@ class DrawerBlock(DrawerNode):
                                 drawed = (_x, y, dx_width, dy)
                     elif (
                         (y <= _start[1] <= _end[1] <= y_bottom) and
-                        (_x <= _start[0] <= _end[0] <= x_right)
+                        (_x <= _start[0] <= _end[0] <= x_right or (_ramki_x != None and _ramki_x[0] <= _start[0] <= _end[0] <= _ramki_x[1]))
                     ):
                         b_color = '#ccccff'
-                        dx1 = _start[0] - _x
-                        dx1 = round(dx1 / fw_size_w) * fw_size_w
-                        dx2 = x_right - _end[0]
-                        dx2 = round(dx2 / fw_size_w) * fw_size_w
+                        if _start[0] < _x:
+                            dx1 = 0
+                        else:
+                            dx1 = _start[0] - _x
+                            dx1 = round(dx1 / fw_size_w) * fw_size_w
+                        if _end[0] > x_right:
+                            dx2 = 0
+                        else:
+                            dx2 = x_right - _end[0]
+                            dx2 = round(dx2 / fw_size_w) * fw_size_w
                         #self.draw_background(cr, '#cccccc', (_x+dx1, y, line_width-dx1-dx2, dy))
                         drawed = (_x+dx1, y, line_width-dx1-dx2, dy)
 
