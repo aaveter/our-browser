@@ -299,7 +299,7 @@ class Calced:
             if max_width and text_width > max_width:
                 self.calc_lines_etap += 'm'
                 text_width = max_width
-            text_width_real = self.calc_lines(node, font_size, text_width)
+            text_width_real = self.calc_lines(node, font_size, text_width, size)
         else:
             if node.lines:
                 node.lines = None
@@ -347,7 +347,7 @@ class Calced:
 
         return width, height
 
-    def calc_lines(self, node, font_size, text_width):
+    def calc_lines(self, node, font_size, text_width, size):
         #if node.lines == None or self.last_size_0 < text_width or True: # FIXME
         node.lines = node.text.split('\n')
         lines = node.lines
@@ -361,7 +361,7 @@ class Calced:
                 add_i = i
                 while add_i >= 0:
                     self.calc_lines_etap += 'f'
-                    add_i, real_ln = self.fix_lines_line_for_ln(lines, add_i, width_ln)
+                    add_i, real_ln = self.fix_lines_line_for_ln(lines, add_i, width_ln, text_width, size)
                     if real_ln > max_real_ln:
                         max_real_ln = real_ln
                 i -= 1
@@ -370,12 +370,17 @@ class Calced:
                 text_width = round(max_real_ln * font_size_w)
         return text_width
 
-    def fix_lines_line_for_ln(self, lines, i, width_ln):
+    def fix_lines_line_for_ln(self, lines, i, width_ln, text_width, size):
         line = lines[i]
         ln = len(line)
+        # __is_tst = line in ('Edit group', 'Create group')
+        # if __is_tst:
+        #     print('oOOooO line:', line, 'ln:', ln, 'width_ln:', width_ln, 'text_width:', text_width, 'size:', size)
         if ln > width_ln:
             self.calc_lines_etap += 's'
             ix = line[:width_ln].rfind(' ')
+            # if __is_tst:
+            #     print('  > oOOooO ix:', ix, 'line[:width_ln]:', line[:width_ln])
             if ix < 0:
                 self.calc_lines_etap += 'b'
                 return -1, ln
