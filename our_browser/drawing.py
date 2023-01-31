@@ -657,7 +657,9 @@ class DrawerBlock(DrawerNode):
             y0 = y = y + (self.size_calced[1] / 2.0) - dy/2 - self.calced.padding
 
         fw_size_w = self.calced.calc_font_size_w(font_size)
+        _selected_lines = []
         for line in lines:
+            _selected_line = None
             _x = x
             _, _, line_width, _ = cr.text_extents(line)[:4]
             if is_right_aligned:
@@ -679,10 +681,12 @@ class DrawerBlock(DrawerNode):
                             if len(dline) == len(line):
                                 break
                             dln += 1
-                        dline = ' '.join(dline.split(' ')[:-1])
+                        dline = ' '.join(dline.split(' ')[:-1]) + ' '
                         _, _, line_width_2, _ = cr.text_extents(dline)[:4]
-                        SELECT_CONTROL.start[0] = int(_x + line_width_2 + 1)
-                        _, _, line_width_3, _ = cr.text_extents(line[len(dline)+1:].split(' ')[0])[:4]
+                        SELECT_CONTROL.start[0] = int(_x + line_width_2) #+ 1)
+                        _word = line[len(dline):].split(' ')[0]
+                        print('[ left line ]:', dline, "[ word ]:", _word)
+                        _, _, line_width_3, _ = cr.text_extents(_word)[:4]
                         SELECT_CONTROL.end = [SELECT_CONTROL.start[0]+line_width_3, SELECT_CONTROL.start[1]]
                 if SELECT_CONTROL.start != None and SELECT_CONTROL.end != None:
                     _start, _end = SELECT_CONTROL.start, SELECT_CONTROL.end
@@ -692,17 +696,9 @@ class DrawerBlock(DrawerNode):
                         _start, _end = _end, _start
                     _ramki_x = None
                     if SELECT_CONTROL.listview:
-                        #_start, _end = [_start[0], _start[1]], [_end[0], _end[1]]
                         _lv_pos = SELECT_CONTROL.listview.drawer.pos
                         _lv_size = SELECT_CONTROL.listview.drawer.calced.rect.width, SELECT_CONTROL.listview.drawer.calced.rect.height
-                        # if _lv_pos[0] > _start[0]:
-                        #     _start[0] = _lv_pos[0]
-                        # if _end[0] > _lv_pos[0] + _lv_size[0]:
-                        #     _end[0] = _lv_pos[0] + _lv_size[0]
                         _ramki_x = (_lv_pos[0], _lv_pos[0] + _lv_size[0])
-                    # if line_width == None:
-                    #     #line_width = fw_size_w * len(line)
-                    #     _, _, line_width, _ = cr.text_extents(line)[:4]
                     drawed = None
                     x_right = _x + line_width
                     b_color = '#cccccc'
@@ -712,10 +708,12 @@ class DrawerBlock(DrawerNode):
                         #self.draw_background(cr, '#cccccc', (_x, y, line_width, dy))
                         _, _, line_width_2, _ = cr.text_extents(line)[:4]
                         drawed = (_x, y, line_width_2, dy)
+                        _selected_line = line
                     elif (y <= _start[1] <= y_bottom and y_bottom < _end[1]):
                         b_color = '#ffcccc'
                         if _start[0] <= _x:
                             drawed = (_x, y, line_width, dy)
+                            _selected_line = line
                         else:
                             dx = _start[0] - _x
                             dx_ln = round(dx / fw_size_w) - 3
@@ -729,17 +727,20 @@ class DrawerBlock(DrawerNode):
                                     if len(dline) == len(line):
                                         textWidth = dx_2
                                         break
-                                _, _, line_width_2, _ = cr.text_extents(line[len(dline)-1:])[:4]
+                                _line = line[len(dline)-1:]
+                                _, _, line_width_2, _ = cr.text_extents(_line)[:4]
                                 b_color = '#ffcccc'
                                 dx_width = textWidth #dx_width = dx_ln * fw_size_w
                                 #self.draw_background(cr, '#cccccc', (_x+dx_width, y, line_width-dx_width, dy))
                                 drawed = (_x+dx_width, y, line_width_2, dy)#line_width-dx_width, dy)
+                                _selected_line = _line
                     elif (y <= _end[1] <= y_bottom and _start[1] < y):
                         dx = line_width - (x_right - _end[0])
                         if dx > 0:
                             dx_ln = round(dx / fw_size_w) - 3
                             if dx_ln > 0:
                                 dx_2 = dx - 10
+                                dline = None
                                 while dx_2 < dx:
                                     textWidth = dx_2
                                     dline = line[:dx_ln]
@@ -748,6 +749,8 @@ class DrawerBlock(DrawerNode):
                                     if len(dline) == len(line):
                                         textWidth = dx_2
                                         break
+                                if dline != None:
+                                    _selected_line = dline
                                 dx_width = textWidth #dx_width = dx_ln * fw_size_w
                                 #self.draw_background(cr, '#cccccc', (_x, y, line_width-dx_width, dy))
                                 b_color = '#ccffcc'
@@ -771,20 +774,33 @@ class DrawerBlock(DrawerNode):
                         drawed = (_x+dx1, y, line_width-dx1-dx2, dy)
 
                     if drawed != None:
-                        if drawed[2] < 0:
+                        if drawed[2] <= 0 or drawed[3] <= 0:
                             drawed = None
                         elif _ramki_x != None:
                             if drawed[0] < _ramki_x[0]:
-                                drawed = (_ramki_x[0], drawed[1], drawed[2], drawed[3])
-                            if _ramki_x[1] < drawed[0] + drawed[2]:
+                                if _selected_line:
+                                    _selected_line += ":!1<ramki:{}|drawed:{}>".format(_ramki_x, drawed)
+                                if drawed[0] + drawed[2] < _ramki_x[0]:
+                                    drawed = None
+                                else:
+                                    drawed = (_ramki_x[0], drawed[1], drawed[2], drawed[3])
+                            if drawed != None and _ramki_x[1] < drawed[0] + drawed[2]:
                                 _li_wi = _ramki_x[1] - drawed[0]
                                 if _li_wi <= 0:
                                     drawed = None
                                 else:
+                                    if _selected_line:
+                                        _selected_line += ":!2"
                                     drawed = (drawed[0], drawed[1], _li_wi, drawed[3])
+                            if drawed != None and (_ramki_x[1] <= drawed[0] or drawed[0] + drawed[2] < _ramki_x[0]):
+                                drawed = None
                     if drawed != None:
                         self.draw_background(cr, b_color, drawed)
                         cr_set_source_rgb_any_hex_or_simple(cr, color, (0.1, 0.1, 0.1))
+                    else:
+                        _selected_line = None
+                    if _selected_line != None:
+                        _selected_lines.append(_selected_line)
 
                 cr.move_to(_x, y_bottom) #+5
                 cr.show_text(line)
@@ -792,6 +808,9 @@ class DrawerBlock(DrawerNode):
 
         if ff_tmp:
             cr.set_font_face(ff_tmp)
+
+        if _selected_lines:
+            SELECT_CONTROL._selected_lines += _selected_lines
 
     def draw_image(self, cr, image, rect):
         r = (rect[0], rect[1], rect[2], rect[3])
@@ -1045,12 +1064,11 @@ class AbilityInput(AbilityBase, Scrollable):
 
         fascent, fdescent, fheight, fxadvance, fyadvance = cr.font_extents()
 
-        y00 = rect[1]+padding-fdescent#*****
+        y00 = rect[1]+padding-fdescent
         x0, y0 = rect[0]+padding, y00 - self.scroll_pos_y
 
         is_vert_middle_aligned = self.drawer.calced.vertical_align in ('middle', 'center')
         if is_vert_middle_aligned:
-            #print(":::::", "y:", y, "size:", self.size_calced[1], "dy:", dy)
             dy = fheight*0.82
             y0 = y0 + (self.drawer.size_calced[1] / 2.0) - dy/2 - self.drawer.calced.padding
 

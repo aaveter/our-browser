@@ -209,5 +209,6 @@ class SelectControl:
         self.end = None
         self.listview = None
         self._double_clicked = False
+        self._selected_lines = []
 
 SELECT_CONTROL = SelectControl()

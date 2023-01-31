@@ -189,6 +189,7 @@ class DrawingArea(wx.Panel):
         event.Skip() # seems to reduce the ammount of OnSize and OnPaint events generated when resizing the window
 
     def OnPaint(self, e):
+        SELECT_CONTROL._selected_lines[:] = []
         dc = wx.PaintDC(self)
         cr = wx.lib.wxcairo.ContextFromDC(dc)
         self.DoDrawing(cr, dc)
@@ -457,6 +458,8 @@ class DrawingArea(wx.Panel):
 
     def OnRightDown(self, e):
         if not hasattr(self, "popupID1"):
+            self.popupID0 = wx.NewId()
+            self.Bind(wx.EVT_MENU, self.onPopup, id=self.popupID0)
             self.popupID1 = wx.NewId()
             self.Bind(wx.EVT_MENU, self.onPopup, id=self.popupID1)
             self.popupID2 = wx.NewId()
@@ -471,6 +474,9 @@ class DrawingArea(wx.Panel):
         menuItem = menu.FindItemById(itemId)
         txt = menuItem.GetItemLabel()
         if itemId == self.popupID1:
+            if txt.lower() == 'copy':
+                self._do_copy()
+        elif itemId == self.popupID1:
             if txt.lower() == 'show dev':
                 self._show_dev()
             elif txt.lower() == 'hide dev':
@@ -487,6 +493,9 @@ class DrawingArea(wx.Panel):
                 Drawer = _nodes[-1] if len(_nodes) > 0 else None
             self.mainFrame.dev.onClick(_e)
 
+    def _do_copy(self):
+        print('COPY:', SELECT_CONTROL._selected_lines)
+
     def _show_dev(self):
         self.mainFrame.dev.ROOT_NODE = self.ROOT.ROOT_NODE if self.ROOT else None
         self.mainFrame.dev.Show()
@@ -499,6 +508,9 @@ class PopMenu(wx.Menu):
         super(PopMenu, self).__init__()
 
         self.parent = parent
+
+        popmenu = wx.MenuItem(self, menuId, 'Copy')
+        self.Append(popmenu)
 
         popmenu = wx.MenuItem(self, menuId, 'Hide dev' if parent.mainFrame.dev.IsShown() else 'Show dev')
         self.Append(popmenu)
