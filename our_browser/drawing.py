@@ -653,12 +653,10 @@ class DrawerBlock(DrawerNode):
         fw_size_w = self.calced.calc_font_size_w(font_size)
         for line in lines:
             _x = x
-            line_width = None
+            _, _, line_width, _ = cr.text_extents(line)[:4]
             if is_right_aligned:
-                line_width = fw_size_w * len(line)
                 _x = x + width - line_width
             elif is_center_aligned:
-                line_width = fw_size_w * len(line)
                 _x = x + width/2 - line_width/2
             if y >= y0:
                 y_bottom = y + dy
@@ -696,9 +694,9 @@ class DrawerBlock(DrawerNode):
                         # if _end[0] > _lv_pos[0] + _lv_size[0]:
                         #     _end[0] = _lv_pos[0] + _lv_size[0]
                         _ramki_x = (_lv_pos[0], _lv_pos[0] + _lv_size[0])
-                    if line_width == None:
-                        #line_width = fw_size_w * len(line)
-                        _, _, line_width, _ = cr.text_extents(line)[:4]
+                    # if line_width == None:
+                    #     #line_width = fw_size_w * len(line)
+                    #     _, _, line_width, _ = cr.text_extents(line)[:4]
                     drawed = None
                     x_right = _x + line_width
                     b_color = '#cccccc'
