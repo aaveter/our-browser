@@ -111,7 +111,7 @@ class Scrollable:
         if type(d) == bool:
             d = 1 if d else -1
             d = 112 * d * self.height / scroll_area_height
-            print("????", d)
+            #print("????", d)
 
         scroll_height = self.height - 40 - self.scroll_pan_height
 
@@ -136,7 +136,7 @@ class Scrollable:
                 SELECT_CONTROL.start[1] += dy
                 SELECT_CONTROL.end[1] += dy
         else:
-            print('>>>>>', type(SELECT_CONTROL.listview), id(SELECT_CONTROL.listview), '?', type(_node), id(_node), '=', SELECT_CONTROL.listview == _node)
+            pass #print('>>>>>', type(SELECT_CONTROL.listview), id(SELECT_CONTROL.listview), '?', type(_node), id(_node), '=', SELECT_CONTROL.listview == _node)
         self.scroll_pos_y = int(scroll_pos_y)
 
         

@@ -136,7 +136,7 @@ class LeftTopPanel(React.Component):
     def render(self):
         if self.state['search']:
             inner =  f'''
-                <input id="chat-search-input" class="flex-1 common-padding common-font height-100p white" onchange={obj(self.onChange)} />
+                <input id="chat-search-input" class="flex-1 common-padding common-font height-100p white valign-center" onchange={obj(self.onChange)} />
                 <div class="width-50 height-100p white">
                     <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={obj(self.onSearchClick)} />
                 </div>

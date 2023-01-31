@@ -653,7 +653,8 @@ class DrawerBlock(DrawerNode):
         is_center_aligned = text_align == 'center'
         is_vert_middle_aligned = vertical_align in ('middle', 'center')
         if is_vert_middle_aligned:
-            y = y + (self.size_calced[1] / 2) - dy/2
+            #print(":::::", "y:", y, "size:", self.size_calced[1], "dy:", dy)
+            y0 = y = y + (self.size_calced[1] / 2.0) - dy/2 - self.calced.padding
 
         fw_size_w = self.calced.calc_font_size_w(font_size)
         for line in lines:
@@ -1044,8 +1045,15 @@ class AbilityInput(AbilityBase, Scrollable):
 
         fascent, fdescent, fheight, fxadvance, fyadvance = cr.font_extents()
 
-        y00 = rect[1]+padding-fdescent
+        y00 = rect[1]+padding-fdescent#*****
         x0, y0 = rect[0]+padding, y00 - self.scroll_pos_y
+
+        is_vert_middle_aligned = self.drawer.calced.vertical_align in ('middle', 'center')
+        if is_vert_middle_aligned:
+            #print(":::::", "y:", y, "size:", self.size_calced[1], "dy:", dy)
+            dy = fheight*0.82
+            y0 = y0 + (self.drawer.size_calced[1] / 2.0) - dy/2 - self.drawer.calced.padding
+
         cursor_height = fheight #14 #20
         x1, y1, x2, y2 = x0, y0, x0, y0 + cursor_height + fdescent
 
