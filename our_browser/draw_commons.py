@@ -80,8 +80,8 @@ class Scrollable:
         # scroll_pan_height_d = (_sz[1] - scroll_size/2 - 50) if scroll_size <= _sz[1]*2 else (_sz[1] / scroll_size) #50
         # if scroll_pan_height_d < 5:
         #     scroll_pan_height_d = 10
-        # scroll_pan_height = scroll_pan_height_d # _sz[1] - 
-        
+        # scroll_pan_height = scroll_pan_height_d # _sz[1] -
+
         min_y = _ps[1] + scroll_width
         max_y = _ps[1] + _sz[1] - scroll_width - self.scroll_pan_height
 
@@ -116,7 +116,7 @@ class Scrollable:
         scroll_height = self.height - 40 - self.scroll_pan_height
 
         dy = d * scroll_area_height / self.height
-        
+
         scroll_pos_y = self.scroll_pos_y
         max_scroll_y = scroll_area_height - self.height
 
@@ -133,13 +133,13 @@ class Scrollable:
         _node = getattr(self, 'listview', None)
         if SELECT_CONTROL.listview == _node:
             if not SELECT_CONTROL.started and SELECT_CONTROL.start != None and SELECT_CONTROL.end != None:
-                SELECT_CONTROL.start[1] += dy
-                SELECT_CONTROL.end[1] += dy
+                SELECT_CONTROL.start[1] += int(dy)
+                SELECT_CONTROL.end[1] += int(dy)
         else:
             pass #print('>>>>>', type(SELECT_CONTROL.listview), id(SELECT_CONTROL.listview), '?', type(_node), id(_node), '=', SELECT_CONTROL.listview == _node)
         self.scroll_pos_y = int(scroll_pos_y)
 
-        
+
         if max_scroll_y < 0:
             max_scroll_y = 0
         self.max_scroll_y = max_scroll_y
