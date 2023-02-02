@@ -1,4 +1,4 @@
-from os.path import exists, abspath
+from os.path import exists, abspath, dirname, join
 from our_browser.listview import draw_listview
 import cairo, math
 import threading
@@ -7,6 +7,8 @@ from our_browser.draw_commons import (
     cr_set_source_rgb_any_hex, cr_set_source_rgb_any_hex_or_simple, hex2color, Scrollable, PRIOR_EVENT_HANDLERS,
     SELECT_CONTROL, HOVERED_NODES
 )
+
+DATA_PATH = join(dirname(__file__), 'data')
 
 check_is_drawable = lambda node: node.tag and node.tag.text not in ('style', 'script', 'head', 'items') and not node.tag.text.startswith('!')
 
@@ -659,6 +661,7 @@ class DrawerBlock(DrawerNode):
             #print(":::::", "y:", y, "size:", self.size_calced[1], "dy:", dy)
             y0 = y = y + (self.size_calced[1] / 2.0) - dy/2 - self.calced.padding
 
+        _smiles = []
         fw_size_w = self.calced.calc_font_size_w(font_size)
         _selected_lines = []
         for line in lines:
@@ -809,7 +812,20 @@ class DrawerBlock(DrawerNode):
 
                 cr.move_to(_x, y_bottom) #+5
                 cr.show_text(line)
+
+                sm_i = -1
+                while True:
+                    sm_i = line.find('😉', sm_i+1)
+                    if sm_i < 0:
+                        break
+                    image = cairo.ImageSurface.create_from_png(join(DATA_PATH, 'smile_10.png'))
+                    _, _, sm_width, _ = cr.text_extents(line[:sm_i])[:4]
+                    _smiles.append((image, (_x+sm_width, y, fw_size_w*2.3, fw_size_w*2.3)))
+
             y += font_size
+
+        for image, rect in _smiles:
+            self.draw_image(cr, image, rect, resize_imp=True)
 
         if ff_tmp:
             cr.set_font_face(ff_tmp)
@@ -817,12 +833,12 @@ class DrawerBlock(DrawerNode):
         if _selected_lines:
             SELECT_CONTROL._selected_lines += _selected_lines
 
-    def draw_image(self, cr, image, rect):
+    def draw_image(self, cr, image, rect, resize_imp=False):
         r = (rect[0], rect[1], rect[2], rect[3])
         img_w, img_h = image.get_width(), image.get_height()
         wk, hk = (
-            1 if self.calced._width < 0 else rect[2]/img_w,
-            1 if self.calced._height < 0 else rect[3]/img_h
+            1 if self.calced._width < 0 and not resize_imp else rect[2]/img_w,
+            1 if self.calced._height < 0 and not resize_imp else rect[3]/img_h
         )
         boo = wk != 1 or hk != 1
         if boo:
