@@ -494,7 +494,21 @@ class DrawingArea(wx.Panel):
             self.mainFrame.dev.onClick(_e)
 
     def _do_copy(self):
-        print('COPY:', '\n'.join(SELECT_CONTROL._selected_lines))
+        lines = []
+        cur_li = None
+        for li in SELECT_CONTROL._selected_lines:
+            if getattr(li, '_breaked', False):
+                if cur_li != None:
+                    cur_li = cur_li + " " + li
+                else:
+                    cur_li = li
+            else:
+                if cur_li != None:
+                    li = cur_li + " " + li
+                    cur_li = None
+                lines.append(li)
+                
+        print('COPY:', '\n'.join(lines))
 
     def _show_dev(self):
         self.mainFrame.dev.ROOT_NODE = self.ROOT.ROOT_NODE if self.ROOT else None

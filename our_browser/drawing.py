@@ -17,6 +17,8 @@ DEFAULT_STYLES = {
     }
 }
 
+class StrBreaked(str):
+    _breaked = True
 
 class InputControl:
     focus_into = None
@@ -386,6 +388,7 @@ class Calced:
                 return -1, ln
             line_add = line[ix+1:]
             line = line[:ix]
+            line = StrBreaked(line)
             lines[i] = line
             add_i = i+1
             lines.insert(add_i, line_add)
@@ -728,6 +731,8 @@ class DrawerBlock(DrawerNode):
                                         textWidth = dx_2
                                         break
                                 _line = line[len(dline)-1:]
+                                if getattr(line, '_breaked', False):
+                                    _line = StrBreaked(_line)
                                 _, _, line_width_2, _ = cr.text_extents(_line)[:4]
                                 b_color = '#ffcccc'
                                 dx_width = textWidth #dx_width = dx_ln * fw_size_w
@@ -778,8 +783,8 @@ class DrawerBlock(DrawerNode):
                             drawed = None
                         elif _ramki_x != None:
                             if drawed[0] < _ramki_x[0]:
-                                if _selected_line:
-                                    _selected_line += ":!1<ramki:{}|drawed:{}>".format(_ramki_x, drawed)
+                                # if _selected_line:
+                                #     _selected_line += ":!1<ramki:{}|drawed:{}>".format(_ramki_x, drawed)
                                 if drawed[0] + drawed[2] < _ramki_x[0]:
                                     drawed = None
                                 else:
@@ -789,8 +794,8 @@ class DrawerBlock(DrawerNode):
                                 if _li_wi <= 0:
                                     drawed = None
                                 else:
-                                    if _selected_line:
-                                        _selected_line += ":!2"
+                                    # if _selected_line:
+                                    #     _selected_line += ":!2"
                                     drawed = (drawed[0], drawed[1], _li_wi, drawed[3])
                             if drawed != None and (_ramki_x[1] <= drawed[0] or drawed[0] + drawed[2] < _ramki_x[0]):
                                 drawed = None
