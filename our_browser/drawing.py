@@ -768,18 +768,57 @@ class DrawerBlock(DrawerNode):
                         (_x <= _start[0] <= _end[0] <= x_right or (_ramki_x != None and _ramki_x[0] <= _start[0] <= _end[0] <= _ramki_x[1]))
                     ):
                         b_color = '#ccccff'
+                        _line1 = line
                         if _start[0] < _x:
                             dx1 = 0
+                            dx_ln = 0
                         else:
+                            # dx1 = _start[0] - _x
+                            # dx1 = round(dx1 / fw_size_w) * fw_size_w
                             dx1 = _start[0] - _x
-                            dx1 = round(dx1 / fw_size_w) * fw_size_w
+                            dx_ln = round(dx1 / fw_size_w) - 3
+                            if dx_ln > 0:
+                                dx_2 = dx1 - 10
+                                while dx_2 < dx1:
+                                    textWidth = dx_2
+                                    dline = line[:dx_ln]
+                                    _, _, dx_2, _ = cr.text_extents(dline)[:4]
+                                    dx_ln += 1
+                                    if len(dline) == len(line):
+                                        textWidth = dx_2
+                                        break
+                                _line1 = line[len(dline)-1:]
+                                _, _, line_width_2, _ = cr.text_extents(_line1)[:4]
+                                dx1 = textWidth
+
                         if _end[0] > x_right:
-                            dx2 = 0
+                            dx2 = x_right
+                            _selected_line = _line1
                         else:
-                            dx2 = x_right - _end[0]
-                            dx2 = round(dx2 / fw_size_w) * fw_size_w
+                            # dx2 = x_right - _end[0]
+                            # dx2 = round(dx2 / fw_size_w) * fw_size_w
+                            _line0 = _line1 #line[dx_ln:]
+                            dx2 = _end[0] - _x - dx1
+                            dx_ln = round(dx2 / fw_size_w) - 3
+                            dline = _line0
+                            if dx_ln > 0:
+                                dx_2 = dx2 - 10
+                                while dx_2 < dx2:
+                                    textWidth = dx_2
+                                    dline = _line0[:dx_ln]
+                                    _, _, dx_2, _ = cr.text_extents(dline)[:4]
+                                    dx_ln += 1
+                                    if len(dline) == len(_line0):
+                                        textWidth = dx_2
+                                        break
+                                # _line2 = line[len(dline)-1:]
+                                # _, _, line_width_2, _ = cr.text_extents(_line2)[:4]
+                                dx2 = textWidth
+                            _selected_line = dline
+
                         #self.draw_background(cr, '#cccccc', (_x+dx1, y, line_width-dx1-dx2, dy))
-                        drawed = (_x+dx1, y, line_width-dx1-dx2, dy)
+                        drawed = (_x+dx1, y, dx2, dy)
+                        #drawed = (_x+dx1, y, line_width-dx1-dx2, dy)
 
                     if drawed != None:
                         if drawed[2] <= 0 or drawed[3] <= 0:
