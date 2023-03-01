@@ -689,10 +689,17 @@ class DrawerBlock(DrawerNode):
                             dln += 1
                         dline = ' '.join(dline.split(' ')[:-1]) + ' '
                         _, _, line_width_2, _ = cr.text_extents(dline)[:4]
-                        SELECT_CONTROL.start[0] = int(_x + line_width_2) #+ 1)
+                        is_first_word = False
+                        if dline == ' ':
+                            line_width_2 = -1
+                            dline = ''
+                            is_first_word = True
+                        SELECT_CONTROL.start[0] = int(_x + line_width_2) + 1 #+ 1)
                         _word = line[len(dline):].split(' ')[0]
                         print('[ left line ]:', dline, "[ word ]:", _word)
                         _, _, line_width_3, _ = cr.text_extents(_word)[:4]
+                        if is_first_word:
+                            line_width_3 += 1
                         SELECT_CONTROL.end = [SELECT_CONTROL.start[0]+line_width_3, SELECT_CONTROL.start[1]]
                 if SELECT_CONTROL.start != None and SELECT_CONTROL.end != None:
                     _start, _end = SELECT_CONTROL.start, SELECT_CONTROL.end
@@ -723,8 +730,13 @@ class DrawerBlock(DrawerNode):
                         else:
                             dx = _start[0] - _x
                             dx_ln = round(dx / fw_size_w) - 3
-                            if dx_ln > 0:
+                            if dx_ln < 0:
+                                dx_ln = 0
+                            if dx_ln >= 0:
                                 dx_2 = dx - 10
+                                if dx_2 < 0:
+                                    textWidth = dx_2 = 0
+                                    dline = line
                                 while dx_2 < dx:
                                     textWidth = dx_2
                                     dline = line[:dx_ln]
@@ -739,6 +751,8 @@ class DrawerBlock(DrawerNode):
                                 _, _, line_width_2, _ = cr.text_extents(_line)[:4]
                                 b_color = '#ffcccc'
                                 dx_width = textWidth #dx_width = dx_ln * fw_size_w
+                                if dx_width < 0:
+                                    print('!!!!!>>>>>', dx_width)
                                 #self.draw_background(cr, '#cccccc', (_x+dx_width, y, line_width-dx_width, dy))
                                 drawed = (_x+dx_width, y, line_width_2, dy)#line_width-dx_width, dy)
                                 _selected_line = _line
@@ -746,8 +760,12 @@ class DrawerBlock(DrawerNode):
                         dx = line_width - (x_right - _end[0])
                         if dx > 0:
                             dx_ln = round(dx / fw_size_w) - 3
-                            if dx_ln > 0:
+                            if dx_ln < 0:
+                                dx_ln = 0
+                            if dx_ln >= 0:
                                 dx_2 = dx - 10
+                                if dx_2 < 0:
+                                    textWidth = dx_2 = 0
                                 dline = None
                                 while dx_2 < dx:
                                     textWidth = dx_2
@@ -777,22 +795,27 @@ class DrawerBlock(DrawerNode):
                             # dx1 = round(dx1 / fw_size_w) * fw_size_w
                             dx1 = _start[0] - _x
                             dx_ln = round(dx1 / fw_size_w) - 3
-                            if dx_ln > 0:
+                            if dx_ln < 0:
+                                dx_ln = 0
+                            if dx_ln >= 0:
                                 dx_2 = dx1 - 10
+                                _dline = ''
+                                if dx_2 < 0:
+                                    textWidth = dx_2 = 0
                                 while dx_2 < dx1:
                                     textWidth = dx_2
-                                    dline = line[:dx_ln]
-                                    _, _, dx_2, _ = cr.text_extents(dline)[:4]
+                                    _dline = line[:dx_ln]
+                                    _, _, dx_2, _ = cr.text_extents(_dline)[:4]
                                     dx_ln += 1
-                                    if len(dline) == len(line):
+                                    if len(_dline) == len(line):
                                         textWidth = dx_2
                                         break
-                                _line1 = line[len(dline)-1:]
+                                _line1 = line[len(_dline)-1:]
                                 _, _, line_width_2, _ = cr.text_extents(_line1)[:4]
                                 dx1 = textWidth
 
                         if _end[0] > x_right:
-                            dx2 = x_right
+                            dx2 = x_right - _x - dx1
                             _selected_line = _line1
                         else:
                             # dx2 = x_right - _end[0]
@@ -800,9 +823,13 @@ class DrawerBlock(DrawerNode):
                             _line0 = _line1 #line[dx_ln:]
                             dx2 = _end[0] - _x - dx1
                             dx_ln = round(dx2 / fw_size_w) - 3
+                            if dx_ln < 0:
+                                dx_ln = 0
                             dline = _line0
-                            if dx_ln > 0:
+                            if dx_ln >= 0:
                                 dx_2 = dx2 - 10
+                                if dx_2 < 0:
+                                    textWidth = dx_2 = 0
                                 while dx_2 < dx2:
                                     textWidth = dx_2
                                     dline = _line0[:dx_ln]
