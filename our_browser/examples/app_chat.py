@@ -401,6 +401,7 @@ class SearchButton(React.Component):
         super().__init__(props)
         self.src = props['src']
         self.onClickHandler = props['onClick']
+        print('onClickHandler:', self.onClickHandler)
 
     def render(self):
         return f'''
@@ -414,7 +415,8 @@ class SettingsPanel(React.Component):
     def __init__(self, props) -> None:
         super().__init__()
         self.state = {
-            'show': False
+            'show': False,
+            'create_group_show': False,
         }
 
     def onCloseClick(self, event):
@@ -424,6 +426,11 @@ class SettingsPanel(React.Component):
 
     def onCreateGroupClick(self, event):
         print('onCreateGroupClick')
+        self.setState({'create_group_show': True})
+
+    def onCloseCreateGroup(self, event):
+        print('onCloseCreateGroup')
+        self.setState({'create_group_show': False})
 
     def onDisconnectClick(self, event):
         print('onDisconnectClick')
@@ -438,6 +445,11 @@ class SettingsPanel(React.Component):
     def render(self):
         inner = ''
         if self.state['show']:
+            right_inner = ''
+            if self.state['create_group_show']:
+                right_inner = f'''
+                    <CreateGroupDialog onClose={obj(self.onCloseCreateGroup)} />
+                '''
             inner = f'''
                 <div class="height-100p width-30p orange">
                     <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={obj(self.onCloseClick)} />
@@ -452,6 +464,7 @@ class SettingsPanel(React.Component):
                     </div>
                 </div>
                 <div class="height-100p width-70p pol-grey">
+                    {right_inner}
                 </div>
             '''
         return f'''
@@ -459,6 +472,78 @@ class SettingsPanel(React.Component):
                 {inner}
             </div>
         '''
+
+class CreateGroupDialog(React.Component):
+
+    def __init__(self, props) -> None:
+        super().__init__(props)
+        self.state = {
+            'show': False
+        }
+        self.onCloseHandler = props['onClose']
+        print('onCloseHandler:', self.onCloseHandler)
+
+    def onSaveClick(self, event):
+        print('onSaveClick')
+
+    # def onCancelClick(self, event):
+    #     print('onCancelClick')
+    #     self.props['onClose'](event)
+    #     return 'grab' # TODO important because 2 buttons into one pos
+
+    def onClick(self, event):
+        return 'grab'
+
+    def onChangeGroup(self, event):
+        pass
+
+    def onChangeUser(self, event):
+        pass
+
+    def render(self):
+        return f'''
+            <div class="height-80p width-80p orange margin-10p" onclick={obj(self.onClick)}>
+                <div class="common-font">
+                    Create group
+                </div>
+                <input id="group-name-input" class="common-padding common-font height-20 width-80p white valign-center" onchange={obj(self.onChangeGroup)} />
+                <input id="group-user-input" class="common-padding common-font height-20 width-80p white valign-center" onchange={obj(self.onChangeUser)} />
+                <listview class="page green" id="group-users-listview" items-count="1000">
+                    <template>
+                        <GroupUserItem />
+                    </template>
+                    <items />
+                </listview>
+                <div class="dialog-buttons flex-horizontal">
+                    <div class="dialog-button flex-1" onclick={obj(self.onSaveClick)}>Save</div>
+                    <div class="dialog-button flex-1" onclick={obj(self.onCloseHandler)}>Cancel</div>
+                </div>
+            </div>
+        '''
+
+class GroupUserItem(React.Component):
+
+    def onClick(self, event):
+        print('...click', id(self))
+
+    def render(self):
+        add = ''
+        return f'''
+            <item class='item yellow flex-horizontal flex-align-center chat chat-selected-' onclick={obj(self.onClick)} >
+                <div class="image-button button margin-10 chat-image" >
+                    <image class="image-26 image-button-content-chat" src="our_browser/examples/htmls/user_black.png" />
+                    {add}
+                </div>
+                <div class="flex-1 height-100p">
+                    <div class="height-100p width-100p flex-vertical chat-right-part">
+                        <div class="chat-name">User</div>
+                        <div class="chat-div"></div>
+                        <div class="chat-message"></div>
+                    </div>
+                </div>
+            </item>
+        '''
+
 
 class ChatItem(React.Component):
 

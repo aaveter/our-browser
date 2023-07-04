@@ -95,7 +95,7 @@ class ListviewControl(Scrollable):
                             a, b = part.split(_spl_2)
                             a = a.strip()
                             if a.startswith('item.'):
-                                attr_name = a[5:]
+                                attr_name = attr_name_ = a[5:]
                                 _callable = False
                                 if '(' in attr_name:
                                     _callable = True

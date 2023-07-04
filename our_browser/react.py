@@ -60,6 +60,16 @@ class _ReactDOM:
                 if type(v)==str and v.startswith('METHOD-'):
                     pos = int(v[7:])
                     node.attrs[a] = _methods[pos]
+        # r = react(node, True)
+        # if r:
+        #     for a, v in r.props.items():
+        #         if type(v)==str and v.startswith('METHOD-'):
+        #             pos = int(v[7:])
+        #             try:
+        #                 r.props[a] = _methods[pos]
+        #             except:
+        #                 print(pos, '\n', _methods, self._methods_tmp, r, r.props)
+        #                 raise
         for ch in node.children:
             self._connect_methods(ch, _methods)
 
@@ -132,10 +142,12 @@ EVENT = obj
 ReactDOM = _ReactDOM()
 
 
-def react(node):
+def react(node, one_cycle=False):
     while True:
         if not node:
             return None
         if hasattr(node, 'react_component'):
             return node.react_component
+        if one_cycle:
+            return
         node = node.parent
