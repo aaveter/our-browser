@@ -502,12 +502,12 @@ class CreateGroupDialog(React.Component):
 
     def render(self):
         return f'''
-            <div class="height-80p width-80p orange margin-10p" onclick={obj(self.onClick)}>
+            <div class="create-group-dialog height-80p width-80p orange margin-10p padding-10" onclick={obj(self.onClick)}>
                 <div class="common-font">
                     Create group
                 </div>
-                <input id="group-name-input" class="common-padding common-font height-20 width-80p white valign-center" onchange={obj(self.onChangeGroup)} />
-                <input id="group-user-input" class="common-padding common-font height-20 width-80p white valign-center" onchange={obj(self.onChangeUser)} />
+                <input id="group-name-input" class="group-create-input common-padding common-font height-30 width-80p white valign-center margin-2" onchange={obj(self.onChangeGroup)} />
+                <input id="group-user-input" class="group-create-input common-padding common-font height-30 width-80p white valign-center margin-2" onchange={obj(self.onChangeUser)} />
                 <listview class="page green" id="group-users-listview" items-count="1000">
                     <template>
                         <GroupUserItem />

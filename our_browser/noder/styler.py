@@ -105,6 +105,8 @@ _SMART_NUM_CLASSES = {
     'flex-': 'flex',
     'top-': 'top',
     'left-': 'left',
+    'margin-': 'margin',
+    'padding-': 'padding',
 }
 
 def try_style(name):

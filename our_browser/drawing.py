@@ -465,9 +465,12 @@ class DrawerBlock(DrawerNode):
 
         pos_my = (self.pos[0], self.pos[1])
 
-        size_calced = self.calc_children(pos_my, size_my)
+        size_my_for_childs = (size_my[0] - self.calced.padding, size_my[1] - self.calced.padding)
+        pd_2 = self.calced.padding / 2
+        pos_my_for_childs = (pos_my[0]+pd_2, pos_my[1]+pd_2)
+        size_calced = self.calc_children(pos_my_for_childs, size_my_for_childs)
 
-        self.size_calced = size_calced if size_calced != None else size_my
+        self.size_calced = (size_calced[0]+self.calced.padding, size_calced[1]+self.calced.padding) if size_calced != None else size_my
 
         if self.calced.text_width_real != self.calced.text_width:
             w_by_text = self.calced.text_width_real + self.calced.padding * 2
@@ -482,12 +485,11 @@ class DrawerBlock(DrawerNode):
         size_calced = (size_my[0], size_my[1])
 
         _size_calced = size_calced
-        for node in self.node.children:
+        for i, node in enumerate(self.node.children):
             if not hasattr(node, 'drawer'):
                 continue
 
             drawer = node.drawer
-
             _size_my = drawer.calc_size(size_my, (_ps[0], _ps[1]), pos_my)#, debug=image_button)
 
             if drawer.calced.position == 'absolute':
@@ -1307,32 +1309,35 @@ class DrawerFlexItem(DrawerBlock):
             print('????', self.node.parent)
             raise
 
+        flex_pixels = self.node.parent.drawer.flex_point * self.calced.flex
+        margin = self.calced.margin
         if flex_vertical:
-            size_my = (size_my[0], round(self.node.parent.drawer.flex_point * self.calced.flex))
+            size_my = (size_my[0]+margin, round(flex_pixels-margin))
         else:
-            size_my = (round(self.node.parent.drawer.flex_point * self.calced.flex), size_my[1])
+            size_my = (round(flex_pixels-margin), size_my[1]+margin)
 
         size_calced = super().calc_children(pos_my, size_my)
 
         if flex_vertical:
-            return (size_calced[0], self.node.parent.drawer.flex_point * self.calced.flex)
+            return (size_calced[0]+margin, flex_pixels-margin)
         else:
-            return (self.node.parent.drawer.flex_point * self.calced.flex, size_calced[1])
+            return (flex_pixels-margin, size_calced[1]+margin)
 
     def add_node_pos_size(self, pos_my, size_calced, flex_point, flex_vertical):
+        flex_pixels = flex_point * self.calced.flex-self.calced.margin
         pos = (
-            (pos_my[0], round(pos_my[1] + flex_point * self.calced.flex))
+            (pos_my[0], round(pos_my[1] + flex_pixels))
             if flex_vertical else
-            (round(pos_my[0] + flex_point * self.calced.flex), pos_my[1])
+            (round(pos_my[0] + flex_pixels), pos_my[1])
         )
         wh = self.size_calced
 
         if flex_vertical:
             if wh[0] > size_calced[0]:
-                size_calced = (wh[0], size_calced[1])
+                size_calced = (wh[0]+self.calced.margin, size_calced[1])
         else:
             if wh[1] > size_calced[1]:
-                size_calced = (size_calced[0], wh[1])
+                size_calced = (size_calced[0], wh[1]+self.calced.margin)
 
         return pos, size_calced
 
