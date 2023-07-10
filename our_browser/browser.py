@@ -16,8 +16,8 @@ from our_browser.listview import ListviewControl, connect_listview
 
 
 def main(listview_cls=ListviewControl, html_path=None):
-    if html_path == None:
-        html_path = sys.argv[1].replace('\\', '/')
+    # if html_path == None:
+    #     html_path = sys.argv[1].replace('\\', '/')
 
     app = BrowserApp(listview_cls=listview_cls, html_path=html_path)
     app.run()

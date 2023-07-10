@@ -3,9 +3,10 @@ import sys
 from random import choice
 
 HERE = dirname(abspath(__file__))
-PROJ_PATH = dirname(dirname(HERE))
 
-sys.path.append(PROJ_PATH)
+if __name__ == '__main__':
+    PROJ_PATH = dirname(dirname(HERE))
+    sys.path.append(PROJ_PATH)
 
 from our_browser.browser import BrowserApp, document
 from our_browser.react import ReactDOM, React, obj, react
@@ -622,4 +623,5 @@ def main():
     app.run(with_prepare=False)
 
 
-main()
+if __name__=='__main__':
+    main()
