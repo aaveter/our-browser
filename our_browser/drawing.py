@@ -1,7 +1,7 @@
 from os.path import exists, abspath, dirname, join
 from our_browser.listview import draw_listview
-import cairo, math
-import threading
+import threading, math
+from our_browser.backends.bk_current import CUR_BACKEND
 
 from our_browser.draw_commons import (
     cr_set_source_rgb_any_hex, cr_set_source_rgb_any_hex_or_simple, hex2color, Scrollable, PRIOR_EVENT_HANDLERS,
@@ -410,7 +410,7 @@ class Calced:
             if image_src:
                 image_src = abspath(image_src)
             if image_src and exists(image_src):
-                image = self.image = cairo.ImageSurface.create_from_png(image_src)
+                image = self.image = CUR_BACKEND.ImageSurface__create_from_png(image_src)
         return image
 
     def calc_rect(self, node, size, width, height, margin):
@@ -608,18 +608,18 @@ class DrawerBlock(DrawerNode):
         if radius:
             roundrect(cr, rect[0], rect[1], rect[2], rect[3], radius)
         else:
-            cr.rectangle(*rect)
-        cr.fill()
+            CUR_BACKEND.DrawContext__rectangle(cr, rect) #cr__rectangle(*rect)
+        CUR_BACKEND.DrawContext__fill(cr) #cr__fill()
 
     def draw_border(self, cr, rect, nm, border_width, border_type, border_color, radius=None):
         cr_set_source_rgb_any_hex(cr, border_color)
-        cr.set_line_width(border_width)
+        CUR_BACKEND.DrawContext__set_line_width(cr, border_width) #cr__set_line_width(border_width)
         if nm == 'full':
             rect = (rect[0]+0.5, rect[1]+0.5, rect[2]-1+1, rect[3]-1+1)
             if radius:
                 roundrect(cr, rect[0], rect[1], rect[2], rect[3], radius)
             else:
-                cr.rectangle(*rect)
+                CUR_BACKEND.DrawContext__rectangle(cr, rect) #cr__rectangle(*rect)
         else:
             if nm == 'left':
                 x1, y1, x2, y2 = rect[0], rect[1], rect[0], rect[1]+rect[3]
@@ -629,9 +629,9 @@ class DrawerBlock(DrawerNode):
                 x1, y1, x2, y2 = rect[0], rect[1]+0.5, rect[0]+rect[2], rect[1]+0.5
             elif nm == 'bottom':
                 x1, y1, x2, y2 = rect[0], rect[1]+rect[3], rect[0]+rect[2], rect[1]+rect[3]
-            cr.move_to(x1, y1)
-            cr.line_to(x2, y2)
-        cr.stroke()
+            CUR_BACKEND.DrawContext__move_to(cr, x1, y1) #cr__move_to(x1, y1)
+            CUR_BACKEND.DrawContext__line_to(cr, x2, y2) #cr__line_to(x2, y2)
+        CUR_BACKEND.DrawContext__stroke(cr) #cr__stroke()
 
     def draw_lines(self, cr, lines, pos, width, font_size, font_weight, text_align, vertical_align, color):
         if not lines:
@@ -639,12 +639,11 @@ class DrawerBlock(DrawerNode):
 
         cr_set_source_rgb_any_hex_or_simple(cr, color, (0.1, 0.1, 0.1))
 
-        cr.set_font_size(font_size)
+        CUR_BACKEND.DrawContext__set_font_size(cr, font_size) #cr__set_font_size(font_size)
         ff_tmp = None
         if font_weight == 'bold':
             ff_tmp = cr.get_font_face()
-            cr.select_font_face(ff_tmp.get_family(), cairo.FONT_SLANT_NORMAL,
-                cairo.FONT_WEIGHT_BOLD)
+            CUR_BACKEND.DrawContext__set_bold(cr, ff_tmp.get_family())
         x, y = pos
         y0 = y
         if self.ability:
@@ -667,7 +666,7 @@ class DrawerBlock(DrawerNode):
         for line in lines:
             _selected_line = None
             _x = x
-            _, _, line_width, _ = cr.text_extents(line)[:4]
+            line_width = CUR_BACKEND.DrawContext__get_text_width(cr, line) #_, _, line_width, _ = cr__text_extents(line)[:4]
             if is_right_aligned:
                 _x = x + width - line_width
             elif is_center_aligned:
@@ -683,12 +682,12 @@ class DrawerBlock(DrawerNode):
                         dline = ''
                         while _x + line_width_2 < SELECT_CONTROL.start[0]:
                             dline = line[:dln]
-                            _, _, line_width_2, _ = cr.text_extents(dline)[:4]
+                            line_width_2 = CUR_BACKEND.DrawContext__get_text_width(cr, dline) #_, _, line_width_2, _ = cr__text_extents(dline)[:4]
                             if len(dline) == len(line):
                                 break
                             dln += 1
                         dline = ' '.join(dline.split(' ')[:-1]) + ' '
-                        _, _, line_width_2, _ = cr.text_extents(dline)[:4]
+                        line_width_2 = CUR_BACKEND.DrawContext__get_text_width(cr, dline) #_, _, line_width_2, _ = cr__text_extents(dline)[:4]
                         is_first_word = False
                         if dline == ' ':
                             line_width_2 = -1
@@ -697,7 +696,7 @@ class DrawerBlock(DrawerNode):
                         SELECT_CONTROL.start[0] = int(_x + line_width_2) + 1 #+ 1)
                         _word = line[len(dline):].split(' ')[0]
                         print('[ left line ]:', dline, "[ word ]:", _word)
-                        _, _, line_width_3, _ = cr.text_extents(_word)[:4]
+                        line_width_3 = CUR_BACKEND.DrawContext__get_text_width(cr, _word) #_, _, line_width_3, _ = cr__text_extents(_word)[:4]
                         if is_first_word:
                             line_width_3 += 1
                         SELECT_CONTROL.end = [SELECT_CONTROL.start[0]+line_width_3, SELECT_CONTROL.start[1]]
@@ -719,7 +718,7 @@ class DrawerBlock(DrawerNode):
                         (_start[1] < y and y_bottom < _end[1])
                     ):
                         #self.draw_background(cr, '#cccccc', (_x, y, line_width, dy))
-                        _, _, line_width_2, _ = cr.text_extents(line)[:4]
+                        line_width_2 = CUR_BACKEND.DrawContext__get_text_width(cr, line) #_, _, line_width_2, _ = cr__text_extents(line)[:4]
                         drawed = (_x, y, line_width_2, dy)
                         _selected_line = line
                     elif (y <= _start[1] <= y_bottom and y_bottom < _end[1]):
@@ -740,7 +739,7 @@ class DrawerBlock(DrawerNode):
                                 while dx_2 < dx:
                                     textWidth = dx_2
                                     dline = line[:dx_ln]
-                                    _, _, dx_2, _ = cr.text_extents(dline)[:4]
+                                    dx_2 = CUR_BACKEND.DrawContext__get_text_width(cr, dline) #_, _, dx_2, _ = cr__text_extents(dline)[:4]
                                     dx_ln += 1
                                     if len(dline) == len(line):
                                         textWidth = dx_2
@@ -748,7 +747,7 @@ class DrawerBlock(DrawerNode):
                                 _line = line[len(dline)-1:]
                                 if getattr(line, '_breaked', False):
                                     _line = StrBreaked(_line)
-                                _, _, line_width_2, _ = cr.text_extents(_line)[:4]
+                                line_width_2 = CUR_BACKEND.DrawContext__get_text_width(cr, _line) #_, _, line_width_2, _ = cr__text_extents(_line)[:4]
                                 b_color = '#ffcccc'
                                 dx_width = textWidth #dx_width = dx_ln * fw_size_w
                                 if dx_width < 0:
@@ -770,7 +769,7 @@ class DrawerBlock(DrawerNode):
                                 while dx_2 < dx:
                                     textWidth = dx_2
                                     dline = line[:dx_ln]
-                                    _, _, dx_2, _ = cr.text_extents(dline)[:4]
+                                    dx_2 = CUR_BACKEND.DrawContext__get_text_width(cr, dline) #_, _, dx_2, _ = cr__text_extents(dline)[:4]
                                     dx_ln += 1
                                     if len(dline) == len(line):
                                         textWidth = dx_2
@@ -805,13 +804,13 @@ class DrawerBlock(DrawerNode):
                                 while dx_2 < dx1:
                                     textWidth = dx_2
                                     _dline = line[:dx_ln]
-                                    _, _, dx_2, _ = cr.text_extents(_dline)[:4]
+                                    dx_2 = CUR_BACKEND.DrawContext__get_text_width(cr, _dline) #_, _, dx_2, _ = cr__text_extents(_dline)[:4]
                                     dx_ln += 1
                                     if len(_dline) == len(line):
                                         textWidth = dx_2
                                         break
                                 _line1 = line[len(_dline)-1:]
-                                _, _, line_width_2, _ = cr.text_extents(_line1)[:4]
+                                line_width_2 = CUR_BACKEND.DrawContext__get_text_width(cr, _line1) #_, _, line_width_2, _ = cr__text_extents(_line1)[:4]
                                 dx1 = textWidth
 
                         if _end[0] > x_right:
@@ -833,7 +832,7 @@ class DrawerBlock(DrawerNode):
                                 while dx_2 < dx2:
                                     textWidth = dx_2
                                     dline = _line0[:dx_ln]
-                                    _, _, dx_2, _ = cr.text_extents(dline)[:4]
+                                    dx_2 = CUR_BACKEND.DrawContext__get_text_width(cr, dline) #_, _, dx_2, _ = cr__text_extents(dline)[:4]
                                     dx_ln += 1
                                     if len(dline) == len(_line0):
                                         textWidth = dx_2
@@ -876,16 +875,16 @@ class DrawerBlock(DrawerNode):
                     if _selected_line != None:
                         _selected_lines.append(_selected_line)
 
-                cr.move_to(_x, y_bottom) #+5
-                cr.show_text(line)
+                CUR_BACKEND.DrawContext__move_to(cr, _x, y_bottom) #cr__move_to(_x, y_bottom) #+5
+                CUR_BACKEND.DrawContext__show_text(cr, line) #cr__show_text(line)
 
                 sm_i = -1
                 while True:
                     sm_i = line.find('😉', sm_i+1)
                     if sm_i < 0:
                         break
-                    image = cairo.ImageSurface.create_from_png(join(DATA_PATH, 'smile_10.png'))
-                    _, _, sm_width, _ = cr.text_extents(line[:sm_i])[:4]
+                    image = CUR_BACKEND.ImageSurface__create_from_png(join(DATA_PATH, 'smile_10.png'))
+                    sm_width = CUR_BACKEND.DrawContext__get_text_width(cr, line[:sm_i]) #_, _, sm_width, _ = cr__text_extents(line[:sm_i])[:4]
                     _smiles.append((image, (_x+sm_width, y, fw_size_w*2.3, fw_size_w*2.3)))
 
             y += font_size
@@ -1146,8 +1145,8 @@ class AbilityInput(AbilityBase, Scrollable):
         if not self.cursor_visible:
             return
         padding = self.drawer.calced.padding
-        cr.set_source_rgb(*hex2color('#000000'))
-        cr.set_line_width(1)
+        CUR_BACKEND.DrawContext__set_source_rgb(cr, hex2color('#000000')) #cr__set_source_rgb(*hex2color('#000000'))
+        CUR_BACKEND.DrawContext__set_line_width(cr, 1) #cr__set_line_width(1)
 
         fascent, fdescent, fheight, fxadvance, fyadvance = cr.font_extents()
 
@@ -1189,7 +1188,7 @@ class AbilityInput(AbilityBase, Scrollable):
                 wi = len(line)
 
                 hadd = (hi - 1) * fascent + fdescent #(fheight*0.77)
-                xoff, yoff, textWidth, textHeight = cr.text_extents(line)[:4]
+                textWidth = CUR_BACKEND.DrawContext__get_text_width(cr, line) #xoff, yoff, textWidth, textHeight = cr__text_extents(line)[:4]
                 wadd = textWidth - fdescent
 
                 x1, y1, x2, y2 = x0+wadd, y0+hadd-fdescent, x0+wadd, y0+hadd + cursor_height
@@ -1199,9 +1198,9 @@ class AbilityInput(AbilityBase, Scrollable):
                 self.cursor_pos = len(self.drawer.node.text)
 
         if y1 >= y00:
-            cr.move_to(x1+0.5, y1)
-            cr.line_to(x2+0.5, y2)
-            cr.stroke()
+            CUR_BACKEND.DrawContext__move_to(cr, x1+0.5, y1) #cr__move_to(x1+0.5, y1)
+            CUR_BACKEND.DrawContext__line_to(cr, x2+0.5, y2) #cr__line_to(x2+0.5, y2)
+            CUR_BACKEND.DrawContext__stroke(cr) #cr__stroke()
 
     def moveCursor(self, way):
         if type(way) == int:

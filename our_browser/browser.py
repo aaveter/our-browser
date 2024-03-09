@@ -2,9 +2,9 @@
 import wx
 from wx.core import SB_VERTICAL
 import wx.lib.wxcairo
-import cairo
+#import cairo
 from os.path import abspath, join, dirname
-import sys
+#import sys
 from inspect import ismethod
 from datetime import datetime
 
