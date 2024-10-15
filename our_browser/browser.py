@@ -464,7 +464,7 @@ class DrawingArea(wx.Panel):
             self.Bind(wx.EVT_MENU, self.onPopup, id=self.popupID1)
             self.popupID2 = wx.NewId()
             self.Bind(wx.EVT_MENU, self.onPopup, id=self.popupID2)
-        self._popupMenu = PopMenu(self, self.popupID1, self.popupID2)
+        self._popupMenu = PopMenu(self, self.popupID0, self.popupID1, self.popupID2)
         self._popupMenuPos = e.GetPosition()
         self.PopupMenu(self._popupMenu, e.GetPosition())
 
@@ -473,7 +473,7 @@ class DrawingArea(wx.Panel):
         menu = event.GetEventObject()
         menuItem = menu.FindItemById(itemId)
         txt = menuItem.GetItemLabel()
-        if itemId == self.popupID1:
+        if itemId == self.popupID0:
             if txt.lower() == 'copy':
                 self._do_copy()
         elif itemId == self.popupID1:
@@ -518,14 +518,13 @@ class DrawingArea(wx.Panel):
 
 class PopMenu(wx.Menu):
 
-    def __init__(self, parent, menuId, menuId2):
+    def __init__(self, parent, menuId0, menuId, menuId2):
         super(PopMenu, self).__init__()
 
         self.parent = parent
 
-        popmenu = wx.MenuItem(self, menuId, 'Copy')
+        popmenu = wx.MenuItem(self, menuId0, 'Copy')
         self.Append(popmenu)
-
         popmenu = wx.MenuItem(self, menuId, 'Hide dev' if parent.mainFrame.dev.IsShown() else 'Show dev')
         self.Append(popmenu)
         popmenu = wx.MenuItem(self, menuId2, 'Show dev on element')

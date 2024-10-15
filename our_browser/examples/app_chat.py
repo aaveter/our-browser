@@ -443,15 +443,22 @@ class SettingsPanel(React.Component):
         if self.state['show']:
             return 'grab'
 
+    def onMoving(self, event):
+        if self.state['show']:
+            return 'grab'
+
     def render(self):
         inner = ''
         if self.state['show']:
             right_inner = ''
             if self.state['create_group_show']:
-                right_inner = f'''
+                inner = right_inner = f'''
+                    <div class="height-100p width-10p pol-grey" />
                     <CreateGroupDialog onClose={obj(self.onCloseCreateGroup)} />
+                    <div class="height-100p width-10p pol-grey" />
                 '''
-            inner = f'''
+            else:
+                inner = f'''
                 <div class="height-100p width-30p orange">
                     <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={obj(self.onCloseClick)} />
                     <ImageButton src="our_browser/examples/htmls/user_black.png" />
@@ -464,12 +471,12 @@ class SettingsPanel(React.Component):
                         <div class="menu-button" onclick={obj(self.onLogoffClick)}>Log off</div>
                     </div>
                 </div>
-                <div class="height-100p width-70p pol-grey">
+                <div class="height-100p width-70p pol-grey" onclick={obj(self.onCloseClick)}>
                     {right_inner}
                 </div>
             '''
         return f'''
-            <div class="height-100p width-100p absolute left-top-0 flex-horizontal" id="settings-panel" onclick={obj(self.onClick)}>
+            <div class="height-100p width-100p absolute left-top-0 flex-horizontal" id="settings-panel" onclick={obj(self.onClick)} onmoving={obj(self.onMoving)}>
                 {inner}
             </div>
         '''
@@ -503,13 +510,14 @@ class CreateGroupDialog(React.Component):
 
     def render(self):
         return f'''
-            <div class="height-80p width-80p orange margin-10p" onclick={obj(self.onClick)}>
-                <div class="common-font">
+            <div class="height-90p width-80p orange margin-10p flex-vertical" onclick={obj(self.onClick)}>
+                <div class="height-10p pol-grey" />
+                <div class="common-padding common-font height-40">
                     Create group
                 </div>
-                <input id="group-name-input" class="common-padding common-font height-20 width-80p white valign-center" onchange={obj(self.onChangeGroup)} />
-                <input id="group-user-input" class="common-padding common-font height-20 width-80p white valign-center" onchange={obj(self.onChangeUser)} />
-                <listview class="page green" id="group-users-listview" items-count="1000">
+                <input id="group-name-input" class="common-padding common-font height-40 width-80p white valign-center" onchange={obj(self.onChangeGroup)} />
+                <input id="group-user-input" class="common-padding common-font height-40 width-80p white valign-center" onchange={obj(self.onChangeUser)} />
+                <listview class="page green flex-1" id="group-users-listview" items-count="1000">
                     <template>
                         <GroupUserItem />
                     </template>
@@ -519,6 +527,7 @@ class CreateGroupDialog(React.Component):
                     <div class="dialog-button flex-1" onclick={obj(self.onSaveClick)}>Save</div>
                     <div class="dialog-button flex-1" onclick={obj(self.onCloseHandler)}>Cancel</div>
                 </div>
+                <div class="height-10p pol-grey" />
             </div>
         '''
 
