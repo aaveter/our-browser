@@ -36,6 +36,7 @@ class Scrollable:
 
     def __init__(self) -> None:
         self.scroll_pos = 0
+        self.scroll_area_height = 0
         self.scroll_pos_y = 0
         self.scroll_started = False
         self.height = 0
@@ -82,6 +83,8 @@ class Scrollable:
         #     scroll_pan_height_d = 10
         # scroll_pan_height = scroll_pan_height_d # _sz[1] -
 
+        print('---', _ps, _sz)
+
         min_y = _ps[1] + scroll_width
         max_y = _ps[1] + _sz[1] - scroll_width - self.scroll_pan_height
 
@@ -107,11 +110,17 @@ class Scrollable:
         drawer = self.getDrawer()
         _, self.height = getattr(drawer, 'size_calced', (0, 0))
         scroll_area_height = self.calc_scroll_area_height()
+        self.scroll_area_height = scroll_area_height
 
         if type(d) == bool:
             d = 1 if d else -1
             d = 112 * d * self.height / scroll_area_height
-            #print("????", d)
+            d_d = scroll_area_height / self.height
+            print("????", d_d) # FIXME: try to smart calc pan size
+            if d_d <= 2:
+                self.scroll_pan_height = self.height / d_d
+            else:
+                self.scroll_pan_height = 50
 
         scroll_height = self.height - 40 - self.scroll_pan_height
 
