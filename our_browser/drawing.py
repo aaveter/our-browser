@@ -1397,6 +1397,27 @@ def _findNodesInPos(node, pos):
     return nodes
 
 
+def _findScrollNodesInPos(node, pos):
+    nodes = []
+
+    tag = node.tag.text if node.tag else None
+    if tag == 'template':
+        return nodes
+
+    drawer = getattr(node, 'drawer', None)
+    if drawer and drawer.checkPostIntoMe(pos):
+
+        if node.tag and node.tag.text =='listview':
+            listview = node.attrs['data_model']
+            if listview.isIntoScroll(pos):
+                nodes.append(node)
+
+    for ch in node.children:
+        nodes += _findScrollNodesInPos(ch, pos)
+
+    return nodes
+
+
 # def _findAbsolute(node, pos):
 #     absolutes = []
 

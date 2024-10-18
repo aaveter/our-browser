@@ -9,7 +9,7 @@ from inspect import ismethod
 from datetime import datetime
 
 from our_browser.ext_depends import noder_parse_file, noder_parse_text, DATA_PATH
-from our_browser.drawing import make_drawable_tree, INPUT_CONTROL, _propagateEvent, Calced, SELECT_CONTROL
+from our_browser.drawing import make_drawable_tree, INPUT_CONTROL, _propagateEvent, Calced, SELECT_CONTROL, _findScrollNodesInPos
 from our_browser.draw_commons import PRIOR_EVENT_HANDLERS, Scrollable
 from our_browser.listview import ListviewControl, connect_listview
 #from our_browser.os_help import fix_key_by_mode
@@ -268,9 +268,14 @@ class DrawingArea(wx.Panel):
     def onDown(self, event):
         SELECT_CONTROL.started = False
         SELECT_CONTROL.listview = None
-        SELECT_CONTROL.start = event.Position
-        print('[ onDown ]', len(PRIOR_EVENT_HANDLERS))
-        SELECT_CONTROL.started = True
+        listview_nodes = _findScrollNodesInPos(self.ROOT.node, event.Position)
+        print('[ onDown ]', len(PRIOR_EVENT_HANDLERS), len(listview_nodes))
+        if len(listview_nodes):
+            if listview_nodes[0] not in PRIOR_EVENT_HANDLERS:
+                PRIOR_EVENT_HANDLERS.insert(0, listview_nodes[0])
+        else:
+            SELECT_CONTROL.start = event.Position
+            SELECT_CONTROL.started = True
         for pr in PRIOR_EVENT_HANDLERS:
             if hasattr(pr, 'doEventPrior'):
                 if pr.doEventPrior(event.Position, 'ondown'):
@@ -291,6 +296,9 @@ class DrawingArea(wx.Panel):
         if SELECT_CONTROL.started:
             SELECT_CONTROL.started = False
             SELECT_CONTROL.end = event.Position
+            if SELECT_CONTROL.start != None:
+                if SELECT_CONTROL.start == SELECT_CONTROL.end:
+                    SELECT_CONTROL.start = SELECT_CONTROL.end = None
         handled = False
         print('[ onClick ]', len(PRIOR_EVENT_HANDLERS), "DBL:", SELECT_CONTROL._double_clicked)
         for pr in PRIOR_EVENT_HANDLERS:
