@@ -47,6 +47,16 @@ class Scrollable:
         scroll_width = 20
         background_color = '#eeeeee'
         self.height = height = _sz[1]
+
+        scroll_area_height = self.calc_scroll_area_height()
+        self.scroll_area_height = scroll_area_height
+
+        d_d = scroll_area_height / self.height
+        if d_d <= 2:
+            self.scroll_pan_height = self.height / d_d
+        else:
+            self.scroll_pan_height = 50
+
         area_width = _sz[0]-scroll_width
         x, y = _ps[0]+area_width, _ps[1]
         rect = (x, y, scroll_width, height)
@@ -73,15 +83,7 @@ class Scrollable:
         return (area_width, height)
 
     def draw_scroll_pos(self, cr, _ps, _sz):
-        #scroll_area_height = items_count * self.mean_h
-
-        #self.scroll_pos_y = scroll_area_height * self.scroll_pos / drawer.size_calced[1]
-
         scroll_width = 20
-        # scroll_pan_height_d = (_sz[1] - scroll_size/2 - 50) if scroll_size <= _sz[1]*2 else (_sz[1] / scroll_size) #50
-        # if scroll_pan_height_d < 5:
-        #     scroll_pan_height_d = 10
-        # scroll_pan_height = scroll_pan_height_d # _sz[1] -
 
         print('---', _ps, _sz)
 
@@ -115,12 +117,13 @@ class Scrollable:
         if type(d) == bool:
             d = 1 if d else -1
             d = 112 * d * self.height / scroll_area_height
-            d_d = scroll_area_height / self.height
-            print("????", d_d) # FIXME: try to smart calc pan size
-            if d_d <= 2:
-                self.scroll_pan_height = self.height / d_d
-            else:
-                self.scroll_pan_height = 50
+
+        d_d = scroll_area_height / self.height
+        print("????", d_d, 'scroll_area_height:', scroll_area_height) # FIXME: try to smart calc pan size
+        if d_d <= 2:
+            self.scroll_pan_height = self.height / d_d
+        else:
+            self.scroll_pan_height = 50
 
         scroll_height = self.height - 40 - self.scroll_pan_height
 
@@ -145,7 +148,7 @@ class Scrollable:
                 SELECT_CONTROL.start[1] += int(dy)
                 SELECT_CONTROL.end[1] += int(dy)
         else:
-            pass #print('>>>>>', type(SELECT_CONTROL.listview), id(SELECT_CONTROL.listview), '?', type(_node), id(_node), '=', SELECT_CONTROL.listview == _node)
+            pass
         self.scroll_pos_y = int(scroll_pos_y)
 
 
@@ -198,7 +201,7 @@ class Scrollable:
         pass #self.scroll_started = False
 
     def isIntoScroll(self, pos):
-        drawer = self.getDrawer() #self.listview.drawer
+        drawer = self.getDrawer()
         scroll_width = 20
         scroll_right = drawer.pos[0] + drawer.size_calced[0]
         scroll_left = scroll_right - scroll_width
