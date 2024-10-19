@@ -16,7 +16,7 @@
             .border-right {border-right: 1px solid #cccccc;}
             .border-top {border-top: 1px solid #cccccc;}
             .border {border_: 1px solid #cccccc;}
-            .image-26 {width: 22px; height: 22px;}
+            .image-22 {width: 22px; height: 22px;}
             .top-panel-content-margin, .common-margin {margin: 14px;}
             .common-padding {padding: 12px;}
             .common-font {font-size: 16;}
@@ -41,12 +41,12 @@
             .chat-name {font-size: 15; font-weight: bold;}
             .chat-div {width: 100%; height: 5px;}
             .chat-message {color: #777777; font-size: 13;}
-            .chat-image {width: 50px; height: 50px; border-radius: 25px; padding: 10px;}
+            .chat-image {width: 50px; height: 50px; border-radius: 25px; padding_: 14px;}
             .image-button-content-chat {margin:14px;}
             .message {padding: 5px;}
             .message-area {padding: 10px; background-color: #ffffff; max-width: 496px; border: 1px solid #cccccc; border-radius: 8px;}
             .message-time {font-size: 11; color: #999999; text-align: right; max-width: 496px; margin:5px;}
-            .image-button {height:40px; width:40px; border-radius:20px; _display: flex; align-items: center; margin:5px; padding: 5px;}
+            .image-button {height:40px; width:40px; border-radius:20px; _display: flex; align-items: center; margin:5px; padding_: 5px;}
             .image-button-content {margin:9px;}
             .button:hover {border_: 1px solid #77ff77; _background-color: #e5ddd577; background-color: #00000011;}
 
@@ -54,8 +54,8 @@
             .left-top-0 {left: 0px; top: 0px;}
             .top-100 {top: 40px;}
 
-            .menu {width: 87px; min-height: 20px; border: 1px solid #bbbbbb; border-radius: 3px;}
-            .menu-item {min-width: 100px; min-height: 10px; color: #999999; font-size: 14; padding: 5px; _background-color: #77ff77;}
+            .menu {width: 87px; min-height: 20px; border: 1px solid #bbbbbb; border-radius: 3px; padding: 5px;}
+            .menu-item {min-width: 100px; min-height: 20px; color: #999999; font-size: 14; padding: 2px; _background-color: #77ff77;}
             .menu-item:hover {color: #7777cc;}
 
             .hor-splitter {height: 100%; width: 4px; _background-color: #99999955; cursor: ew-resize; position: absolute; left: 25%;}
@@ -74,8 +74,8 @@
             .chat-active {background-color: #78db78;}
             .chat-sleep {background-color: #ffe677;}
 
-            .menu-buttons {background-color: #ffffff; width: 100%; height: 200px;}
-            .menu-button {border: 1px solid #eeeeee; border-radius: 5px; padding: 10px; margin: 2px; text-align: center;}
+            .menu-buttons {background-color: #ffffff; width: 100%; height: 200px; padding: 5px;}
+            .menu-button {border: 1px solid #eeeeee; border-radius: 5px; padding: 10px; margin_: 2px; text-align: center;}
             .menu-button:hover {background-color: #eeeeee;}
 
             .dialog-buttons {background-color: #ffffff; width: 100%; height: 20px;}
@@ -89,27 +89,7 @@
             .hidden {display: none;}
         </style>
     </head>
-    <body class="width-100p height-100p" id="body">
-        <div class="flex-horizontal height-100p" id="main">
-            <div class="flex-1 _border height-100p green" id="left-flex-1">
-                <div class="height-100p flex-vertical" id="left-flex">
-                    <LeftTopPanel />
-                    <FilterButtons />
-                    <div class="flex-1 _white _border-right common-padding common-font">
-                        <listview class="page green" id="chats-listview" items-count="1000">
-                            <template>
-                                <ChatItem />
-                            </template>
-                            <items />
-                        </listview>
-                    </div>
-                </div>
-            </div>
-            <HorSplitter />
-            <div class="flex-3 flex-vertical_ green_ height-100p" id="right-flex-3">
-                <RightPanel />
-            </div>
-            <SettingsPanel />
-        </div>
+    <body class='width-100p height-100p flex-horizontal'>
+        <div class='width-100p height-100p flex-horizontal' id='root' id2='111'></div>
     </body>
 </html>

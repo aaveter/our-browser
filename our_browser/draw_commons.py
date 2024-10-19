@@ -85,8 +85,6 @@ class Scrollable:
     def draw_scroll_pos(self, cr, _ps, _sz):
         scroll_width = 20
 
-        print('---', _ps, _sz)
-
         min_y = _ps[1] + scroll_width
         max_y = _ps[1] + _sz[1] - scroll_width - self.scroll_pan_height
 

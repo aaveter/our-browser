@@ -93,6 +93,8 @@ class Node(ReprLikeStr):
                 style_hover_full.update(self.style_hover)
                 self.style_hover_full = style_hover_full
             return self.style_hover_full
+        if not hasattr(self, 'style_simple'):
+            self.style_simple = {}
         return self.style_simple
 
     def __str__(self) -> str:

@@ -229,6 +229,7 @@ class Calced:
         vertical_align = None
         position = None
         cursor = None
+        padding = None
         if hasattr(node, 'style'):
             color = node.style.get('color', None)
             background_color = node.style.get('background-color', None)
@@ -259,6 +260,7 @@ class Calced:
 
             position = node.style.get('position', None)
             cursor = node.style.get('cursor', None)
+            padding = node.style.get('padding', padding)
 
         self.color = color
         self.background_color = background_color
@@ -284,8 +286,13 @@ class Calced:
         self.top = get_size_prop_from_node(node, 'top', size[1], 0)
         self.cursor = cursor
 
-        self.padding = padding = get_size_prop_from_node_or_parent(node, 'padding', None)
-        padding_2 = padding * 2
+        max_padding = get_size_prop_from_node_or_parent(node, 'padding', None)
+        if padding != None:
+            max_padding = padding
+        self.max_padding = max_padding if max_padding != None else 0
+        self.padding = padding if padding != None else 0
+
+        padding_2 = self.max_padding * 2
         text_width_real = text_width = size[0] - padding_2
 
         tag = node.tag.text
@@ -470,7 +477,7 @@ class DrawerBlock(DrawerNode):
         self.size_calced = size_calced if size_calced != None else size_my
 
         if self.calced.text_width_real != self.calced.text_width:
-            w_by_text = self.calced.text_width_real + self.calced.padding * 2
+            w_by_text = self.calced.text_width_real + self.calced.max_padding * 2
             if w_by_text > self.size_calced[0]:
                 self.size_calced = (w_by_text, self.size_calced[1])
 
@@ -478,8 +485,12 @@ class DrawerBlock(DrawerNode):
 
     def calc_children(self, pos_my, size_my):
 
-        _ps = (pos_my[0], pos_my[1])
-        size_calced = (size_my[0], size_my[1])
+        padding = self.calced.padding
+        padding_2 = padding*2
+        _ps0 = (pos_my[0]+padding, pos_my[1]+padding)
+        _ps = (pos_my[0]+padding, pos_my[1]+padding)
+        size_calced = (size_my[0]-padding_2, size_my[1]-padding_2)
+        w0 = size_my[0]
 
         _size_calced = size_calced
         for node in self.node.children:
@@ -493,7 +504,7 @@ class DrawerBlock(DrawerNode):
             if drawer.calced.position == 'absolute':
                 continue
 
-            _ps, _size_calced = self.add_subnode_pos_size(node, _ps, _size_calced, self.calced.margin)
+            _ps, _size_calced = self.add_subnode_pos_size(node, _ps, _size_calced, 0)#self.calced.padding)#margin)
 
         parent_drawer = getattr(self.node.parent, 'drawer', None)
         if parent_drawer and getattr(parent_drawer.calced, 'display', None) == 'flex':
@@ -501,9 +512,12 @@ class DrawerBlock(DrawerNode):
         else:
             size_calced = _size_calced
 
-        h = _ps[1] - pos_my[1]
+        h = _ps[1] - _ps0[1]
         if h > size_calced[1]:
             size_calced = (size_calced[0], h)
+        size_calced = (size_calced[0]+padding_2, size_calced[1]+padding_2)
+        if size_calced[0] > w0:
+            size_calced = (w0, size_calced[1])
 
         return size_calced
 
@@ -579,7 +593,7 @@ class DrawerBlock(DrawerNode):
                 if bd:
                     self.draw_border(cr, rect, nm, bd[0], bd[1], bd[2])
 
-            padding = self.calced.padding
+            padding = self.calced.max_padding
             self.draw_lines(cr, self.node.lines, (ps[0]+padding, ps[1]+padding), size_calced[0]-padding*2,
                 font_size, font_weight, self.calced.text_align, self.calced.vertical_align, color)
 
@@ -658,7 +672,7 @@ class DrawerBlock(DrawerNode):
         is_vert_middle_aligned = vertical_align in ('middle', 'center')
         if is_vert_middle_aligned:
             #print(":::::", "y:", y, "size:", self.size_calced[1], "dy:", dy)
-            y0 = y = y + (self.size_calced[1] / 2.0) - dy/2 - self.calced.padding
+            y0 = y = y + (self.size_calced[1] / 2.0) - dy/2 - self.calced.max_padding
 
         _smiles = []
         fw_size_w = self.calced.calc_font_size_w(font_size)
@@ -1144,7 +1158,7 @@ class AbilityInput(AbilityBase, Scrollable):
 
         if not self.cursor_visible:
             return
-        padding = self.drawer.calced.padding
+        padding = self.drawer.calced.max_padding
         CUR_BACKEND.DrawContext__set_source_rgb(cr, hex2color('#000000')) #cr__set_source_rgb(*hex2color('#000000'))
         CUR_BACKEND.DrawContext__set_line_width(cr, 1) #cr__set_line_width(1)
 
@@ -1156,7 +1170,7 @@ class AbilityInput(AbilityBase, Scrollable):
         is_vert_middle_aligned = self.drawer.calced.vertical_align in ('middle', 'center')
         if is_vert_middle_aligned:
             dy = fheight*0.82
-            y0 = y0 + (self.drawer.size_calced[1] / 2.0) - dy/2 - self.drawer.calced.padding
+            y0 = y0 + (self.drawer.size_calced[1] / 2.0) - dy/2 - self.drawer.calced.max_padding
 
         cursor_height = fheight #14 #20
         x1, y1, x2, y2 = x0, y0, x0, y0 + cursor_height + fdescent

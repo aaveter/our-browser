@@ -13,14 +13,14 @@ from our_browser.react import ReactDOM, React, obj, react
 from our_browser.listview import ItemBase
 
 
-HTML_SRC = open(join(HERE, 'htmls', 'chat.html'), encoding='utf-8').read()
-HTML_LST = HTML_SRC.split('<body')
-HTML_START = HTML_LST[0]
-HTML_END = "<body class='width-100p height-100p flex-horizontal'><div class='width-100p height-100p flex-horizontal' id='root' id2='111'></div></body></html>"
-HTML_TEXT = HTML_START + HTML_END
-HTML_INNER = '>'.join(HTML_LST[1].split('>')[1:]).split('</body')[0].strip()
-# print(HTML_TEXT)
-# raise Exception(1)
+HTML_TEXT = HTML_SRC = open(join(HERE, 'htmls', 'chat.html'), encoding='utf-8').read()
+# HTML_LST = HTML_SRC.split('<body')
+# HTML_START = HTML_LST[0]
+# HTML_END = "<body class='width-100p height-100p flex-horizontal'><div class='width-100p height-100p flex-horizontal' id='root' id2='111'></div></body></html>"
+# HTML_TEXT = HTML_START + HTML_END
+# HTML_INNER = '>'.join(HTML_LST[1].split('>')[1:]).split('</body')[0].strip()
+# # print(HTML_TEXT)
+# # raise Exception(1)
 
 MESSAGES = [
     {
@@ -86,7 +86,27 @@ CHATS_ALL = CHATS[:]
 class App(React.Component):
 
     def render(self):
-        return HTML_INNER
+        return '''<div class="flex-horizontal height-100p" id="main">
+            <div class="flex-1 _border height-100p green" id="left-flex-1">
+                <div class="height-100p flex-vertical" id="left-flex">
+                    <LeftTopPanel />
+                    <FilterButtons />
+                    <div class="flex-1 _white _border-right common-padding_ common-font">
+                        <listview class="page green common-padding" id="chats-listview" items-count="1000">
+                            <template>
+                                <ChatItem />
+                            </template>
+                            <items />
+                        </listview>
+                    </div>
+                </div>
+            </div>
+            <HorSplitter />
+            <div class="flex-3 flex-vertical_ green_ height-100p" id="right-flex-3">
+                <RightPanel />
+            </div>
+            <SettingsPanel />
+        </div>'''
 
 
 from threading import Timer
@@ -204,13 +224,13 @@ class RightPanel(React.Component):
         if self.state['page'] == 'chat':
             _page_inner = f'''
                 <div class="top-panel-height orange flex-horizontal flex-align-center">
-                    <image class="image-26 top-panel-content-margin" src="our_browser/examples/htmls/user_black.png" />
+                    <image class="image-22 top-panel-content-margin" src="our_browser/examples/htmls/user_black.png" />
                     <div class="flex-1 top-panel-content-font">{self.state['chat-name']}</div>
                     <ChatMenuButton />
                     <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={obj(self.onCloseClick)} />
                 </div>
-                <div class="flex-1 white_ common-padding common-font">
-                    <listview class="page green2" id="messages-listview" data-items={obj(self.initItems)} >
+                <div class="flex-1 white_ common-padding_ common-font">
+                    <listview class="page green2 common-padding" id="messages-listview" data-items={obj(self.initItems)} >
                         <template>
                             <MessageItem />
                         </template>
@@ -220,7 +240,7 @@ class RightPanel(React.Component):
                 <div class="height-100 border-top flex-horizontal flex-align-center">
                     <input class="flex-1 common-padding common-font height-100" />
                     <SendButton>
-                        <image class="image-26 top-panel-content-margin button" src="our_browser/examples/htmls/send.png" />
+                        <image class="image-22 top-panel-content-margin button" src="our_browser/examples/htmls/send.png" />
                     </SendButton>
                     <ImageButton src="our_browser/examples/htmls/dropfile.png" />
                 </div>
@@ -331,7 +351,7 @@ class SendButton(React.Component):
         #     self.state['messages'] = self.appendMessage()
         return f'''
             <div class="image-button button" onclick={obj(self.onClick)} >
-                <image class="image-26 image-button-content" src="our_browser/examples/htmls/send.png" />
+                <image class="image-22 image-button-content" src="our_browser/examples/htmls/send.png" />
             </div>
         '''
 
@@ -350,7 +370,7 @@ class ImageButton(React.Component):
             add = f'onclick={obj(onClickHandler)}'
         return f'''
             <div class="{self.className}" {add}>
-                <image class="image-26 image-button-content" src="{self.src}" />
+                <image class="image-22 image-button-content" src="{self.src}" />
                 {inner}
             </div>
         '''
@@ -407,7 +427,7 @@ class SearchButton(React.Component):
     def render(self):
         return f'''
             <div class="image-button button" onclick={obj(self.onClickHandler)} >
-                <image class="image-26 image-button-content" src="{self.src}" />
+                <image class="image-22 image-button-content" src="{self.src}" />
             </div>
         '''
 
@@ -461,9 +481,11 @@ class SettingsPanel(React.Component):
                 inner = f'''
                 <div class="height-100p width-30p orange">
                     <ImageButton src="our_browser/examples/htmls/cancel.png" onClick={obj(self.onCloseClick)} />
-                    <ImageButton src="our_browser/examples/htmls/user_black.png" />
-                    <div class="common-font">
-                        User name
+                    <div class="flex-horizontal common-padding height-60">
+                        <ImageButton src="our_browser/examples/htmls/user_black.png" />
+                        <div class="flex-1 common-font valign-center height-50">
+                            User name
+                        </div>
                     </div>
                     <div class="menu-buttons">
                         <div class="menu-button" onclick={obj(self.onCreateGroupClick)}>Create group</div>
@@ -541,7 +563,7 @@ class GroupUserItem(React.Component):
         return f'''
             <item class='item yellow flex-horizontal flex-align-center chat chat-selected-' onclick={obj(self.onClick)} >
                 <div class="image-button button margin-10 chat-image" >
-                    <image class="image-26 image-button-content-chat" src="our_browser/examples/htmls/user_black.png" />
+                    <image class="image-22 image-button-content-chat" src="our_browser/examples/htmls/user_black.png" />
                     {add}
                 </div>
                 <div class="flex-1 height-100p">
@@ -575,7 +597,7 @@ class ChatItem(React.Component):
         return f'''
             <item class='item yellow flex-horizontal flex-align-center chat chat-selected-[[ item.is_selected() ]]' onclick={obj(self.onClick)} >
                 <div class="image-button button [[ item.color ]] margin-10 chat-image" >
-                    <image class="image-26 image-button-content-chat" src="our_browser/examples/htmls/user_black.png" />
+                    <image class="image-22 image-button-content-chat" src="our_browser/examples/htmls/user_black.png" />
                     {add}
                 </div>
                 <div class="flex-1 height-100p">
@@ -604,7 +626,7 @@ class MessageItem(React.Component):
         return f'''
             <item class='item message flex-horizontal'>
                 <div class="image-button button color-1" >
-                    <image class="image-26 image-button-content" src="our_browser/examples/htmls/user_black.png" />
+                    <image class="image-22 image-button-content" src="our_browser/examples/htmls/user_black.png" />
                 </div>
                 <div class="flex-1 common-font">
                     <b>[[ item.sender ]]</b>
