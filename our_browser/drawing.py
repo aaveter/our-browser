@@ -89,6 +89,16 @@ class Event:
         pass
 
 
+def has_result(res, name):
+    if not res:
+        return False
+    if res == name:
+        return True
+    if type(res) == tuple and name in res:
+        return True
+    return False
+
+
 def make_drawable_tree(parent, drawer=None, with_html=False):
 
     _drawer = None
@@ -952,10 +962,12 @@ class DrawerBlock(DrawerNode):
                 _event.node = self.node
                 _ev_ret = ev(_event)
                 if _ev_ret:
-                    if _ev_ret == 'prior':
-                        PRIOR_EVENT_HANDLERS.insert(0, self)
-                    elif _ev_ret == 'out_prior':
-                        PRIOR_EVENT_HANDLERS.remove(self)
+                    if has_result(_ev_ret, 'prior'):
+                        if self not in PRIOR_EVENT_HANDLERS:
+                            PRIOR_EVENT_HANDLERS.insert(0, self)
+                    elif has_result(_ev_ret, 'out_prior'):
+                        while self in PRIOR_EVENT_HANDLERS:
+                            PRIOR_EVENT_HANDLERS.remove(self)
                     changed = _ev_ret # return True
 
             if self.node.tag and self.node.tag.text =='listview':
@@ -1359,7 +1371,7 @@ def _propagateEvent(root_node, pos, event_name):
     for node in nodes[::-1]:
         ret = _propagateEventDo(node, pos, event_name)
         #print('propagate', id(node), node.tag.text, '->', ret, '=', ret == 'grab')
-        if ret == 'grab':
+        if has_result(ret, 'grab'):
             return ret
         changed = changed or ret
     return _propagateEventDo(root_node, pos, event_name) or changed

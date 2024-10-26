@@ -273,7 +273,7 @@ class HorSplitter(React.Component):
     def onDownHandler(self, event):
         self.started_left = self.node.drawer.pos[0]
         self.started = event.pos
-        return 'prior'
+        return ('prior', 'grab')
 
     def onMovingHandler(self, event):
         if self.started != None:
@@ -284,12 +284,12 @@ class HorSplitter(React.Component):
             right_panel = document.getElementById('right-flex-3')
             left_panel.flex = new_proc
             right_panel.flex = 100.0 - new_proc
-            return True
+            return 'grab'
 
     def onClickHandler(self, event):
         if self.started != None:
             self.started = None
-            return 'out_prior'
+            return ('out_prior', 'grab')
 
     def render(self):
         return f'''

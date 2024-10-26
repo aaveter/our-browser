@@ -9,7 +9,7 @@ from inspect import ismethod
 from datetime import datetime
 
 from our_browser.ext_depends import noder_parse_file, noder_parse_text, DATA_PATH
-from our_browser.drawing import make_drawable_tree, INPUT_CONTROL, _propagateEvent, Calced, SELECT_CONTROL, _findScrollNodesInPos
+from our_browser.drawing import make_drawable_tree, INPUT_CONTROL, _propagateEvent, Calced, SELECT_CONTROL, _findScrollNodesInPos, has_result
 from our_browser.draw_commons import PRIOR_EVENT_HANDLERS, Scrollable
 from our_browser.listview import ListviewControl, connect_listview
 #from our_browser.os_help import fix_key_by_mode
@@ -270,35 +270,39 @@ class DrawingArea(wx.Panel):
         SELECT_CONTROL.listview = None
         listview_nodes = _findScrollNodesInPos(self.ROOT.node, event.Position)
         print('[ onDown ]', len(PRIOR_EVENT_HANDLERS), len(listview_nodes))
+        started_select = False
         if len(listview_nodes):
             if listview_nodes[0] not in PRIOR_EVENT_HANDLERS:
                 PRIOR_EVENT_HANDLERS.insert(0, listview_nodes[0])
         else:
+            started_select = True
             SELECT_CONTROL.start = event.Position
             SELECT_CONTROL.started = True
+        handled = False
         for pr in PRIOR_EVENT_HANDLERS:
             if hasattr(pr, 'doEventPrior'):
-                if pr.doEventPrior(event.Position, 'ondown'):
-                    return
+                handled = pr.doEventPrior(event.Position, 'ondown')
+                if handled:
+                    break
             elif hasattr(pr, 'propagateEvent'):
-                if pr.propagateEvent(event.Position, 'ondown'):
-                    return
-        if _propagateEvent(self.ROOT.node, event.Position, 'ondown'):
-            return
-        if SELECT_CONTROL.started:
-            SELECT_CONTROL.end = event.Position
+                handled = pr.propagateEvent(event.Position, 'ondown')
+                if handled:
+                    break
+        if not handled:
+            handled = _propagateEvent(self.ROOT.node, event.Position, 'ondown')
+        if handled:
+            if has_result(handled, 'grab') and started_select:
+                SELECT_CONTROL.started = False
+                SELECT_CONTROL.start = None
+        else:
+            if SELECT_CONTROL.started:
+                SELECT_CONTROL.end = event.Position
         #SELECT_CONTROL.started = True
 
     def onDbClick(self, event):
         SELECT_CONTROL._double_clicked = True
 
     def onClick(self, event):
-        if SELECT_CONTROL.started:
-            SELECT_CONTROL.started = False
-            SELECT_CONTROL.end = event.Position
-            if SELECT_CONTROL.start != None:
-                if SELECT_CONTROL.start == SELECT_CONTROL.end:
-                    SELECT_CONTROL.start = SELECT_CONTROL.end = None
         handled = False
         print('[ onClick ]', len(PRIOR_EVENT_HANDLERS), "DBL:", SELECT_CONTROL._double_clicked)
         for pr in PRIOR_EVENT_HANDLERS:
@@ -310,6 +314,13 @@ class DrawingArea(wx.Panel):
                 handled = pr.propagateEvent(event.Position, 'onclick')
                 if handled:
                     break
+        if not has_result(handled, 'grab'):
+            if SELECT_CONTROL.started:
+                SELECT_CONTROL.started = False
+                SELECT_CONTROL.end = event.Position
+                if SELECT_CONTROL.start != None:
+                    if SELECT_CONTROL.start == SELECT_CONTROL.end:
+                        SELECT_CONTROL.start = SELECT_CONTROL.end = None
         if not handled and not _propagateEvent(self.ROOT.node, event.Position, 'onclick'):
             INPUT_CONTROL.set_focus(None)
         self.Refresh()
@@ -330,8 +341,9 @@ class DrawingArea(wx.Panel):
             print('handled onMoving...')
         if not handled and _propagateEvent(self.ROOT.node, event.Position, 'onmoving'):
             handled = True
-        if SELECT_CONTROL.started:
-            SELECT_CONTROL.end = event.Position
+        if not has_result(handled, 'grab'):
+            if SELECT_CONTROL.started:
+                SELECT_CONTROL.end = event.Position
         if not handled:
             if SELECT_CONTROL.started:
                 SELECT_CONTROL.end = event.Position
