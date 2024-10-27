@@ -157,6 +157,8 @@ def draw_listview(drawer, listview, cr, absolutes=False):
         _data_items = listview.listview.attrs.get('data-items', None)
         if callable(_data_items):
             listview.items = _data_items()
+        _data_items = listview.items
+        #print('...._data_items:', len(_data_items) if _data_items else '-')
 
         _items_count = listview.getItemsCount()
 
@@ -165,11 +167,11 @@ def draw_listview(drawer, listview, cr, absolutes=False):
 
         t_drawer = t_drawer_0 = template.drawer
 
-        scroll_area_height = listview.calc_scroll_area_height()
-
         _ps = lv_pos = getattr(drawer, 'pos', (0, 0))
         _sz = lv_size = getattr(drawer, 'size_calced', (0, 0))
 
+        scroll_area_height = listview.calc_scroll_area_height()
+        #print('[ mean_h ] {} (1)'.format(listview.mean_h))
         need_scroll = scroll_area_height > _sz[1]
         if need_scroll:
             _sz = lv_size = listview.draw_scroll(cr, _ps, _sz)
@@ -195,9 +197,17 @@ def draw_listview(drawer, listview, cr, absolutes=False):
         k = 0
         for i in range(_items_count):
             _sz = (item_w, _sz[1])
+            _data_item = _data_items[i] if _data_items else None
 
             bottom = _ps[1] + _sz[1]
             if bottom < lv_top:
+                if hasattr(_data_item, '_size_calced'):
+                    t_drawer.size_calced = (t_drawer.size_calced[0], _data_item._size_calced[1])
+                    #_sz = _data_item._sz
+                    hh.append(_data_item._size_calced[1]+(_data_item._margin*2))
+                else:
+                    t_drawer.size_calced = (t_drawer.size_calced[0], listview.mean_h)
+                    hh.append(t_drawer.size_calced[1]+(t_drawer.calced.margin*2))
                 _ps, _sz = t_drawer.add_subnode_pos_size(template, _ps, _sz, margin=t_drawer.calced.margin)
                 #hh.append(_sz[1])
                 continue
@@ -223,17 +233,29 @@ def draw_listview(drawer, listview, cr, absolutes=False):
             _sz = t_drawer.calc_size(_sz, (_ps[0], _ps[1]), _ps0)
 
             _ps, _sz = t_drawer.add_subnode_pos_size(template, _ps, _sz, margin=t_drawer.calced.margin)
-            hh.append(_sz[1])
+
+            if _data_item:
+                #_data_item._sz = _sz
+                _data_item._size_calced = t_drawer.size_calced
+                _data_item._margin = t_drawer.calced.margin
+
+            hh.append(t_drawer.size_calced[1]+(t_drawer.calced.margin*2))
 
             t_drawer.draw(temp_cr, absolutes=absolutes)
 
             k += 1
 
             if _ps[1] > lv_bottom:
+                if _data_items:
+                    r_items = _data_items[i+1:]
+                    if len(r_items) > 0:
+                        #hh += [listview.mean_h] * len(r_items)
+                        for r_item in r_items:
+                            hh.append(_data_item._size_calced[1]+(_data_item._margin*2))
                 break
 
         listview.mean_h = statistics.mean(hh) if len(hh) else listview.mean_h
-        #print('[ mean_h ] {}'.format(listview.mean_h))
+        #print('[ mean_h ] {} (2)'.format(listview.mean_h))
 
         cr.set_source_surface(temp_surface, 0, 0) #, lv_pos[0], lv_pos[1])
         cr.rectangle(lv_pos[0], lv_pos[1], lv_size[0], lv_size[1])
