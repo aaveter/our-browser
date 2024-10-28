@@ -61,8 +61,11 @@ class ListviewControl(Scrollable):
                         continue
                     a, b = part.split(_spl_2)
                     a = a.strip()
-                    if a == 'counter':
-                        a = counter
+                    if 'counter' in a:
+                        if a == 'counter':
+                            a = counter
+                        else:
+                            a = str(eval(a.replace('counter', str(counter))))
                     elif a.startswith('item.'):
                         #a = str(getattr(item, a[5:], 'None'))
                         attr_name = a[5:]
@@ -228,7 +231,8 @@ def draw_listview(drawer, listview, cr, absolutes=False):
             t_drawer = template.drawer
 
             listview.format_template(i, template, texts)
-            template.app._connect_styles(template)
+            if hasattr(template, 'app'):
+                template.app._connect_styles(template)
 
             _sz = t_drawer.calc_size(_sz, (_ps[0], _ps[1]), _ps0)
 

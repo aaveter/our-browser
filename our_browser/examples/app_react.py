@@ -16,10 +16,12 @@ HTML_TEXT = """<html>
     div {min-height: 20; margin: 5;}
     h1 {height: 30; margin: 10;}
     h2 {height: 25; margin: 8;}
-    p {height: 15; margin: 5;}
+    p {height: 15; margin: 5; padding: 20;}
     a {height: 15; margin: 3;}
     button {height: 30; margin: 10; max-width: 500;}
-    .red {background-color:#ff5555; color: #ffffff;}
+    .red {background-color:#ff5555; color: #ffffff;
+        box-shadow: 0 20px 100px rgba(150, 150, 150, 0.8);
+    }
     .blue {background-color: #5555ff;}
     .green {background-color: #55cc55;}
     .yellow {background-color: #ffe4c4;}
@@ -47,7 +49,7 @@ class App(React.Component):
             'count': props['count']
         }
 
-    def onClick(self):
+    def onClick(self, ev):
         print('>>>>>>>>> COMPONENT click:', id(self))
         self.setState({
             'count': int(self.state['count']) + 1
@@ -63,13 +65,9 @@ class App(React.Component):
 def main():
     app = BrowserApp(html_text=HTML_TEXT)
 
-    root = app.ROOT_NODE.getElementById("root")
-
     ReactDOM.render("""
         <App count=2 />
-    """, root)
-
-    root.app = app
+    """, app.root)
     
     app.run()
 

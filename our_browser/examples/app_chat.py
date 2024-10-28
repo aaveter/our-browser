@@ -639,12 +639,9 @@ class MessageItem(React.Component):
 def main():
     app = BrowserApp(html_text=HTML_TEXT)
 
-    root = document.getElementById("root")
-    root.app = app
-
     ReactDOM.render("""
         <App count=2 />
-    """, root)
+    """, app.root)
 
     app.prepare_run()
 

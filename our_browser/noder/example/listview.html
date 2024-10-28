@@ -18,7 +18,7 @@
                 /*display: flex; flex-direction: column;*/
             }
             .page {
-                height: 50%;
+                height: 80%;
             }
             .page-content {
                 margin: 10px;
@@ -33,16 +33,13 @@
     </head>
     <body>
         <div class='yellow'><h1>Hello, Listview!</h1></div>
-        <listview class="page green">
+        <listview class="page green" items-count="10000">
             <template>
                 <item class='item yellow'>
-                    item {{ counter }}
+                    item {{ counter+1 }}
                 </item>
             </template>
             <items>
-                <item class='item yellow'>
-                    item
-                </item>
             </items>
         </listview>
     </body>

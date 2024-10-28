@@ -53,6 +53,11 @@ class BrowserApp:
         app.set_object(self)
         document.set_object(self.ROOT_NODE)
 
+        root = document.getElementById("root")
+        if root:
+            root.app = self
+            self.root = root
+
     def update_drawers(self):
         self.frame.mainPanel.ROOT = make_drawable_tree(self.ROOT_NODE)
         self.frame.mainPanel.ROOT.ROOT_NODE = self.ROOT_NODE

@@ -240,6 +240,7 @@ class Calced:
         position = None
         cursor = None
         padding = None
+        box_shadow = None
         if hasattr(node, 'style'):
             color = node.style.get('color', None)
             background_color = node.style.get('background-color', None)
@@ -272,6 +273,8 @@ class Calced:
             cursor = node.style.get('cursor', None)
             padding = node.style.get('padding', padding)
 
+            box_shadow = node.style.get('box-shadow', None)
+
         self.color = color
         self.background_color = background_color
         self.border_radius = border_radius
@@ -282,6 +285,8 @@ class Calced:
         self.border_right = border_right
         self.border_top = border_top
         self.border_bottom = border_bottom
+
+        self.box_shadow = box_shadow
 
         self.display = display
         self.flex = flex
@@ -590,6 +595,9 @@ class DrawerBlock(DrawerNode):
         is_absolute = self.calced.position == 'absolute'
         if not absolutes or is_absolute:
 
+            if self.calced.box_shadow:
+                self.draw_box_shadow(cr, self.calced.box_shadow, background_color, rect, radius=border_radius)
+
             if background_color:
                 self.draw_background(cr, background_color, rect, radius=border_radius)
 
@@ -656,6 +664,27 @@ class DrawerBlock(DrawerNode):
             CUR_BACKEND.DrawContext__move_to(cr, x1, y1) #cr__move_to(x1, y1)
             CUR_BACKEND.DrawContext__line_to(cr, x2, y2) #cr__line_to(x2, y2)
         CUR_BACKEND.DrawContext__stroke(cr) #cr__stroke()
+
+    def draw_box_shadow(self, cr, box_shadow, background_color, rect, radius=0):
+        rect = (rect[0], rect[1], rect[2]+1-1, rect[3]+1-1)
+        cr_set_source_rgb_any_hex(cr, background_color)
+
+        shadow_offset_x = 1
+        shadow_offset_y = 1
+        shadow_color = (150/255, 150/255, 150/255, 0.1)  # rgba(150, 150, 150, 0.8)
+
+        for i in range(5):
+            shadow_offset_x += 3.14
+            shadow_offset_y += 3.14
+            cr.set_source_rgba(*shadow_color)
+            if radius:
+                roundrect(cr, rect[0]+shadow_offset_x, rect[1]+shadow_offset_y, rect[2], rect[3], radius)
+            else:
+                CUR_BACKEND.DrawContext__rectangle(cr, (rect[0]+shadow_offset_x, rect[1]+shadow_offset_y, rect[2], rect[3])) #cr__rectangle(*rect)
+            cr.fill_preserve()
+            cr.set_source_rgba(1, 1, 1, 0)
+            cr.fill()
+            #radius += 3.14
 
     def draw_lines(self, cr, lines, pos, width, font_size, font_weight, text_align, vertical_align, color):
         if not lines:
